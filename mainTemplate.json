@@ -1,0 +1,483 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Region in which the resource group and components will be deployed"
+            }
+        },
+        "artifactsLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "The base URI where artifacts required by this template are located including a trailing '/'"
+            },
+            "defaultValue": "[deployment().properties.templateLink.uri]"
+        },
+        "artifactsLocationSasToken": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The sasToken required to access artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
+            },
+            "defaultValue": ""
+        },
+        "clusterPrefix": {
+            "type": "string",
+            "defaultValue": "mfes",
+            "minLength": 4,
+            "maxLength": 20,
+            "metadata": {
+                "description": "Cluster prefix. Used to generate cluster hostnames. Maximum of 20 characters."
+            }
+        },
+        "virtualNetworkNewOrExisting": {
+            "type": "string",
+            "defaultValue": "new",
+            "allowedValues": ["new", "existing"],
+            "metadata": {
+                "description": "Determines whether to provision a new virtual network or use an existing virtual network"
+            }
+        },
+        "virtualNetworkResourceGroupName": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().name]",
+            "metadata": {
+                "description": "Name of the resource group for the new virtual network"
+            }
+        },
+        "virtualNetworkName": {
+            "type": "string",
+            "defaultValue": "mfesvnet",
+            "metadata": {
+                "description": "Name of the new virtual network"
+            }
+        },
+        "addressPrefixes": {
+            "type": "string",
+            "defaultValue": "10.0.0.0/16",
+            "metadata": {
+                "description": "Address prefix of the new virtual network"
+            }
+        },
+        "publicSubnet1Name": {
+            "type": "string",
+            "defaultValue": "publicsubnet1",
+            "metadata": {
+                "description": "Name of the first public subnet"
+            }
+        },
+        "publicSubnet1Prefix": {
+            "type": "string",
+            "defaultValue": "10.0.128.0/20",
+            "metadata": {
+                "description": "CIDR used for the first public subnet - needs to be a subset of the addressPrefix"
+            }
+        },
+        "publicSubnet2Name": {
+            "type": "string",
+            "defaultValue": "publicsubnet2",
+            "metadata": {
+                "description": "Name of the second public subnet"
+            }
+        },
+        "publicSubnet2Prefix": {
+            "type": "string",
+            "defaultValue": "10.0.144.0/20",
+            "metadata": {
+                "description": "CIDR used for the second public subnet - needs to be a subset of the addressPrefix"
+            }
+        },
+        "privateSubnet1Name": {
+            "type": "string",
+            "defaultValue": "privatesubnet1",
+            "metadata": {
+                "description": "Name of the first private subnet"
+            }
+        },
+        "privateSubnet1Prefix": {
+            "type": "string",
+            "defaultValue": "10.0.0.0/19",
+            "metadata": {
+                "description": "CIDR used for the first private subnet - needs to be a subset of the addressPrefix"
+            }
+        },
+        "privateSubnet2Name": {
+            "type": "string",
+            "defaultValue": "privatesubnet2",
+            "metadata": {
+                "description": "Name of the second private subnet"
+            }
+        },
+        "privateSubnet2Prefix": {
+            "type": "string",
+            "defaultValue": "10.0.32.0/19",
+            "metadata": {
+                "description": "CIDR used for the second private subnet - needs to be a subset of the addressPrefix"
+            }
+        },
+        "existingPublicSubnet1Reference": {
+            "type": "string",
+            "metadata": {
+                "description": "Full reference to existing subnet for first public subnet"
+            }
+        },
+        "existingPublicSubnet2Reference": {
+            "type": "string",
+            "metadata": {
+                "description": "Full reference to existing subnet for second public subnet"
+            }
+        },
+        "existingPrivateSubnet1Reference": {
+            "type": "string",
+            "metadata": {
+                "description": "Full reference to existing subnet for first private subnet"
+            }
+        },
+        "existingPrivateSubnet2Reference": {
+            "type": "string",
+            "metadata": {
+                "description": "Full reference to existing subnet for second private subnet"
+            }
+        },
+        "esInstanceCount": {
+            "type": "int",
+            "defaultValue": 1,
+            "allowedValues": [1, 2],
+            "metadata": {
+                "description": "Number of Enterprise Sever hosting nodes"
+            }
+        },
+        "esInstanceSize": {
+            "type": "string",
+            "defaultValue": "Standard_DS2_v2",
+            "metadata": {
+                "description": "VM size for ES nodes"
+            }
+        },
+        "esDataDiskSize": {
+            "type": "int",
+            "defaultValue": 32,
+            "metadata": {
+                "description": "Size of Datadisk in GB for ES hosting VMs."
+            }
+        },
+        "esAdminUserName": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "Administrator username on ES VM."
+            }
+        },
+        "esAdminPassword": {
+            "type": "securestring",
+            "minLength": 5,
+            "metadata": {
+                "description": "Password for ES administrator user."
+            }
+        },
+        "rdgInstanceCount": {
+            "type": "int",
+            "defaultValue": 1,
+            "allowedValues": [0, 1, 2, 3, 4],
+            "metadata": {
+                "description": "Number of Remote Desktop Gateway nodes"
+            }
+        },
+        "rdgInstanceSize": {
+            "type": "string",
+            "defaultValue": "Standard_DS2_v2",
+            "metadata": {
+                "description": "VM size for RDG nodes"
+            }
+        }
+    },
+    "variables": {
+        "apiVersionCompute": "2018-06-01",
+        "apiVersionNetwork": "2018-06-01",
+        "apiVersionStorage": "2018-07-01",
+        "apiVersionLinkTemplate": "2015-01-01",
+        "clusterPrefixLower": "[toLower(parameters('clusterPrefix'))]",
+        "rdgHostname": "[concat(variables('clusterPrefixLower'), '-rdg')]",
+        "esHostname": "[concat(variables('clusterPrefixLower'), '-es')]",
+        "fsHostname": "[concat(variables('clusterPrefixLower'), '-fs')]",
+        "rdgPublicIp": "rdgpublicip",
+        "rdgPublicIpDnsLabel": "[concat('rdgdns', uniqueString(resourceGroup().id))]",
+        "diagStorageAccount": "[concat(variables('clusterPrefixLower'), uniqueString(concat(resourceGroup().id, 'dsa')))]",
+        "rdgDeploymentTemplateUrl": "[uri(parameters('artifactsLocation'), concat('/templates/rdgDeploy.json', parameters('artifactsLocationSasToken')))]",
+        "esDeploymentTemplateUrl": "[uri(parameters('artifactsLocation'), concat('/templates/esDeploy.json', parameters('artifactsLocationSasToken')))]"
+    },
+    "resources": [
+        {
+            "name": "pid-4bbf00ee-1d9f-4a6e-9b8e-5d81fcd10ffc",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2018-02-01",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": []
+                }
+            }
+        },
+        {
+            "apiVersion": "[variables('apiVersionNetwork')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[concat(variables('rdgHostname'), '-nsg')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "RDP",
+                        "properties": {
+                            "description": "Allow RDP traffic from all locations",
+                            "priority": 300,
+                            "protocol": "Tcp",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "3389"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "[variables('apiVersionNetwork')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[concat(variables('esHostname'), '-nsg')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "securityRules": [{
+                    "name": "allowHTTPS_all",
+                    "properties": {
+                        "description": "Allow HTTPS connections from all locations",
+                        "protocol": "Tcp",
+                        "sourcePortRange": "*",
+                        "destinationPortRange": "443",
+                        "sourceAddressPrefix": "*",
+                        "destinationAddressPrefix": "*",
+                        "access": "Allow",
+                        "priority": 200,
+                        "direction": "Inbound"
+                    }
+                }, {
+                    "name": "allowHTTPIn_all",
+                    "properties": {
+                        "description": "Allow HTTP connections from all locations",
+                        "protocol": "Tcp",
+                        "sourcePortRange": "*",
+                        "destinationPortRange": "80",
+                        "sourceAddressPrefix": "*",
+                        "destinationAddressPrefix": "*",
+                        "access": "Allow",
+                        "priority": 300,
+                        "direction": "Inbound"
+                    }
+                }]
+            }
+        },
+        {
+            "condition": "[equals(parameters('virtualNetworkNewOrExisting'), 'new')]",
+            "apiVersion": "[variables('apiVersionNetwork')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('virtualNetworkName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('addressPrefixes')]"
+                    ]
+                },
+                "dhcpOptions": {
+                    "dnsServers": []
+                },
+                "subnets": [{
+                    "name": "[parameters('publicSubnet1Name')]",
+                    "properties": {
+                        "addressPrefix": "[parameters('publicSubnet1Prefix')]"
+                    }
+                }, {
+                    "name": "[parameters('publicSubnet2Name')]",
+                    "properties": {
+                        "addressPrefix": "[parameters('publicSubnet2Prefix')]"
+                    }
+                }, {
+                    "name": "[parameters('privateSubnet1Name')]",
+                    "properties": {
+                        "addressPrefix": "[parameters('privateSubnet1Prefix')]"
+                    }
+                }, {
+                    "name": "[parameters('privateSubnet2Name')]",
+                    "properties": {
+                        "addressPrefix": "[parameters('privateSubnet2Prefix')]"
+                    }
+                }]
+            }
+        },
+        {
+            "apiVersion": "[variables('apiVersionNetwork')]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[variables('rdgPublicIp')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic",
+                "dnsSettings": {
+                    "domainNameLabel": "[variables('rdgPublicIpDnsLabel')]"
+                }
+            }
+        },
+        {
+            "apiVersion": "[variables('apiVersionNetwork')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(variables('rdgHostname'), '_1_', padLeft(add(copyIndex(), 1), 2, '0'), '-nic')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]",
+                "[concat('Microsoft.Network/networkSecurityGroups/', variables('rdgHostname'), '-nsg')]"
+            ],
+            "copy": {
+                "name": "rdgNicLoop",
+                "count": "[parameters('rdgInstanceCount')]"
+            },
+            "properties": {
+                "ipConfigurations": [{
+                    "name": "[concat(variables('rdgHostname'), '_1_', padLeft(add(copyIndex(), 1), 2, '0'), 'ipconfig')]",
+                    "properties": {
+                        "privateIPAllocationMethod": "Dynamic",
+                        "subnet": {
+                            "id": "[if(equals(parameters('virtualNetworkNewOrExisting'), 'new'), resourceId(parameters('virtualNetworkResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('publicSubnet1Name')), parameters('existingPublicSubnet1Reference'))]"
+                        }
+                    }
+                }],
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(variables('rdgHostname'), '-nsg'))]"
+                }
+            }
+        },
+        {
+            "apiVersion": "[variables('apiVersionNetwork')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(variables('rdgHostname'), '_2_', padLeft(add(copyIndex(), 1), 2, '0'), '-nic')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]",
+                "[concat('Microsoft.Network/networkSecurityGroups/', variables('rdgHostname'), '-nsg')]"
+            ],
+            "copy": {
+                "name": "rdgNicLoop",
+                "count": "[parameters('rdgInstanceCount')]"
+            },
+            "properties": {
+                "ipConfigurations": [{
+                    "name": "[concat(variables('rdgHostname'), '_2_', padLeft(add(copyIndex(), 1), 2, '0'), 'ipconfig')]",
+                    "properties": {
+                        "privateIPAllocationMethod": "Dynamic",
+                        "subnet": {
+                            "id": "[if(equals(parameters('virtualNetworkNewOrExisting'), 'new'), resourceId(parameters('virtualNetworkResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('publicSubnet2Name')), parameters('existingPublicSubnet2Reference'))]"
+                        }
+                    }
+                }],
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(variables('rdgHostname'), '-nsg'))]"
+                }
+            }
+        },
+        {
+            "apiVersion": "[variables('apiVersionNetwork')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(variables('esHostname'), padLeft(add(copyIndex(), 1), 2, '0'), '-nic')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]",
+                "[concat('Microsoft.Network/networkSecurityGroups/', variables('esHostname'), '-nsg')]"
+            ],
+            "copy": {
+                "name": "esNicLoop",
+                "count": "[parameters('esInstanceCount')]"
+            },
+            "properties": {
+                "ipConfigurations": [{
+                    "name": "[concat(variables('esHostname'), padLeft(add(copyIndex(), 1), 2, '0'), 'ipconfig')]",
+                    "properties": {
+                        "privateIPAllocationMethod": "Dynamic",
+                        "subnet": {
+                            "id": "[if(equals(parameters('virtualNetworkNewOrExisting'), 'new'), resourceId(parameters('virtualNetworkResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('privateSubnet1Name')), parameters('existingPublicSubnet1Reference'))]"
+                        }
+                    }
+                }],
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(variables('esHostname'), '-nsg'))]"
+                }
+            }
+        },
+        {
+            "apiVersion": "[variables('apiVersionStorage')]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[variables('diagStorageAccount')]",
+            "location": "[parameters('location')]",
+            "kind": "Storage",
+            "sku": {
+                "name": "Standard_LRS"
+            }
+        }, {
+            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "type": "Microsoft.Resources/deployments",
+            "name": "[concat('esVmDeployment', padLeft(add(copyIndex(), 1), 2, '0'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorageAccount'))]",
+                "esNicLoop"
+            ],
+            "copy": {
+                "name": "esVmLoop",
+                "count": "[parameters('esInstanceCount')]"
+            },
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('esDeploymentTemplateUrl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "apiVersionCompute": {
+                        "value": "[parameters('apiVersionCompute')]"
+                    },
+                    "apiVersionStorage": {
+                        "value": "[parameters('apiVersionStorage')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "artifactsLocation": {
+                        "value": "[parameters('artifactsLocation')]"
+                    },
+                    "artifactsLocationSasToken": {
+                        "value": "[parameters('artifactsLocationSasToken')]"
+                    },
+                    "hostName": {
+                        "value": "[concat(variables('esHostname'), padLeft(add(copyIndex(), 1), 2, '0'))]"
+                    },
+                    "virtualMachineSize": {
+                        "value": "[parameters('esInstanceSize')]"
+                    },
+                    "dataDiskSize": {
+                        "value": "[parameters('esDataDiskSize')]"
+                    },
+                    "diagStorageAccount": {
+                        "value": "[parameters('esDataDiskSize')]"
+                    },
+                    "adminUsername": {
+                        "value": "[parameters('esAdminUsername')]"
+                    },
+                    "adminPassword": {
+                        "value": "[parameters('esAdminPassword')]"
+                    }
+                }
+            }
+        }
+    ]
+}
