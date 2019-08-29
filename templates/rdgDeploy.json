@@ -1,0 +1,358 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "apiVersionCompute": {
+            "type": "string"
+        },
+        "apiVersionStorage": {
+            "type": "string"
+        },
+        "apiVersionNetwork": {
+            "type": "string"
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Region in which the resource group and components will be deployed"
+            }
+        },
+        "artifactsLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "The base URI where artifacts required by this template are located including a trailing '/'"
+            }
+        },
+        "artifactsLocationSasToken": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The sasToken required to access artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
+            }
+        },
+        "hostName": {
+            "type": "string",
+            "defaultValue": "VM-mfed",
+            "minLength": 4,
+            "maxLength": 20,
+            "metadata": {
+                "description": "Virtual machine name to be used."
+            }
+        },
+        "virtualMachineSize": {
+            "type": "string",
+            "defaultValue": "Standard_DS2_v2",
+            "metadata": {
+                "description": "Host VM size"
+            }
+        },
+        "diagStorageAccount": {
+            "type": "string",
+            "metadata": {
+                "description": "Storage account name for boot diags"
+            }
+        },
+        "adminUsername": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "Administrator username on VM."
+            }
+        },
+        "adminPassword": {
+            "type": "securestring",
+            "minLength": 5,
+            "metadata": {
+                "description": "Password for administrator user."
+            }
+        },
+        "rdgInstanceCount": {
+            "type": "int",
+            "defaultValue": 1,
+            "allowedValues": [0, 1, 2, 3, 4],
+            "metadata": {
+                "description": "Number of Remote Desktop Gateway nodes"
+            }
+        },
+        "virtualNetworkNewOrExisting": {
+            "type": "string",
+            "defaultValue": "new",
+            "allowedValues": ["new", "existing"],
+            "metadata": {
+                "description": "Determines whether to provision a new virtual network or use an existing virtual network"
+            }
+        },
+        "virtualNetworkResourceGroupName": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().name]",
+            "metadata": {
+                "description": "Name of the resource group for the new virtual network"
+            }
+        },
+        "virtualNetworkName": {
+            "type": "string",
+            "defaultValue": "mfesvnet",
+            "metadata": {
+                "description": "Name of the new virtual network"
+            }
+        },
+        "publicSubnet1Name": {
+            "type": "string",
+            "defaultValue": "publicsubnet1",
+            "metadata": {
+                "description": "Name of the first public subnet"
+            }
+        },
+        "existingPublicSubnet1Reference": {
+            "type": "string",
+            "metadata": {
+                "description": "Full reference to existing subnet for first public subnet"
+            }
+        },
+        "publicSubnet2Name": {
+            "type": "string",
+            "defaultValue": "publicsubnet2",
+            "metadata": {
+                "description": "Name of the second public subnet"
+            }
+        },
+        "existingPublicSubnet2Reference": {
+            "type": "string",
+            "metadata": {
+                "description": "Full reference to existing subnet for second public subnet"
+            }
+        }
+    },
+    "variables": {
+        "osDiskType": "StandardSSD_LRS",
+        "rdgPublicIp": "rdgpublicip"
+    },
+    "resources": [
+        {
+            "apiVersion": "[parameters('apiVersionNetwork')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[concat(parameters('hostName'), '-nsg')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "RDP",
+                        "properties": {
+                            "description": "Allow RDP traffic from all locations",
+                            "priority": 300,
+                            "protocol": "Tcp",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "3389"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "[parameters('apiVersionNetwork')]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[concat(variables('rdgpublicip'), '-1-', padLeft(add(copyIndex(), 1), 2, '0'))]",
+            "location": "[parameters('location')]",
+            "copy": {
+                "name": "rdgPublicIpLoop1",
+                "count": "[parameters('rdgInstanceCount')]"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Static",
+                "dnsSettings": {
+                    "domainNameLabel": "[concat('rdgdns-1-', padLeft(add(copyIndex(), 1), 2, '0'), uniqueString(resourceGroup().id))]"
+                }
+            }
+        },
+        {
+            "apiVersion": "[parameters('apiVersionNetwork')]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[concat(variables('rdgpublicip'), '-2-', padLeft(add(copyIndex(), 1), 2, '0'))]",
+            "location": "[parameters('location')]",
+            "copy": {
+                "name": "rdgPublicIpLoop2",
+                "count": "[parameters('rdgInstanceCount')]"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Static",
+                "dnsSettings": {
+                    "domainNameLabel": "[concat('rdgdns-2-', padLeft(add(copyIndex(), 1), 2, '0'), uniqueString(resourceGroup().id))]"
+                }
+            }
+        },
+        {
+            "apiVersion": "[parameters('apiVersionNetwork')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(parameters('hostName'), '-1-', padLeft(add(copyIndex(), 1), 2, '0'), '-nic')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', concat(parameters('hostName'), '-nsg'))]",
+                "rdgPublicIpLoop1"
+            ],
+            "copy": {
+                "name": "rdgNicLoop1",
+                "count": "[parameters('rdgInstanceCount')]"
+            },
+            "properties": {
+                "ipConfigurations": [{
+                    "name": "[concat(parameters('hostName'), '-1-', padLeft(add(copyIndex(), 1), 2, '0'), 'ipconfig')]",
+                    "properties": {
+                        "privateIPAllocationMethod": "Dynamic",
+                        "publicIpAddress": {
+                            "id": "[resourceId('Microsoft.Network/publicIpAddresses', concat(variables('rdgpublicip'), '-1-', padLeft(add(copyIndex(), 1), 2, '0')))]"
+                        },
+                        "subnet": {
+                            "id": "[if(equals(parameters('virtualNetworkNewOrExisting'), 'new'), resourceId(parameters('virtualNetworkResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('publicSubnet1Name')), parameters('existingPublicSubnet1Reference'))]"
+                        }
+                    }
+                }],
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(parameters('hostName'), '-nsg'))]"
+                }
+            }
+        },
+        {
+            "apiVersion": "[parameters('apiVersionNetwork')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(parameters('hostName'), '-2-', padLeft(add(copyIndex(), 1), 2, '0'), '-nic')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', concat(parameters('hostName'), '-nsg'))]",
+                "rdgPublicIpLoop2"
+            ],
+            "copy": {
+                "name": "rdgNicLoop2",
+                "count": "[parameters('rdgInstanceCount')]"
+            },
+            "properties": {
+                "ipConfigurations": [{
+                    "name": "[concat(parameters('hostName'), '-2-', padLeft(add(copyIndex(), 1), 2, '0'), 'ipconfig')]",
+                    "properties": {
+                        "privateIPAllocationMethod": "Dynamic",
+                        "publicIpAddress": {
+                            "id": "[resourceId('Microsoft.Network/publicIpAddresses', concat(variables('rdgpublicip'), '-2-', padLeft(add(copyIndex(), 1), 2, '0')))]"
+                        },
+                        "subnet": {
+                            "id": "[if(equals(parameters('virtualNetworkNewOrExisting'), 'new'), resourceId(parameters('virtualNetworkResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('publicSubnet2Name')), parameters('existingPublicSubnet2Reference'))]"
+                        }
+                    }
+                }],
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(parameters('hostName'), '-nsg'))]"
+                }
+            }
+        },
+        {
+            "apiVersion": "[parameters('apiVersionCompute')]",
+            "name": "[concat(parameters('hostName'), '-1-', padLeft(add(copyIndex(), 1), 2, '0'))]",
+            "dependsOn": [
+                "rdgNicLoop1"
+            ],
+            "type": "Microsoft.Compute/virtualMachines",
+            "location": "[parameters('location')]",
+            "copy": {
+                "name": "rdgVmLoop",
+                "count": "[parameters('rdgInstanceCount')]"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('virtualMachineSize')]"
+                },
+                "storageProfile": {
+                    "osDisk": {
+                        "createOption": "FromImage",
+                        "managedDisk": {
+                            "storageAccountType": "[variables('osDiskType')]"
+                        }
+                    },
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "2016-Datacenter",
+                        "version": "latest"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('hostName'), '-1-', padLeft(add(copyIndex(), 1), 2, '0'), '-nic'))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true,
+                        "storageUri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', parameters('diagStorageAccount')), parameters('apiVersionStorage')).primaryEndpoints['blob']))]"
+                    }
+                },
+                "osProfile": {
+                    "computerName": "[parameters('hostName')]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]",
+                    "windowsConfiguration": {
+                        "enableAutomaticUpdates": true,
+                        "provisionVmAgent": true
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "[parameters('apiVersionCompute')]",
+            "name": "[concat(parameters('hostName'), '-2-', padLeft(add(copyIndex(), 1), 2, '0'))]",
+            "dependsOn": [
+                "rdgNicLoop2"
+            ],
+            "type": "Microsoft.Compute/virtualMachines",
+            "location": "[parameters('location')]",
+            "copy": {
+                "name": "rdgVmLoop",
+                "count": "[parameters('rdgInstanceCount')]"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('virtualMachineSize')]"
+                },
+                "storageProfile": {
+                    "osDisk": {
+                        "createOption": "FromImage",
+                        "managedDisk": {
+                            "storageAccountType": "[variables('osDiskType')]"
+                        }
+                    },
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "2016-Datacenter",
+                        "version": "latest"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('hostName'), '-2-', padLeft(add(copyIndex(), 1), 2, '0'), '-nic'))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true,
+                        "storageUri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', parameters('diagStorageAccount')), parameters('apiVersionStorage')).primaryEndpoints['blob']))]"
+                    }
+                },
+                "osProfile": {
+                    "computerName": "[parameters('hostName')]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]",
+                    "windowsConfiguration": {
+                        "enableAutomaticUpdates": true,
+                        "provisionVmAgent": true
+                    }
+                }
+            }
+        }
+    ]
+}

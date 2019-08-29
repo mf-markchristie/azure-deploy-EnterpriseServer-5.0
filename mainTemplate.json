@@ -191,6 +191,27 @@
             "metadata": {
                 "description": "VM size for RDG nodes"
             }
+        },
+        "rdgAdminUserName": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "Administrator username on ES VM."
+            }
+        },
+        "rdgAdminPassword": {
+            "type": "securestring",
+            "minLength": 5,
+            "metadata": {
+                "description": "Password for ES administrator user."
+            }
+        },
+        "esLicenseKey": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "License key for Enterprise Server."
+            }
         }
     },
     "variables": {
@@ -202,11 +223,9 @@
         "rdgHostname": "[concat(variables('clusterPrefixLower'), '-rdg')]",
         "esHostname": "[concat(variables('clusterPrefixLower'), '-es')]",
         "fsHostname": "[concat(variables('clusterPrefixLower'), '-fs')]",
-        "rdgPublicIp": "rdgpublicip",
-        "rdgPublicIpDnsLabel": "[concat('rdgdns', uniqueString(resourceGroup().id))]",
         "diagStorageAccount": "[concat(variables('clusterPrefixLower'), uniqueString(concat(resourceGroup().id, 'dsa')))]",
-        "rdgDeploymentTemplateUrl": "[uri(parameters('artifactsLocation'), concat('/templates/rdgDeploy.json', parameters('artifactsLocationSasToken')))]",
-        "esDeploymentTemplateUrl": "[uri(parameters('artifactsLocation'), concat('/templates/esDeploy.json', parameters('artifactsLocationSasToken')))]"
+        "rdgDeploymentTemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/rdgDeploy.json', parameters('artifactsLocationSasToken')))]",
+        "esDeploymentTemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/esDeploy.json', parameters('artifactsLocationSasToken')))]"
     },
     "resources": [
         {
@@ -220,65 +239,6 @@
                     "contentVersion": "1.0.0.0",
                     "resources": []
                 }
-            }
-        },
-        {
-            "apiVersion": "[variables('apiVersionNetwork')]",
-            "type": "Microsoft.Network/networkSecurityGroups",
-            "name": "[concat(variables('rdgHostname'), '-nsg')]",
-            "location": "[parameters('location')]",
-            "properties": {
-                "securityRules": [
-                    {
-                        "name": "RDP",
-                        "properties": {
-                            "description": "Allow RDP traffic from all locations",
-                            "priority": 300,
-                            "protocol": "Tcp",
-                            "access": "Allow",
-                            "direction": "Inbound",
-                            "sourceAddressPrefix": "*",
-                            "sourcePortRange": "*",
-                            "destinationAddressPrefix": "*",
-                            "destinationPortRange": "3389"
-                        }
-                    }
-                ]
-            }
-        },
-        {
-            "apiVersion": "[variables('apiVersionNetwork')]",
-            "type": "Microsoft.Network/networkSecurityGroups",
-            "name": "[concat(variables('esHostname'), '-nsg')]",
-            "location": "[parameters('location')]",
-            "properties": {
-                "securityRules": [{
-                    "name": "allowHTTPS_all",
-                    "properties": {
-                        "description": "Allow HTTPS connections from all locations",
-                        "protocol": "Tcp",
-                        "sourcePortRange": "*",
-                        "destinationPortRange": "443",
-                        "sourceAddressPrefix": "*",
-                        "destinationAddressPrefix": "*",
-                        "access": "Allow",
-                        "priority": 200,
-                        "direction": "Inbound"
-                    }
-                }, {
-                    "name": "allowHTTPIn_all",
-                    "properties": {
-                        "description": "Allow HTTP connections from all locations",
-                        "protocol": "Tcp",
-                        "sourcePortRange": "*",
-                        "destinationPortRange": "80",
-                        "sourceAddressPrefix": "*",
-                        "destinationAddressPrefix": "*",
-                        "access": "Allow",
-                        "priority": 300,
-                        "direction": "Inbound"
-                    }
-                }]
             }
         },
         {
@@ -320,71 +280,22 @@
             }
         },
         {
-            "apiVersion": "[variables('apiVersionNetwork')]",
-            "type": "Microsoft.Network/publicIPAddresses",
-            "name": "[variables('rdgPublicIp')]",
+            "apiVersion": "[variables('apiVersionStorage')]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[variables('diagStorageAccount')]",
             "location": "[parameters('location')]",
-            "properties": {
-                "publicIPAllocationMethod": "Dynamic",
-                "dnsSettings": {
-                    "domainNameLabel": "[variables('rdgPublicIpDnsLabel')]"
-                }
+            "kind": "Storage",
+            "sku": {
+                "name": "Standard_LRS"
             }
         },
         {
             "apiVersion": "[variables('apiVersionNetwork')]",
-            "type": "Microsoft.Network/networkInterfaces",
-            "name": "[concat(variables('rdgHostname'), '_1_', padLeft(add(copyIndex(), 1), 2, '0'), '-nic')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[concat(variables('esHostname'), '-nsg')]",
             "location": "[parameters('location')]",
-            "dependsOn": [
-                "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]",
-                "[concat('Microsoft.Network/networkSecurityGroups/', variables('rdgHostname'), '-nsg')]"
-            ],
-            "copy": {
-                "name": "rdgNicLoop",
-                "count": "[parameters('rdgInstanceCount')]"
-            },
             "properties": {
-                "ipConfigurations": [{
-                    "name": "[concat(variables('rdgHostname'), '_1_', padLeft(add(copyIndex(), 1), 2, '0'), 'ipconfig')]",
-                    "properties": {
-                        "privateIPAllocationMethod": "Dynamic",
-                        "subnet": {
-                            "id": "[if(equals(parameters('virtualNetworkNewOrExisting'), 'new'), resourceId(parameters('virtualNetworkResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('publicSubnet1Name')), parameters('existingPublicSubnet1Reference'))]"
-                        }
-                    }
-                }],
-                "networkSecurityGroup": {
-                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(variables('rdgHostname'), '-nsg'))]"
-                }
-            }
-        },
-        {
-            "apiVersion": "[variables('apiVersionNetwork')]",
-            "type": "Microsoft.Network/networkInterfaces",
-            "name": "[concat(variables('rdgHostname'), '_2_', padLeft(add(copyIndex(), 1), 2, '0'), '-nic')]",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]",
-                "[concat('Microsoft.Network/networkSecurityGroups/', variables('rdgHostname'), '-nsg')]"
-            ],
-            "copy": {
-                "name": "rdgNicLoop",
-                "count": "[parameters('rdgInstanceCount')]"
-            },
-            "properties": {
-                "ipConfigurations": [{
-                    "name": "[concat(variables('rdgHostname'), '_2_', padLeft(add(copyIndex(), 1), 2, '0'), 'ipconfig')]",
-                    "properties": {
-                        "privateIPAllocationMethod": "Dynamic",
-                        "subnet": {
-                            "id": "[if(equals(parameters('virtualNetworkNewOrExisting'), 'new'), resourceId(parameters('virtualNetworkResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('publicSubnet2Name')), parameters('existingPublicSubnet2Reference'))]"
-                        }
-                    }
-                }],
-                "networkSecurityGroup": {
-                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(variables('rdgHostname'), '-nsg'))]"
-                }
+                "securityRules": []
             }
         },
         {
@@ -393,8 +304,8 @@
             "name": "[concat(variables('esHostname'), padLeft(add(copyIndex(), 1), 2, '0'), '-nic')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]",
-                "[concat('Microsoft.Network/networkSecurityGroups/', variables('esHostname'), '-nsg')]"
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', concat(variables('esHostname'), '-nsg'))]"
             ],
             "copy": {
                 "name": "esNicLoop",
@@ -416,15 +327,6 @@
             }
         },
         {
-            "apiVersion": "[variables('apiVersionStorage')]",
-            "type": "Microsoft.Storage/storageAccounts",
-            "name": "[variables('diagStorageAccount')]",
-            "location": "[parameters('location')]",
-            "kind": "Storage",
-            "sku": {
-                "name": "Standard_LRS"
-            }
-        }, {
             "apiVersion": "[variables('apiVersionLinkTemplate')]",
             "type": "Microsoft.Resources/deployments",
             "name": "[concat('esVmDeployment', padLeft(add(copyIndex(), 1), 2, '0'))]",
@@ -444,10 +346,10 @@
                 },
                 "parameters": {
                     "apiVersionCompute": {
-                        "value": "[parameters('apiVersionCompute')]"
+                        "value": "[variables('apiVersionCompute')]"
                     },
                     "apiVersionStorage": {
-                        "value": "[parameters('apiVersionStorage')]"
+                        "value": "[variables('apiVersionStorage')]"
                     },
                     "location": {
                         "value": "[parameters('location')]"
@@ -468,13 +370,90 @@
                         "value": "[parameters('esDataDiskSize')]"
                     },
                     "diagStorageAccount": {
-                        "value": "[parameters('esDataDiskSize')]"
+                        "value": "[variables('diagStorageAccount')]"
                     },
                     "adminUsername": {
                         "value": "[parameters('esAdminUsername')]"
                     },
                     "adminPassword": {
                         "value": "[parameters('esAdminPassword')]"
+                    },
+                    "esLicenseKey": {
+                        "value": "[parameters('esLicenseKey')]"
+                    }
+                }
+            }
+        }, {
+            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "type": "Microsoft.Resources/deployments",
+            "name": "rdgDeployment",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorageAccount'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('rdgDeploymentTemplateUrl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "apiVersionCompute": {
+                        "value": "[variables('apiVersionCompute')]"
+                    },
+                    "apiVersionStorage": {
+                        "value": "[variables('apiVersionStorage')]"
+                    },
+                    "apiVersionNetwork": {
+                        "value": "[variables('apiVersionNetwork')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "artifactsLocation": {
+                        "value": "[parameters('artifactsLocation')]"
+                    },
+                    "artifactsLocationSasToken": {
+                        "value": "[parameters('artifactsLocationSasToken')]"
+                    },
+                    "hostName": {
+                        "value": "[variables('rdgHostname')]"
+                    },
+                    "virtualMachineSize": {
+                        "value": "[parameters('rdgInstanceSize')]"
+                    },
+                    "diagStorageAccount": {
+                        "value": "[variables('diagStorageAccount')]"
+                    },
+                    "adminUsername": {
+                        "value": "[parameters('rdgAdminUsername')]"
+                    },
+                    "adminPassword": {
+                        "value": "[parameters('rdgAdminPassword')]"
+                    },
+                    "virtualNetworkNewOrExisting": {
+                        "value": "[parameters('virtualNetworkNewOrExisting')]"
+                    },
+                    "virtualNetworkResourceGroupName": {
+                        "value": "[parameters('virtualNetworkResourceGroupName')]"
+                    },
+                    "virtualNetworkName": {
+                        "value": "[parameters('virtualNetworkName')]"
+                    },
+                    "publicSubnet1Name": {
+                        "value": "[parameters('publicSubnet1Name')]"
+                    },
+                    "existingPublicSubnet1Reference": {
+                        "value": "[parameters('existingPublicSubnet1Reference')]"
+                    },
+                    "publicSubnet2Name": {
+                        "value": "[parameters('publicSubnet2Name')]"
+                    },
+                    "existingPublicSubnet2Reference": {
+                        "value": "[parameters('existingPublicSubnet2Reference')]"
+                    },
+                    "rdgInstanceCount": {
+                        "value": "[parameters('rdgInstanceCount')]"
                     }
                 }
             }

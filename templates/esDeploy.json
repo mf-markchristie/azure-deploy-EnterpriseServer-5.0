@@ -69,10 +69,18 @@
             "metadata": {
                 "description": "Password for administrator user."
             }
+        },
+        "esLicenseKey": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "License key for Enterprise Server."
+            }
         }
     },
     "variables": {
-        "osDiskType": "StandardSSD_LRS"
+        "osDiskType": "StandardSSD_LRS",
+        "scriptFileUri": "[uri(parameters('artifactsLocation'), concat('scripts/installES.ps1', parameters('artifactsLocationSasToken')))]"
     },
     "resources": [
         {
@@ -130,6 +138,29 @@
                         "enableAutomaticUpdates": true,
                         "provisionVmAgent": true
                     }
+                }
+            }
+        },
+        {
+            "name": "[concat(parameters('hostName'), '/Installation')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "apiVersion": "[parameters('apiVersionCompute')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines', parameters('hostName'))]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.9",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [
+                        "[variables('scriptFileUri')]"
+                    ]
+                },
+                "protectedSettings": {
+                    "commandToExecute": "[concat('powershell ./scripts/installES.ps1', if(equals(parameters('esLicenseKey'), ''), '', concat(' -licenseKey ', parameters('esLicenseKey'))))]"
                 }
             }
         }
