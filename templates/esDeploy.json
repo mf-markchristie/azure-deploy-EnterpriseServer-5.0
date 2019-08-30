@@ -8,6 +8,9 @@
         "apiVersionStorage": {
             "type": "string"
         },
+        "apiVersionNetwork": {
+            "type": "string"
+        },
         "location": {
             "type": "string",
             "defaultValue": "",
@@ -70,6 +73,18 @@
                 "description": "Password for administrator user."
             }
         },
+        "subnetRef": {
+            "type": "string",
+            "metadata": {
+                "description": "Reference for the subnet"
+            }
+        },
+        "nsgName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of network security group"
+            }
+        },
         "esLicenseKey": {
             "type": "string",
             "defaultValue": "",
@@ -80,14 +95,37 @@
     },
     "variables": {
         "osDiskType": "StandardSSD_LRS",
-        "scriptFileUri": "[uri(parameters('artifactsLocation'), concat('scripts/installES.ps1', parameters('artifactsLocationSasToken')))]"
+        "scriptFileUri": "[uri(parameters('artifactsLocation'), concat('scripts/Install-ES.ps1', parameters('artifactsLocationSasToken')))]"
     },
     "resources": [
         {
+            "apiVersion": "[parameters('apiVersionNetwork')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(parameters('hostName'), '-nic')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "ipConfigurations": [{
+                    "name": "[concat(parameters('hostName'), 'ipconfig')]",
+                    "properties": {
+                        "privateIPAllocationMethod": "Dynamic",
+                        "subnet": {
+                            "id": "[parameters('subnetRef')]"
+                        }
+                    }
+                }],
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsgName'))]"
+                }
+            }
+        },
+        {
+            "apiVersion": "[parameters('apiVersionCompute')]",
             "name": "[parameters('hostName')]",
             "type": "Microsoft.Compute/virtualMachines",
-            "apiVersion": "[parameters('apiVersionCompute')]",
             "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('hostName'), '-nic'))]"
+            ],
             "properties": {
                 "hardwareProfile": {
                     "vmSize": "[parameters('virtualMachineSize')]"
@@ -142,9 +180,9 @@
             }
         },
         {
+            "apiVersion": "[parameters('apiVersionCompute')]",
             "name": "[concat(parameters('hostName'), '/Installation')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
-            "apiVersion": "[parameters('apiVersionCompute')]",
             "location": "[parameters('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Compute/virtualMachines', parameters('hostName'))]"
@@ -160,7 +198,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('powershell ./scripts/installES.ps1', if(equals(parameters('esLicenseKey'), ''), '', concat(' -licenseKey ', parameters('esLicenseKey'))))]"
+                    "commandToExecute": "[concat('powershell ./scripts/Install-ES.ps1', if(equals(parameters('esLicenseKey'), ''), '', concat(' -licenseKey ', parameters('esLicenseKey'))))]"
                 }
             }
         }

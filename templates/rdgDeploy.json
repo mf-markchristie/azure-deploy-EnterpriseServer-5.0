@@ -66,198 +66,69 @@
                 "description": "Password for administrator user."
             }
         },
-        "rdgInstanceCount": {
-            "type": "int",
-            "defaultValue": 1,
-            "allowedValues": [0, 1, 2, 3, 4],
-            "metadata": {
-                "description": "Number of Remote Desktop Gateway nodes"
-            }
-        },
-        "virtualNetworkNewOrExisting": {
-            "type": "string",
-            "defaultValue": "new",
-            "allowedValues": ["new", "existing"],
-            "metadata": {
-                "description": "Determines whether to provision a new virtual network or use an existing virtual network"
-            }
-        },
-        "virtualNetworkResourceGroupName": {
-            "type": "string",
-            "defaultValue": "[resourceGroup().name]",
-            "metadata": {
-                "description": "Name of the resource group for the new virtual network"
-            }
-        },
-        "virtualNetworkName": {
-            "type": "string",
-            "defaultValue": "mfesvnet",
-            "metadata": {
-                "description": "Name of the new virtual network"
-            }
-        },
-        "publicSubnet1Name": {
-            "type": "string",
-            "defaultValue": "publicsubnet1",
-            "metadata": {
-                "description": "Name of the first public subnet"
-            }
-        },
-        "existingPublicSubnet1Reference": {
+        "subnetRef": {
             "type": "string",
             "metadata": {
-                "description": "Full reference to existing subnet for first public subnet"
+                "description": "Reference for the subnet"
             }
         },
-        "publicSubnet2Name": {
-            "type": "string",
-            "defaultValue": "publicsubnet2",
-            "metadata": {
-                "description": "Name of the second public subnet"
-            }
-        },
-        "existingPublicSubnet2Reference": {
+        "nsgName": {
             "type": "string",
             "metadata": {
-                "description": "Full reference to existing subnet for second public subnet"
+                "description": "Name of network security group"
             }
         }
     },
     "variables": {
-        "osDiskType": "StandardSSD_LRS",
-        "rdgPublicIp": "rdgpublicip"
+        "osDiskType": "StandardSSD_LRS"
     },
     "resources": [
         {
             "apiVersion": "[parameters('apiVersionNetwork')]",
-            "type": "Microsoft.Network/networkSecurityGroups",
-            "name": "[concat(parameters('hostName'), '-nsg')]",
-            "location": "[parameters('location')]",
-            "properties": {
-                "securityRules": [
-                    {
-                        "name": "RDP",
-                        "properties": {
-                            "description": "Allow RDP traffic from all locations",
-                            "priority": 300,
-                            "protocol": "Tcp",
-                            "access": "Allow",
-                            "direction": "Inbound",
-                            "sourceAddressPrefix": "*",
-                            "sourcePortRange": "*",
-                            "destinationAddressPrefix": "*",
-                            "destinationPortRange": "3389"
-                        }
-                    }
-                ]
-            }
-        },
-        {
-            "apiVersion": "[parameters('apiVersionNetwork')]",
             "type": "Microsoft.Network/publicIPAddresses",
-            "name": "[concat(variables('rdgpublicip'), '-1-', padLeft(add(copyIndex(), 1), 2, '0'))]",
+            "name": "[concat(parameters('hostName'), '-publicip')]",
             "location": "[parameters('location')]",
-            "copy": {
-                "name": "rdgPublicIpLoop1",
-                "count": "[parameters('rdgInstanceCount')]"
-            },
             "properties": {
                 "publicIPAllocationMethod": "Static",
                 "dnsSettings": {
-                    "domainNameLabel": "[concat('rdgdns-1-', padLeft(add(copyIndex(), 1), 2, '0'), uniqueString(resourceGroup().id))]"
-                }
-            }
-        },
-        {
-            "apiVersion": "[parameters('apiVersionNetwork')]",
-            "type": "Microsoft.Network/publicIPAddresses",
-            "name": "[concat(variables('rdgpublicip'), '-2-', padLeft(add(copyIndex(), 1), 2, '0'))]",
-            "location": "[parameters('location')]",
-            "copy": {
-                "name": "rdgPublicIpLoop2",
-                "count": "[parameters('rdgInstanceCount')]"
-            },
-            "properties": {
-                "publicIPAllocationMethod": "Static",
-                "dnsSettings": {
-                    "domainNameLabel": "[concat('rdgdns-2-', padLeft(add(copyIndex(), 1), 2, '0'), uniqueString(resourceGroup().id))]"
+                    "domainNameLabel": "[concat(parameters('hostName'), '-dns', uniqueString(resourceGroup().id))]"
                 }
             }
         },
         {
             "apiVersion": "[parameters('apiVersionNetwork')]",
             "type": "Microsoft.Network/networkInterfaces",
-            "name": "[concat(parameters('hostName'), '-1-', padLeft(add(copyIndex(), 1), 2, '0'), '-nic')]",
+            "name": "[concat(parameters('hostName'), '-nic')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/networkSecurityGroups', concat(parameters('hostName'), '-nsg'))]",
-                "rdgPublicIpLoop1"
+                "[resourceId('Microsoft.Network/publicIPAddresses', concat(parameters('hostName'), '-publicip'))]"
             ],
-            "copy": {
-                "name": "rdgNicLoop1",
-                "count": "[parameters('rdgInstanceCount')]"
-            },
             "properties": {
                 "ipConfigurations": [{
-                    "name": "[concat(parameters('hostName'), '-1-', padLeft(add(copyIndex(), 1), 2, '0'), 'ipconfig')]",
+                    "name": "[concat(parameters('hostName'), 'ipconfig')]",
                     "properties": {
                         "privateIPAllocationMethod": "Dynamic",
                         "publicIpAddress": {
-                            "id": "[resourceId('Microsoft.Network/publicIpAddresses', concat(variables('rdgpublicip'), '-1-', padLeft(add(copyIndex(), 1), 2, '0')))]"
+                            "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(parameters('hostName'), '-publicip'))]"
                         },
                         "subnet": {
-                            "id": "[if(equals(parameters('virtualNetworkNewOrExisting'), 'new'), resourceId(parameters('virtualNetworkResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('publicSubnet1Name')), parameters('existingPublicSubnet1Reference'))]"
+                            "id": "[parameters('subnetRef')]"
                         }
                     }
                 }],
                 "networkSecurityGroup": {
-                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(parameters('hostName'), '-nsg'))]"
-                }
-            }
-        },
-        {
-            "apiVersion": "[parameters('apiVersionNetwork')]",
-            "type": "Microsoft.Network/networkInterfaces",
-            "name": "[concat(parameters('hostName'), '-2-', padLeft(add(copyIndex(), 1), 2, '0'), '-nic')]",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/networkSecurityGroups', concat(parameters('hostName'), '-nsg'))]",
-                "rdgPublicIpLoop2"
-            ],
-            "copy": {
-                "name": "rdgNicLoop2",
-                "count": "[parameters('rdgInstanceCount')]"
-            },
-            "properties": {
-                "ipConfigurations": [{
-                    "name": "[concat(parameters('hostName'), '-2-', padLeft(add(copyIndex(), 1), 2, '0'), 'ipconfig')]",
-                    "properties": {
-                        "privateIPAllocationMethod": "Dynamic",
-                        "publicIpAddress": {
-                            "id": "[resourceId('Microsoft.Network/publicIpAddresses', concat(variables('rdgpublicip'), '-2-', padLeft(add(copyIndex(), 1), 2, '0')))]"
-                        },
-                        "subnet": {
-                            "id": "[if(equals(parameters('virtualNetworkNewOrExisting'), 'new'), resourceId(parameters('virtualNetworkResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('publicSubnet2Name')), parameters('existingPublicSubnet2Reference'))]"
-                        }
-                    }
-                }],
-                "networkSecurityGroup": {
-                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(parameters('hostName'), '-nsg'))]"
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsgName'))]"
                 }
             }
         },
         {
             "apiVersion": "[parameters('apiVersionCompute')]",
-            "name": "[concat(parameters('hostName'), '-1-', padLeft(add(copyIndex(), 1), 2, '0'))]",
+            "name": "[parameters('hostName')]",
             "dependsOn": [
-                "rdgNicLoop1"
+                "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('hostName'), '-nic'))]"
             ],
             "type": "Microsoft.Compute/virtualMachines",
             "location": "[parameters('location')]",
-            "copy": {
-                "name": "rdgVmLoop",
-                "count": "[parameters('rdgInstanceCount')]"
-            },
             "properties": {
                 "hardwareProfile": {
                     "vmSize": "[parameters('virtualMachineSize')]"
@@ -279,61 +150,7 @@
                 "networkProfile": {
                     "networkInterfaces": [
                         {
-                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('hostName'), '-1-', padLeft(add(copyIndex(), 1), 2, '0'), '-nic'))]"
-                        }
-                    ]
-                },
-                "diagnosticsProfile": {
-                    "bootDiagnostics": {
-                        "enabled": true,
-                        "storageUri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', parameters('diagStorageAccount')), parameters('apiVersionStorage')).primaryEndpoints['blob']))]"
-                    }
-                },
-                "osProfile": {
-                    "computerName": "[parameters('hostName')]",
-                    "adminUsername": "[parameters('adminUsername')]",
-                    "adminPassword": "[parameters('adminPassword')]",
-                    "windowsConfiguration": {
-                        "enableAutomaticUpdates": true,
-                        "provisionVmAgent": true
-                    }
-                }
-            }
-        },
-        {
-            "apiVersion": "[parameters('apiVersionCompute')]",
-            "name": "[concat(parameters('hostName'), '-2-', padLeft(add(copyIndex(), 1), 2, '0'))]",
-            "dependsOn": [
-                "rdgNicLoop2"
-            ],
-            "type": "Microsoft.Compute/virtualMachines",
-            "location": "[parameters('location')]",
-            "copy": {
-                "name": "rdgVmLoop",
-                "count": "[parameters('rdgInstanceCount')]"
-            },
-            "properties": {
-                "hardwareProfile": {
-                    "vmSize": "[parameters('virtualMachineSize')]"
-                },
-                "storageProfile": {
-                    "osDisk": {
-                        "createOption": "FromImage",
-                        "managedDisk": {
-                            "storageAccountType": "[variables('osDiskType')]"
-                        }
-                    },
-                    "imageReference": {
-                        "publisher": "MicrosoftWindowsServer",
-                        "offer": "WindowsServer",
-                        "sku": "2016-Datacenter",
-                        "version": "latest"
-                    }
-                },
-                "networkProfile": {
-                    "networkInterfaces": [
-                        {
-                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('hostName'), '-2-', padLeft(add(copyIndex(), 1), 2, '0'), '-nic'))]"
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('hostName'), '-nic'))]"
                         }
                     ]
                 },
