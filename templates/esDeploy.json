@@ -85,6 +85,12 @@
                 "description": "Name of network security group"
             }
         },
+        "availabilitySetName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of availability set"
+            }
+        },
         "esLicenseKey": {
             "type": "string",
             "defaultValue": "",
@@ -129,6 +135,9 @@
             "properties": {
                 "hardwareProfile": {
                     "vmSize": "[parameters('virtualMachineSize')]"
+                },
+                "availabilitySet": {
+                    "id": "[resourceId('Microsoft.Compute/availabilitySets',parameters('availabilitySetName'))]"
                 },
                 "storageProfile": {
                     "osDisk": {

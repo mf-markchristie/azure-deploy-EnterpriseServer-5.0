@@ -101,6 +101,26 @@
                 "description": "Full reference to existing subnet for application subnet"
             }
         },
+        "adSubnetName": {
+            "type": "string",
+            "defaultValue": "adnsubnet",
+            "metadata": {
+                "description": "Name of the AD subnet"
+            }
+        },
+        "adSubnetPrefix": {
+            "type": "string",
+            "defaultValue": "10.0.0.0/19",
+            "metadata": {
+                "description": "CIDR used for the AD subnet - needs to be a subset of the addressPrefix"
+            }
+        },
+        "existingAdSubnetReference": {
+            "type": "string",
+            "metadata": {
+                "description": "Full reference to existing subnet for AD subnet"
+            }
+        },
         "esInstanceCount": {
             "type": "int",
             "defaultValue": 1,
@@ -173,6 +193,13 @@
                 "description": "License key for Enterprise Server."
             }
         },
+        "adInstanceSize": {
+            "type": "string",
+            "defaultValue": "Standard_DS2_v2",
+            "metadata": {
+                "description": "VM size for AD nodes"
+            }
+        },
         "domainDNSName": {
             "type": "string",
             "defaultValue": "",
@@ -203,20 +230,27 @@
         "clusterPrefixLower": "[toLower(parameters('clusterPrefix'))]",
         "managementNsgName": "[concat(variables('clusterPrefixLower'), '-mNsg')]",
         "applicationNsgName": "[concat(variables('clusterPrefixLower'), '-aNsg')]",
+        "adNsgName": "[concat(variables('clusterPrefixLower'), '-adNsg')]",
         "managementSubnetRef": "[if(equals(parameters('virtualNetworkNewOrExisting'), 'new'), resourceId(parameters('virtualNetworkResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('managementSubnetName')), parameters('existingManagementSubnetReference'))]",
         "applicationSubnetRef": "[if(equals(parameters('virtualNetworkNewOrExisting'), 'new'), resourceId(parameters('virtualNetworkResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('applicationSubnetName')), parameters('existingApplicationSubnetReference'))]",
+        "adSubnetRef": "[if(equals(parameters('virtualNetworkNewOrExisting'), 'new'), resourceId(parameters('virtualNetworkResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('adSubnetName')), parameters('existingAdSubnetReference'))]",
         "rdgHostname": "[concat(variables('clusterPrefixLower'), '-rdg')]",
         "esHostname": "[concat(variables('clusterPrefixLower'), '-es')]",
+        "adHostname": "[concat(variables('clusterPrefixLower'), '-ad')]",
         "fsHostname": "[concat(variables('clusterPrefixLower'), '-fs')]",
         "diagStorageAccount": "[concat(variables('clusterPrefixLower'), uniqueString(concat(resourceGroup().id, 'dsa')))]",
+        "esAvailabilitySetName": "[concat(variables('esHostname'), '-as')]",
+        "rdgAvailabilitySetName": "[concat(variables('rdgHostname'), '-as')]",
+        "adAvailabilitySetName": "[concat(variables('adHostname'), '-as')]",
         "rdgDeploymentTemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/rdgDeploy.json', parameters('artifactsLocationSasToken')))]",
-        "esDeploymentTemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/esDeploy.json', parameters('artifactsLocationSasToken')))]"
+        "esDeploymentTemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/esDeploy.json', parameters('artifactsLocationSasToken')))]",
+        "adDeploymentTemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/adDeploy.json', parameters('artifactsLocationSasToken')))]"
     },
     "resources": [
         {
+            "apiVersion": "2018-02-01",
             "name": "pid-4bbf00ee-1d9f-4a6e-9b8e-5d81fcd10ffc",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2018-02-01",
             "properties": {
                 "mode": "Incremental",
                 "template": {
@@ -224,6 +258,45 @@
                     "contentVersion": "1.0.0.0",
                     "resources": []
                 }
+            }
+        },
+        {
+            "apiVersion": "[variables('apiVersionCompute')]",
+            "type": "Microsoft.Compute/availabilitySets",
+            "name": "[variables('esAvailabilitySetName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Aligned"
+            },
+            "properties": {
+                "platformFaultDomainCount": 2,
+                "platformUpdateDomainCount": 5
+            }
+        },
+        {
+            "apiVersion": "[variables('apiVersionCompute')]",
+            "type": "Microsoft.Compute/availabilitySets",
+            "name": "[variables('rdgAvailabilitySetName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Aligned"
+            },
+            "properties": {
+                "platformFaultDomainCount": 2,
+                "platformUpdateDomainCount": 5
+            }
+        },
+        {
+            "apiVersion": "[variables('apiVersionCompute')]",
+            "type": "Microsoft.Compute/availabilitySets",
+            "name": "[variables('adAvailabilitySetName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Aligned"
+            },
+            "properties": {
+                "platformFaultDomainCount": 2,
+                "platformUpdateDomainCount": 5
             }
         },
         {
@@ -250,6 +323,11 @@
                     "name": "[parameters('applicationSubnetName')]",
                     "properties": {
                         "addressPrefix": "[parameters('applicationSubnetPrefix')]"
+                    }
+                }, {
+                    "name": "[parameters('adSubnetName')]",
+                    "properties": {
+                        "addressPrefix": "[parameters('adSubnetPrefix')]"
                     }
                 }]
             }
@@ -288,6 +366,15 @@
             }
         },
         {
+            "apiVersion": "[variables('apiVersionNetwork')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('adNsgName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "securityRules": []
+            }
+        },
+        {
             "apiVersion": "[variables('apiVersionStorage')]",
             "type": "Microsoft.Storage/storageAccounts",
             "name": "[variables('diagStorageAccount')]",
@@ -304,7 +391,8 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorageAccount'))]",
                 "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('applicationNsgName'))]"
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('applicationNsgName'))]",
+                "[resourceId('Microsoft.Compute/availabilitySets', variables('esAvailabilitySetName'))]"
             ],
             "copy": {
                 "name": "esVmLoop",
@@ -359,19 +447,91 @@
                     "nsgName": {
                         "value": "[variables('applicationNsgName')]"
                     },
+                    "availabilitySetName": {
+                        "value": "[variables('esAvailabilitySetName')]"
+                    },
                     "esLicenseKey": {
                         "value": "[parameters('esLicenseKey')]"
                     }
                 }
             }
-        }, {
+        },
+        {
+            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "type": "Microsoft.Resources/deployments",
+            "name": "adDeployment",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorageAccount'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('adNsgName'))]",
+                "[resourceId('Microsoft.Compute/availabilitySets', variables('adAvailabilitySetName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('adDeploymentTemplateUrl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "apiVersionCompute": {
+                        "value": "[variables('apiVersionCompute')]"
+                    },
+                    "apiVersionStorage": {
+                        "value": "[variables('apiVersionStorage')]"
+                    },
+                    "apiVersionNetwork": {
+                        "value": "[variables('apiVersionNetwork')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "artifactsLocation": {
+                        "value": "[parameters('artifactsLocation')]"
+                    },
+                    "artifactsLocationSasToken": {
+                        "value": "[parameters('artifactsLocationSasToken')]"
+                    },
+                    "hostName": {
+                        "value": "[variables('adHostname')]"
+                    },
+                    "virtualMachineSize": {
+                        "value": "[parameters('adInstanceSize')]"
+                    },
+                    "diagStorageAccount": {
+                        "value": "[variables('diagStorageAccount')]"
+                    },
+                    "adminUsername": {
+                        "value": "[parameters('domainNetBIOSName')]"
+                    },
+                    "adminPassword": {
+                        "value": "[parameters('domainAdminPassword')]"
+                    },
+                    "subnetRef": {
+                        "value": "[variables('adSubnetRef')]"
+                    },
+                    "nsgName": {
+                        "value": "[variables('adNsgName')]"
+                    },
+                    "availabilitySetName": {
+                        "value": "[variables('adAvailabilitySetName')]"
+                    },
+                    "domainName": {
+                        "value": "[parameters('domainDNSName')]"
+                    }
+                }
+            }
+        },
+
+        {
             "apiVersion": "[variables('apiVersionLinkTemplate')]",
             "type": "Microsoft.Resources/deployments",
             "name": "[concat('rdgDeployment', padLeft(add(copyIndex(), 1), 2, '0'))]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorageAccount'))]",
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('managementNsgName'))]"
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('managementNsgName'))]",
+                "[resourceId('Microsoft.Compute/availabilitySets', variables('rdgAvailabilitySetName'))]",
+                "[resourceId('Microsoft.Resources/deployments', 'adDeployment')]"
             ],
             "copy": {
                 "name": "rdgVmLoop",
@@ -396,12 +556,6 @@
                     "location": {
                         "value": "[parameters('location')]"
                     },
-                    "artifactsLocation": {
-                        "value": "[parameters('artifactsLocation')]"
-                    },
-                    "artifactsLocationSasToken": {
-                        "value": "[parameters('artifactsLocationSasToken')]"
-                    },
                     "hostName": {
                         "value": "[concat(variables('rdgHostname'), padLeft(add(copyIndex(), 1), 2, '0'))]"
                     },
@@ -422,6 +576,9 @@
                     },
                     "nsgName": {
                         "value": "[variables('managementNsgName')]"
+                    },
+                    "availabilitySetName": {
+                        "value": "[variables('rdgAvailabilitySetName')]"
                     }
                 }
             }

@@ -18,18 +18,6 @@
                 "description": "Region in which the resource group and components will be deployed"
             }
         },
-        "artifactsLocation": {
-            "type": "string",
-            "metadata": {
-                "description": "The base URI where artifacts required by this template are located including a trailing '/'"
-            }
-        },
-        "artifactsLocationSasToken": {
-            "type": "securestring",
-            "metadata": {
-                "description": "The sasToken required to access artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
-            }
-        },
         "hostName": {
             "type": "string",
             "defaultValue": "VM-mfed",
@@ -76,6 +64,12 @@
             "type": "string",
             "metadata": {
                 "description": "Name of network security group"
+            }
+        },
+        "availabilitySetName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of availability set"
             }
         }
     },
@@ -132,6 +126,9 @@
             "properties": {
                 "hardwareProfile": {
                     "vmSize": "[parameters('virtualMachineSize')]"
+                },
+                "availabilitySet": {
+                    "id": "[resourceId('Microsoft.Compute/availabilitySets',parameters('availabilitySetName'))]"
                 },
                 "storageProfile": {
                     "osDisk": {
