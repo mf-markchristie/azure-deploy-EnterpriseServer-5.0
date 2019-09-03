@@ -234,6 +234,36 @@
             "metadata": {
                 "description": "The NetBIOS name of the domain (up to 15 characters) for users of earlier versions of Microsoft Windows, e.g., example."
             }
+        },
+        "serviceAccountUserName": {
+            "type": "string",
+            "minLength": 1,
+            "defaultValue": "mfservice",
+            "metadata": {
+                "description": "Administrator username for MF service account user."
+            }
+        },
+        "serviceAccountPassword": {
+            "type": "securestring",
+            "minLength": 5,
+            "metadata": {
+                "description": "Password for MF service account user."
+            }
+        },
+        "demoAccountUserName": {
+            "type": "string",
+            "minLength": 1,
+            "defaultValue": "mfdemo",
+            "metadata": {
+                "description": "Administrator username for MF service account user."
+            }
+        },
+        "demoAccountPassword": {
+            "type": "securestring",
+            "minLength": 5,
+            "metadata": {
+                "description": "Password for MF service account user."
+            }
         }
     },
     "variables": {
@@ -476,6 +506,66 @@
         {
             "apiVersion": "[variables('apiVersionLinkTemplate')]",
             "type": "Microsoft.Resources/deployments",
+            "name": "[concat('rdgDeployment', padLeft(add(copyIndex(), 1), 2, '0'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorageAccount'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('managementNsgName'))]",
+                "[resourceId('Microsoft.Compute/availabilitySets', variables('rdgAvailabilitySetName'))]"
+            ],
+            "copy": {
+                "name": "rdgVmLoop",
+                "count": "[parameters('rdgInstanceCount')]"
+            },
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('rdgDeploymentTemplateUrl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "apiVersionCompute": {
+                        "value": "[variables('apiVersionCompute')]"
+                    },
+                    "apiVersionStorage": {
+                        "value": "[variables('apiVersionStorage')]"
+                    },
+                    "apiVersionNetwork": {
+                        "value": "[variables('apiVersionNetwork')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "hostName": {
+                        "value": "[concat(variables('rdgHostname'), padLeft(add(copyIndex(), 1), 2, '0'))]"
+                    },
+                    "virtualMachineSize": {
+                        "value": "[parameters('rdgInstanceSize')]"
+                    },
+                    "diagStorageAccount": {
+                        "value": "[variables('diagStorageAccount')]"
+                    },
+                    "adminUsername": {
+                        "value": "[parameters('rdgAdminUsername')]"
+                    },
+                    "adminPassword": {
+                        "value": "[parameters('rdgAdminPassword')]"
+                    },
+                    "subnetRef": {
+                        "value": "[variables('managementSubnetRef')]"
+                    },
+                    "nsgName": {
+                        "value": "[variables('managementNsgName')]"
+                    },
+                    "availabilitySetName": {
+                        "value": "[variables('rdgAvailabilitySetName')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "type": "Microsoft.Resources/deployments",
             "name": "adPhase1",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
@@ -549,6 +639,18 @@
                     },
                     "backupAdIpAddress": {
                         "value": "[parameters('backupAdIpAddress')]"
+                    },
+                    "serviceAccountUserName": {
+                        "value": "[parameters('serviceAccountUserName')]"
+                    },
+                    "serviceAccountPassword": {
+                        "value": "[parameters('serviceAccountPassword')]"
+                    },
+                    "demoAccountUserName": {
+                        "value": "[parameters('demoAccountUserName')]"
+                    },
+                    "demoAccountPassword": {
+                        "value": "[parameters('demoAccountPassword')]"
                     }
                 }
             }
@@ -617,66 +719,6 @@
                     },
                     "backupAdIpAddress": {
                         "value": "[parameters('backupAdIpAddress')]"
-                    }
-                }
-            }
-        },
-        {
-            "apiVersion": "[variables('apiVersionLinkTemplate')]",
-            "type": "Microsoft.Resources/deployments",
-            "name": "[concat('rdgDeployment', padLeft(add(copyIndex(), 1), 2, '0'))]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
-                "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorageAccount'))]",
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('managementNsgName'))]",
-                "[resourceId('Microsoft.Compute/availabilitySets', variables('rdgAvailabilitySetName'))]"
-            ],
-            "copy": {
-                "name": "rdgVmLoop",
-                "count": "[parameters('rdgInstanceCount')]"
-            },
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[variables('rdgDeploymentTemplateUrl')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "apiVersionCompute": {
-                        "value": "[variables('apiVersionCompute')]"
-                    },
-                    "apiVersionStorage": {
-                        "value": "[variables('apiVersionStorage')]"
-                    },
-                    "apiVersionNetwork": {
-                        "value": "[variables('apiVersionNetwork')]"
-                    },
-                    "location": {
-                        "value": "[parameters('location')]"
-                    },
-                    "hostName": {
-                        "value": "[concat(variables('rdgHostname'), padLeft(add(copyIndex(), 1), 2, '0'))]"
-                    },
-                    "virtualMachineSize": {
-                        "value": "[parameters('rdgInstanceSize')]"
-                    },
-                    "diagStorageAccount": {
-                        "value": "[variables('diagStorageAccount')]"
-                    },
-                    "adminUsername": {
-                        "value": "[parameters('rdgAdminUsername')]"
-                    },
-                    "adminPassword": {
-                        "value": "[parameters('rdgAdminPassword')]"
-                    },
-                    "subnetRef": {
-                        "value": "[variables('managementSubnetRef')]"
-                    },
-                    "nsgName": {
-                        "value": "[variables('managementNsgName')]"
-                    },
-                    "availabilitySetName": {
-                        "value": "[variables('rdgAvailabilitySetName')]"
                     }
                 }
             }

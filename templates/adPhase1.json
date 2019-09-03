@@ -119,6 +119,34 @@
             "metadata": {
                 "description": "IP address of backup DC"
             }
+        },
+        "serviceAccountUserName": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "Administrator username for MF service account user."
+            }
+        },
+        "serviceAccountPassword": {
+            "type": "securestring",
+            "minLength": 5,
+            "metadata": {
+                "description": "Password for MF service account user."
+            }
+        },
+        "demoAccountUserName": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "Administrator username for MF service account user."
+            }
+        },
+        "demoAccountPassword": {
+            "type": "securestring",
+            "minLength": 5,
+            "metadata": {
+                "description": "Password for MF service account user."
+            }
         }
     },
     "variables": {
@@ -276,6 +304,14 @@
                         "adminCreds": {
                             "userName": "[parameters('adminUserName')]",
                             "password": "[parameters('adminPassword')]"
+                        },
+                        "serviceCreds": {
+                            "userName": "[parameters('serviceAccountUserName')]",
+                            "password": "[parameters('serviceAccountPassword')]"
+                        },
+                        "demoCreds": {
+                            "userName": "[parameters('demoAccountUserName')]",
+                            "password": "[parameters('demoAccountPassword')]"
                         }
                     }
                 }
@@ -348,7 +384,7 @@
         {
             "apiVersion": "[parameters('apiVersionCompute')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(variables('backupHostName'),'/PrepareDomainController')]",
+            "name": "[concat(variables('backupHostName'),'/ConfigureDomainController')]",
             "location": "[parameters('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Compute/virtualMachines', variables('backupHostName'))]"

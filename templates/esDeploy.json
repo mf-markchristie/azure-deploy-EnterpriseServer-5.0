@@ -194,7 +194,7 @@
         },
         {
             "apiVersion": "[parameters('apiVersionCompute')]",
-            "name": "[concat(parameters('hostName'), '/Installation')]",
+            "name": "[concat(parameters('hostName'), '/Setup')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "location": "[parameters('location')]",
             "dependsOn": [

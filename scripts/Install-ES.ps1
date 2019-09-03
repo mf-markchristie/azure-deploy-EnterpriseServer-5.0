@@ -4,16 +4,13 @@
 
  .DESCRIPTION
     Machine setup for Marketplace deployment
-
- .PARAMETER installerName
-    The name of the installer
-
- .PARAMETER licenseKey
-    Optional, the license key to be used
 #>
 param(
     [string]
-    $licenseKey
+    $licenseKey,
+
+    [bool]
+    $mountDrive=$true
 )
 
 Write-Host "Creating temporary working directory."
@@ -66,17 +63,14 @@ else {
     Write-Warning "No license key provided during installation, a license will need to be added before you can use the product."
 }
 
-
-Write-Host "Setting up Data Disk"
-Get-Disk | Where-Object PartitionStyle -Eq "RAW" | Initialize-Disk -PartitionStyle MBR
-New-Partition -DiskNumber 2 -UseMaximumSize -DriveLetter f
-Format-Volume -DriveLetter F -FileSystem NTFS -Confirm:$false
-Get-Volume -DriveLetter F | Set-Volume -NewFileSystemLabel "Data Drive"
-
+if ($mountDrive -eq $true) {
+    Write-Host "Setting up Data Disk"
+    Get-Disk | Where-Object PartitionStyle -Eq "RAW" | Initialize-Disk -PartitionStyle MBR
+    New-Partition -DiskNumber 2 -UseMaximumSize -DriveLetter f
+    Format-Volume -DriveLetter F -FileSystem NTFS -Confirm:$false
+    Get-Volume -DriveLetter F | Set-Volume -NewFileSystemLabel "Data Drive"
+}
 
 Write-Host "Cleaning up temporary working directory."
 Set-Location "C:\"
 Remove-Item "C:\tmp" -Force -Recurse
-
-Write-Host "Stopping MFDS service for repository imports"
-Stop-Service -Name "MF_CCITCP2"
