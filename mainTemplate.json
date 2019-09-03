@@ -220,6 +220,20 @@
             "metadata": {
                 "description": "The password for the domain Admin account."
             }
+        },
+        "primaryAdIpAddress": {
+            "type": "string",
+            "defaultValue": "10.0.0.10",
+            "metadata": {
+                "description": "The NetBIOS name of the domain (up to 15 characters) for users of earlier versions of Microsoft Windows, e.g., example."
+            }
+        },
+        "backupAdIpAddress": {
+            "type": "string",
+            "defaultValue": "10.0.0.20",
+            "metadata": {
+                "description": "The NetBIOS name of the domain (up to 15 characters) for users of earlier versions of Microsoft Windows, e.g., example."
+            }
         }
     },
     "variables": {
@@ -244,7 +258,29 @@
         "adAvailabilitySetName": "[concat(variables('adHostname'), '-as')]",
         "rdgDeploymentTemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/rdgDeploy.json', parameters('artifactsLocationSasToken')))]",
         "esDeploymentTemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/esDeploy.json', parameters('artifactsLocationSasToken')))]",
-        "adDeploymentTemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/adDeploy.json', parameters('artifactsLocationSasToken')))]"
+        "adPhase1TemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/adPhase1.json', parameters('artifactsLocationSasToken')))]",
+        "adPhase2TemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/adPhase2.json', parameters('artifactsLocationSasToken')))]",
+        "addressSpace": {
+            "addressPrefixes": [
+                "[parameters('addressPrefixes')]"
+            ]
+        },
+        "subnets": [{
+            "name": "[parameters('managementSubnetName')]",
+            "properties": {
+                "addressPrefix": "[parameters('managementSubnetPrefix')]"
+            }
+        }, {
+            "name": "[parameters('applicationSubnetName')]",
+            "properties": {
+                "addressPrefix": "[parameters('applicationSubnetPrefix')]"
+            }
+        }, {
+            "name": "[parameters('adSubnetName')]",
+            "properties": {
+                "addressPrefix": "[parameters('adSubnetPrefix')]"
+            }
+        }]
     },
     "resources": [
         {
@@ -306,30 +342,11 @@
             "name": "[parameters('virtualNetworkName')]",
             "location": "[parameters('location')]",
             "properties": {
-                "addressSpace": {
-                    "addressPrefixes": [
-                        "[parameters('addressPrefixes')]"
-                    ]
-                },
+                "addressSpace": "[variables('addressSpace')]",
                 "dhcpOptions": {
                     "dnsServers": []
                 },
-                "subnets": [{
-                    "name": "[parameters('managementSubnetName')]",
-                    "properties": {
-                        "addressPrefix": "[parameters('managementSubnetPrefix')]"
-                    }
-                }, {
-                    "name": "[parameters('applicationSubnetName')]",
-                    "properties": {
-                        "addressPrefix": "[parameters('applicationSubnetPrefix')]"
-                    }
-                }, {
-                    "name": "[parameters('adSubnetName')]",
-                    "properties": {
-                        "addressPrefix": "[parameters('adSubnetPrefix')]"
-                    }
-                }]
+                "subnets": "[variables('subnets')]"
             }
         },
         {
@@ -459,7 +476,7 @@
         {
             "apiVersion": "[variables('apiVersionLinkTemplate')]",
             "type": "Microsoft.Resources/deployments",
-            "name": "adDeployment",
+            "name": "adPhase1",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorageAccount'))]",
@@ -469,7 +486,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[variables('adDeploymentTemplateUrl')]",
+                    "uri": "[variables('adPhase1TemplateUrl')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -517,11 +534,93 @@
                     },
                     "domainName": {
                         "value": "[parameters('domainDNSName')]"
+                    },
+                    "virtualNetworkName": {
+                        "value": "[parameters('virtualNetworkName')]"
+                    },
+                    "addressSpace": {
+                        "value": "[variables('addressSpace')]"
+                    },
+                    "subnets": {
+                        "value": "[variables('subnets')]"
+                    },
+                    "primaryAdIpAddress": {
+                        "value": "[parameters('primaryAdIpAddress')]"
+                    },
+                    "backupAdIpAddress": {
+                        "value": "[parameters('backupAdIpAddress')]"
                     }
                 }
             }
         },
-
+        {
+            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "type": "Microsoft.Resources/deployments",
+            "name": "adPhase2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'adPhase1')]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('adPhase2TemplateUrl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "apiVersionCompute": {
+                        "value": "[variables('apiVersionCompute')]"
+                    },
+                    "apiVersionStorage": {
+                        "value": "[variables('apiVersionStorage')]"
+                    },
+                    "apiVersionNetwork": {
+                        "value": "[variables('apiVersionNetwork')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "artifactsLocation": {
+                        "value": "[parameters('artifactsLocation')]"
+                    },
+                    "artifactsLocationSasToken": {
+                        "value": "[parameters('artifactsLocationSasToken')]"
+                    },
+                    "hostName": {
+                        "value": "[variables('adHostname')]"
+                    },
+                    "adminUsername": {
+                        "value": "[parameters('domainNetBIOSName')]"
+                    },
+                    "adminPassword": {
+                        "value": "[parameters('domainAdminPassword')]"
+                    },
+                    "subnetRef": {
+                        "value": "[variables('adSubnetRef')]"
+                    },
+                    "nsgName": {
+                        "value": "[variables('adNsgName')]"
+                    },
+                    "domainName": {
+                        "value": "[parameters('domainDNSName')]"
+                    },
+                    "virtualNetworkName": {
+                        "value": "[parameters('virtualNetworkName')]"
+                    },
+                    "addressSpace": {
+                        "value": "[variables('addressSpace')]"
+                    },
+                    "subnets": {
+                        "value": "[variables('subnets')]"
+                    },
+                    "primaryAdIpAddress": {
+                        "value": "[parameters('primaryAdIpAddress')]"
+                    },
+                    "backupAdIpAddress": {
+                        "value": "[parameters('backupAdIpAddress')]"
+                    }
+                }
+            }
+        },
         {
             "apiVersion": "[variables('apiVersionLinkTemplate')]",
             "type": "Microsoft.Resources/deployments",
@@ -530,8 +629,7 @@
                 "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorageAccount'))]",
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('managementNsgName'))]",
-                "[resourceId('Microsoft.Compute/availabilitySets', variables('rdgAvailabilitySetName'))]",
-                "[resourceId('Microsoft.Resources/deployments', 'adDeployment')]"
+                "[resourceId('Microsoft.Compute/availabilitySets', variables('rdgAvailabilitySetName'))]"
             ],
             "copy": {
                 "name": "rdgVmLoop",

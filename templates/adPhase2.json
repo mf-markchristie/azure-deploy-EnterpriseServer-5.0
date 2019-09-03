@@ -1,0 +1,191 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "apiVersionCompute": {
+            "type": "string"
+        },
+        "apiVersionStorage": {
+            "type": "string"
+        },
+        "apiVersionNetwork": {
+            "type": "string"
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Region in which the resource group and components will be deployed"
+            }
+        },
+        "artifactsLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "The base URI where artifacts required by this template are located including a trailing '/'"
+            }
+        },
+        "artifactsLocationSasToken": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The sasToken required to access artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
+            }
+        },
+        "hostName": {
+            "type": "string",
+            "defaultValue": "VM-mfed",
+            "minLength": 4,
+            "maxLength": 20,
+            "metadata": {
+                "description": "Virtual machine name to be used."
+            }
+        },
+        "adminUsername": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "Administrator username on VM."
+            }
+        },
+        "adminPassword": {
+            "type": "securestring",
+            "minLength": 5,
+            "metadata": {
+                "description": "Password for administrator user."
+            }
+        },
+        "subnetRef": {
+            "type": "string",
+            "metadata": {
+                "description": "Reference for the subnet"
+            }
+        },
+        "nsgName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of network security group"
+            }
+        },
+        "domainName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of availability set"
+            }
+        },
+        "virtualNetworkName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of availability set"
+            }
+        },
+        "addressSpace": {
+            "type": "object",
+            "metadata": {
+                "description": "Address space to be assigned to virtual network"
+            }
+        },
+        "subnets": {
+            "type": "array",
+            "metadata": {
+                "description": "Subnets to be assigned to virtual network"
+            }
+        },
+        "primaryAdIpAddress": {
+            "type": "string",
+            "metadata": {
+                "description": "IP address of primary DC"
+            }
+        },
+        "backupAdIpAddress": {
+            "type": "string",
+            "metadata": {
+                "description": "IP address of backup DC"
+            }
+        }
+    },
+    "variables": {
+        "osDiskType": "StandardSSD_LRS",
+        "primaryHostName": "[concat(parameters('hostName'), 'P')]",
+        "backupHostName": "[concat(parameters('hostName'), 'B')]",
+        "adBDCModulesURL": "[uri(parameters('artifactsLocation'), concat('DSC/ConfigureADBDC.ps1.zip', parameters('artifactsLocationSasToken')))]",
+        "adBDCConfigurationScript": "ConfigureADBDC.ps1",
+        "adBDCConfigurationFunction": "ConfigureADBDC",
+        "dataDiskSize": 32
+    },
+    "resources": [
+        {
+            "apiVersion": "[parameters('apiVersionNetwork')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(variables('backupHostName'), '-nic')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "ipConfigurations": [{
+                    "name": "[concat(variables('backupHostName'), 'ipconfig')]",
+                    "properties": {
+                        "privateIPAllocationMethod": "Static",
+                        "privateIPAddress": "[parameters('backupAdIpAddress')]",
+                        "subnet": {
+                            "id": "[parameters('subnetRef')]"
+                        }
+                    }
+                }],
+                "dnsSettings": {
+                    "dnsServers": [
+                        "[parameters('primaryAdIpAddress')]"
+                    ]
+                },
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsgName'))]"
+                }
+            }
+        },
+        {
+            "apiVersion": "[parameters('apiVersionCompute')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('backupHostName'), '/ConfigureDomainController')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "publisher": "Microsoft.Powershell",
+                "type": "DSC",
+                "typeHandlerVersion": "2.24",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "configuration": {
+                        "url": "[variables('adBDCModulesURL')]",
+                        "script": "[variables('adBDCConfigurationScript')]",
+                        "function": "[variables('adBDCConfigurationFunction')]"
+                    },
+                    "configurationArguments": {
+                        "domainName": "[parameters('domainName')]"
+                    }
+                },
+                "protectedSettings": {
+                    "configurationArguments": {
+                        "adminCreds": {
+                            "userName": "[parameters('adminUserName')]",
+                            "password": "[parameters('adminPassword')]"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "[parameters('apiVersionNetwork')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('virtualNetworkName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('backupHostName'), 'ConfigureDomainController')]"
+            ],
+            "properties": {
+                "addressSpace": "[parameters('addressSpace')]",
+                "dhcpOptions": {
+                    "dnsServers": [
+                        "[parameters('primaryAdIpAddress')]",
+                        "[parameters('backupAdIpAddress')]"
+                    ]
+                },
+                "subnets": "[parameters('subnets')]"
+            }
+        }
+    ]
+}
