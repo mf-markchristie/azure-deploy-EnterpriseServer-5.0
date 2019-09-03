@@ -205,6 +205,7 @@
                 "type": "CustomScriptExtension",
                 "typeHandlerVersion": "1.9",
                 "autoUpgradeMinorVersion": true,
+                "forceUpdateTag": "v.1.0",
                 "settings": {
                     "fileUris": [
                         "[variables('scriptFileUri')]"

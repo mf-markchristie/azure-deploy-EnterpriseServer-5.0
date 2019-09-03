@@ -1,0 +1,108 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "apiVersionCompute": {
+            "type": "string"
+        },
+        "apiVersionStorage": {
+            "type": "string"
+        },
+        "apiVersionNetwork": {
+            "type": "string"
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Region in which the resource group and components will be deployed"
+            }
+        },
+        "artifactsLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "The base URI where artifacts required by this template are located including a trailing '/'"
+            }
+        },
+        "artifactsLocationSasToken": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The sasToken required to access artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
+            }
+        },
+        "hostName": {
+            "type": "string",
+            "defaultValue": "VM-mfed",
+            "minLength": 4,
+            "maxLength": 20,
+            "metadata": {
+                "description": "Virtual machine name to be used."
+            }
+        },
+        "domainNetBIOSName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "The NetBIOS name of the domain (up to 15 characters) for users of earlier versions of Microsoft Windows, e.g., example."
+            }
+        },
+        "serviceAccountUserName": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "Administrator username for MF service account user."
+            }
+        },
+        "serviceAccountPassword": {
+            "type": "securestring",
+            "minLength": 5,
+            "metadata": {
+                "description": "Password for MF service account user."
+            }
+        },
+        "demoAccountUserName": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "Administrator username for MF service account user."
+            }
+        },
+        "demoAccountPassword": {
+            "type": "securestring",
+            "minLength": 5,
+            "metadata": {
+                "description": "Password for MF service account user."
+            }
+        }
+    },
+    "variables": {
+        "osDiskType": "StandardSSD_LRS",
+        "scriptFileUri1": "[uri(parameters('artifactsLocation'), concat('scripts/Configure-ES-Node.ps1', parameters('artifactsLocationSasToken')))]",
+        "scriptFileUri2": "[uri(parameters('artifactsLocation'), concat('scripts/Configure-UserLogonPrivileges.ps1', parameters('artifactsLocationSasToken')))]",
+        "credentialsArg": "[concat(' -ServiceUser ', parameters('serviceAccountUserName'), ' -ServicePassword ', parameters('serviceAccountPassword'), ' -DemoUser ', parameters('demoAccountUserName'), ' -DemoPassword ', parameters('demoAccountPassword'))]"
+    },
+    "resources": [
+        {
+            "apiVersion": "[parameters('apiVersionCompute')]",
+            "name": "[concat(parameters('hostName'), '/Setup')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "location": "[parameters('location')]",
+            "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.9",
+                "autoUpgradeMinorVersion": true,
+                "forceUpdateTag": "v.2.0",
+                "settings": {
+                    "fileUris": [
+                        "[variables('scriptFileUri1')]",
+                        "[variables('scriptFileUri2')]"
+                    ]
+                },
+                "protectedSettings": {
+                    "commandToExecute": "[concat('powershell ./scripts/Configure-ES-Node.ps1 -DomainNetBIOSName ', parameters('domainNetBIOSName'), variables('credentialsArg'))]"
+                }
+            }
+        }
+    ]
+}

@@ -214,6 +214,13 @@
                 "description": "The NetBIOS name of the domain (up to 15 characters) for users of earlier versions of Microsoft Windows, e.g., example."
             }
         },
+        "domainAdminUserName": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "Domain administrator username."
+            }
+        },
         "domainAdminPassword": {
             "type": "securestring",
             "minLength": 5,
@@ -290,6 +297,7 @@
         "esDeploymentTemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/esDeploy.json', parameters('artifactsLocationSasToken')))]",
         "adPhase1TemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/adPhase1.json', parameters('artifactsLocationSasToken')))]",
         "adPhase2TemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/adPhase2.json', parameters('artifactsLocationSasToken')))]",
+        "esConfigureNodeUrl": "[uri(parameters('artifactsLocation'), concat('templates/esNodeConfig.json', parameters('artifactsLocationSasToken')))]",
         "addressSpace": {
             "addressPrefixes": [
                 "[parameters('addressPrefixes')]"
@@ -434,7 +442,7 @@
         {
             "apiVersion": "[variables('apiVersionLinkTemplate')]",
             "type": "Microsoft.Resources/deployments",
-            "name": "[concat('esDeployment', padLeft(add(copyIndex(), 1), 2, '0'))]",
+            "name": "[esdeploy.getLoopName('createEsNode', copyIndex())]",
             "dependsOn": [
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorageAccount'))]",
                 "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
@@ -442,7 +450,7 @@
                 "[resourceId('Microsoft.Compute/availabilitySets', variables('esAvailabilitySetName'))]"
             ],
             "copy": {
-                "name": "esVmLoop",
+                "name": "createEsNodeLoop",
                 "count": "[parameters('esInstanceCount')]"
             },
             "properties": {
@@ -471,7 +479,7 @@
                         "value": "[parameters('artifactsLocationSasToken')]"
                     },
                     "hostName": {
-                        "value": "[concat(variables('esHostname'), padLeft(add(copyIndex(), 1), 2, '0'))]"
+                        "value": "[esdeploy.getLoopName(variables('esHostname'), copyIndex())]"
                     },
                     "virtualMachineSize": {
                         "value": "[parameters('esInstanceSize')]"
@@ -608,7 +616,7 @@
                         "value": "[variables('diagStorageAccount')]"
                     },
                     "adminUsername": {
-                        "value": "[parameters('domainNetBIOSName')]"
+                        "value": "[parameters('domainAdminUserName')]"
                     },
                     "adminPassword": {
                         "value": "[parameters('domainAdminPassword')]"
@@ -722,6 +730,86 @@
                     }
                 }
             }
+        },
+        {
+            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "type": "Microsoft.Resources/deployments",
+            "name": "[concat('configureEsNode', padLeft(add(copyIndex(), 1), 2, '0'))]",
+            "dependsOn": [
+                "createEsNodeLoop",
+                "adPhase2"
+            ],
+            "copy": {
+                "name": "configureEsNodeLoop",
+                "count": "[parameters('esInstanceCount')]"
+            },
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('esConfigureNodeUrl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "apiVersionCompute": {
+                        "value": "[variables('apiVersionCompute')]"
+                    },
+                    "apiVersionStorage": {
+                        "value": "[variables('apiVersionStorage')]"
+                    },
+                    "apiVersionNetwork": {
+                        "value": "[variables('apiVersionNetwork')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "artifactsLocation": {
+                        "value": "[parameters('artifactsLocation')]"
+                    },
+                    "artifactsLocationSasToken": {
+                        "value": "[parameters('artifactsLocationSasToken')]"
+                    },
+                    "hostName": {
+                        "value": "[concat(variables('esHostname'), padLeft(add(copyIndex(), 1), 2, '0'))]"
+                    },
+                    "domainNetBIOSName": {
+                        "value": "[parameters('domainNetBIOSName')]"
+                    },
+                    "serviceAccountUserName": {
+                        "value": "[parameters('serviceAccountUserName')]"
+                    },
+                    "serviceAccountPassword": {
+                        "value": "[parameters('serviceAccountPassword')]"
+                    },
+                    "demoAccountUserName": {
+                        "value": "[parameters('demoAccountUserName')]"
+                    },
+                    "demoAccountPassword": {
+                        "value": "[parameters('demoAccountPassword')]"
+                    }
+                }
+            }
         }
+    ],
+    "functions": [{
+        "namespace": "esdeploy",
+        "members": {
+          "getLoopName": {
+            "parameters": [
+              {
+                "name": "base",
+                "type": "string"
+              },
+              {
+                  "name": "index",
+                  "type": "int"
+              }
+            ],
+            "output": {
+              "type": "string",
+              "value": "[concat(parameters('base'), padLeft(add(parameters('index'), 1), 2, '0'))]"
+            }
+          }
+        }
+      }
     ]
 }

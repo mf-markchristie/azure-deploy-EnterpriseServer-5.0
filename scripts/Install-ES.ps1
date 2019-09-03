@@ -1,10 +1,3 @@
-<#
- .SYNOPSIS
-    Machine setup for Marketplace deployment
-
- .DESCRIPTION
-    Machine setup for Marketplace deployment
-#>
 param(
     [string]
     $licenseKey,
