@@ -34,7 +34,7 @@ Write-Host "Updating MFDS Service Propertie"
 Stop-Service -Name "MF_CCITCP2"
 $Account="${DomainNetBIOSName}\${ServiceUser}"
 $Service=gwmi win32_service -filter "Name='MF_CCITCP2'"
-$Service.change($null,$null,$null,$null,$null,$null,$Account,$ServicePassword,$null,$null,$null)
+$Service.change($null,$null,$null,$null,$null,$false,$Account,$ServicePassword,$null,$null,$null)
 
 Write-Host "Deleting ESCWA Service"
 $Service=gwmi win32_service -filter "Name='ESCWA'"
