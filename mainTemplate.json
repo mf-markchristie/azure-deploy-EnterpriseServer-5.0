@@ -298,6 +298,7 @@
         "adPhase1TemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/adPhase1.json', parameters('artifactsLocationSasToken')))]",
         "adPhase2TemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/adPhase2.json', parameters('artifactsLocationSasToken')))]",
         "esConfigureNodeUrl": "[uri(parameters('artifactsLocation'), concat('templates/esNodeConfig.json', parameters('artifactsLocationSasToken')))]",
+        "resetNicUrl": "[uri(parameters('artifactsLocation'), concat('templates/resetNic.json', parameters('artifactsLocationSasToken')))]",
         "addressSpace": {
             "addressPrefixes": [
                 "[parameters('addressPrefixes')]"
@@ -514,7 +515,7 @@
         {
             "apiVersion": "[variables('apiVersionLinkTemplate')]",
             "type": "Microsoft.Resources/deployments",
-            "name": "[concat('rdgDeployment', padLeft(add(copyIndex(), 1), 2, '0'))]",
+            "name": "[esdeploy.getLoopName('rdgDeployment', copyIndex())]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorageAccount'))]",
@@ -545,7 +546,7 @@
                         "value": "[parameters('location')]"
                     },
                     "hostName": {
-                        "value": "[concat(variables('rdgHostname'), padLeft(add(copyIndex(), 1), 2, '0'))]"
+                        "value": "[esdeploy.getLoopName(variables('rdgHostname'), copyIndex())]"
                     },
                     "virtualMachineSize": {
                         "value": "[parameters('rdgInstanceSize')]"
@@ -699,7 +700,7 @@
                         "value": "[variables('adHostname')]"
                     },
                     "adminUsername": {
-                        "value": "[parameters('domainNetBIOSName')]"
+                        "value": "[parameters('domainAdminUserName')]"
                     },
                     "adminPassword": {
                         "value": "[parameters('domainAdminPassword')]"
@@ -734,10 +735,52 @@
         {
             "apiVersion": "[variables('apiVersionLinkTemplate')]",
             "type": "Microsoft.Resources/deployments",
-            "name": "[concat('configureEsNode', padLeft(add(copyIndex(), 1), 2, '0'))]",
+            "name": "[esdeploy.getLoopName('resetEsNodeNic', copyIndex())]",
             "dependsOn": [
                 "createEsNodeLoop",
-                "adPhase2"
+                "[resourceId('Microsoft.Resources/deployments', 'adPhase2')]"
+            ],
+            "copy": {
+                "name": "resetEsNodeNic",
+                "count": "[parameters('esInstanceCount')]"
+            },
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('resetNicUrl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "apiVersionCompute": {
+                        "value": "[variables('apiVersionCompute')]"
+                    },
+                    "apiVersionStorage": {
+                        "value": "[variables('apiVersionStorage')]"
+                    },
+                    "apiVersionNetwork": {
+                        "value": "[variables('apiVersionNetwork')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "hostName": {
+                        "value": "[esdeploy.getLoopName(variables('esHostname'), copyIndex())]"
+                    },
+                    "subnetRef": {
+                        "value": "[variables('applicationSubnetRef')]"
+                    },
+                    "nsgName": {
+                        "value": "[variables('applicationNsgName')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "type": "Microsoft.Resources/deployments",
+            "name": "[esdeploy.getLoopName('configureEsNode', copyIndex())]",
+            "dependsOn": [
+                "resetEsNodeNic"
             ],
             "copy": {
                 "name": "configureEsNodeLoop",
@@ -769,7 +812,7 @@
                         "value": "[parameters('artifactsLocationSasToken')]"
                     },
                     "hostName": {
-                        "value": "[concat(variables('esHostname'), padLeft(add(copyIndex(), 1), 2, '0'))]"
+                        "value": "[esdeploy.getLoopName(variables('esHostname'), copyIndex())]"
                     },
                     "domainNetBIOSName": {
                         "value": "[parameters('domainNetBIOSName')]"
