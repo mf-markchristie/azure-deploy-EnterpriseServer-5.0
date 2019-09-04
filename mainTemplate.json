@@ -271,6 +271,13 @@
             "metadata": {
                 "description": "Password for MF service account user."
             }
+        },
+        "esNodeIpArray": {
+            "type": "array",
+            "defaultValue": [
+                "10.0.144.10",
+                "10.0.144.20"
+            ]
         }
     },
     "variables": {
@@ -299,6 +306,7 @@
         "adPhase2TemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/adPhase2.json', parameters('artifactsLocationSasToken')))]",
         "esConfigureNodeUrl": "[uri(parameters('artifactsLocation'), concat('templates/esNodeConfig.json', parameters('artifactsLocationSasToken')))]",
         "resetNicUrl": "[uri(parameters('artifactsLocation'), concat('templates/resetNic.json', parameters('artifactsLocationSasToken')))]",
+        "domainJoinOptions": 3,
         "addressSpace": {
             "addressPrefixes": [
                 "[parameters('addressPrefixes')]"
@@ -319,7 +327,13 @@
             "properties": {
                 "addressPrefix": "[parameters('adSubnetPrefix')]"
             }
-        }]
+        }],
+        "dnsSettings": {
+            "dnsServers": [
+                "[parameters('primaryAdIpAddress')]",
+                "[parameters('backupAdIpAddress')]"
+            ]
+        }
     },
     "resources": [
         {
@@ -741,7 +755,7 @@
                 "[resourceId('Microsoft.Resources/deployments', 'adPhase2')]"
             ],
             "copy": {
-                "name": "resetEsNodeNic",
+                "name": "resetEsNodeNicLoop",
                 "count": "[parameters('esInstanceCount')]"
             },
             "properties": {
@@ -771,7 +785,42 @@
                     },
                     "nsgName": {
                         "value": "[variables('applicationNsgName')]"
+                    },
+                    "dnsSettings": {
+                        "value": "[variables('dnsSettings')]"
+                    },
+                    "ipAddress": {
+                        "value": "[parameters('esNodeIpArray')[copyIndex()]]"
                     }
+                }
+            }
+        },
+        {
+            "apiVersion": "[variables('apiVersionCompute')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(esdeploy.getLoopName(variables('esHostname'), copyIndex()), '/joindomain')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "resetEsNodeNicLoop"
+            ],
+            "copy": {
+                "name": "joinDomainEsNodeLoop",
+                "count": "[parameters('esInstanceCount')]"
+            },
+            "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "JsonADDomainExtension",
+                "typeHandlerVersion": "1.3",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "Name": "[parameters('domainDNSName')]",
+                    "OUPath": "",
+                    "User": "[concat(parameters('domainDNSName'), '\\', parameters('domainAdminUserName'))]",
+                    "Restart": "true",
+                    "Options": "[variables('domainJoinOptions')]"
+                },
+                "protectedSettings": {
+                    "Password": "[parameters('domainAdminPassword')]"
                 }
             }
         },
@@ -780,7 +829,7 @@
             "type": "Microsoft.Resources/deployments",
             "name": "[esdeploy.getLoopName('configureEsNode', copyIndex())]",
             "dependsOn": [
-                "resetEsNodeNic"
+                "joinDomainEsNodeLoop"
             ],
             "copy": {
                 "name": "configureEsNodeLoop",

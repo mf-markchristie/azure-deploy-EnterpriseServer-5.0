@@ -6,22 +6,22 @@ param(
     [string]$ServiceUser,
 
     [Parameter(Mandatory = $True)]
-    [System.Security.SecureString]$ServicePassword,
+    [string]$ServicePassword,
 
     [Parameter(Mandatory = $True)]
     [string]$DemoUser,
 
     [Parameter(Mandatory = $True)]
-    [System.Security.SecureString]$DemoPassword
+    [string]$DemoPassword
 )
+$ErrorActionPreference = "Stop"
 
-Write-Host "Configuring Service Account"
+Write-Host "Configuring Service Account Permission"
 $cmd = "$PSScriptRoot/Configure-UserLogonPrivileges.ps1"
 $args = @()
 $args += ("-Username", "${DomainNetBIOSName}\${ServiceUser}")
 $args += ("-PrivilegeName", 'SeServiceLogonRight')
 $args += ("-Status", 'Grant')
-Write-Host "$cmd $args"
 Invoke-Expression "$cmd $args"
 
 $args = @()
@@ -29,9 +29,15 @@ $args += ("-Username", "${DomainNetBIOSName}\${ServiceUser}")
 $args += ("-PrivilegeName", 'SeBatchLogonRight')
 $args += ("-Status", 'Grant')
 Invoke-Expression "$cmd $args"
+
+Write-Host "Updating Service Propertie"
 Stop-Service -Name "MF_CCITCP2"
-$ServiceCredentials = New-Object System.Management.Automation.PSCredential -ArgumentList "${DomainNetBIOSName}\${ServiceUser}", $ServicePassword
-Set-Service -Name "MF_CCITCP2" -Credential $ServiceCredentials
+
+$Account="${DomainNetBIOSName}\${ServiceUser}"
+$Service="name='MF_CCITCP2'"
+$svc=gwmi win32_service -filter $Service
+$svc.change($null,$null,$null,$null,$null,$null,$Account,$ServicePassword,$null,$null,$null)
+
 Remove-Service -Name "ESCWA"
 
 Write-Host "Configuring Demo Account"

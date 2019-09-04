@@ -1,0 +1,82 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "apiVersionCompute": {
+            "type": "string"
+        },
+        "apiVersionStorage": {
+            "type": "string"
+        },
+        "apiVersionNetwork": {
+            "type": "string"
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Region in which the resource group and components will be deployed"
+            }
+        },
+        "hostName": {
+            "type": "string",
+            "defaultValue": "VM-mfed",
+            "minLength": 4,
+            "maxLength": 20,
+            "metadata": {
+                "description": "Virtual machine name to be used."
+            }
+        },
+        "subnetRef": {
+            "type": "string",
+            "metadata": {
+                "description": "Reference for the subnet"
+            }
+        },
+        "nsgName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of network security group"
+            }
+        },
+        "dnsSettings": {
+            "type": "object",
+            "metadata": {
+                "description": "Dns configuration to apply"
+            }
+        },
+        "ipAddress": {
+            "type": "string",
+            "metadata": {
+                "description": "Ip address of NIC"
+            }
+        }
+    },
+    "variables": {
+        "domainJoinOptions": 3
+    },
+    "resources": [
+        {
+            "apiVersion": "[parameters('apiVersionNetwork')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(parameters('hostName'), '-nic')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "ipConfigurations": [{
+                    "name": "[concat(parameters('hostName'), 'ipconfig')]",
+                    "properties": {
+                        "privateIPAllocationMethod": "Static",
+                        "privateIPAddress": "[parameters('ipAddress')]",
+                        "subnet": {
+                            "id": "[parameters('subnetRef')]"
+                        }
+                    }
+                }],
+                "dnsSettings": "[parameters('dnsSettings')]",
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsgName'))]"
+                }
+            }
+        }
+    ]
+}
