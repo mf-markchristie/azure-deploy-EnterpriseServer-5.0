@@ -30,15 +30,15 @@ $args += ("-PrivilegeName", 'SeBatchLogonRight')
 $args += ("-Status", 'Grant')
 Invoke-Expression "$cmd $args"
 
-Write-Host "Updating Service Propertie"
+Write-Host "Updating MFDS Service Propertie"
 Stop-Service -Name "MF_CCITCP2"
-
 $Account="${DomainNetBIOSName}\${ServiceUser}"
-$Service="name='MF_CCITCP2'"
-$svc=gwmi win32_service -filter $Service
-$svc.change($null,$null,$null,$null,$null,$null,$Account,$ServicePassword,$null,$null,$null)
+$Service=gwmi win32_service -filter "Name='MF_CCITCP2'"
+$Service.change($null,$null,$null,$null,$null,$null,$Account,$ServicePassword,$null,$null,$null)
 
-Remove-Service -Name "ESCWA"
+Write-Host "Deleting ESCWA Service"
+$Service=gwmi win32_service -filter "Name='ESCWA'"
+$Service.delete()
 
 Write-Host "Configuring Demo Account"
 $args = @()
