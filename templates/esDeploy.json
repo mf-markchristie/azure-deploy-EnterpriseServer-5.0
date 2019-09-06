@@ -79,8 +79,9 @@
                 "description": "Reference for the subnet"
             }
         },
-        "availabilitySetRef": {
-            "type": "object",
+        "availabilitySetName": {
+            "type": "string",
+            "defaultValue": "",
             "metadata": {
                 "description": "Reference for availability set"
             }
@@ -107,7 +108,10 @@
                 "createOption": "Empty"
             }
         ],
-        "dataDisksEmpty": []
+        "dataDisksEmpty": [],
+        "availabilitySetRef": {
+            "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySetName'))]"
+        }
     },
     "resources": [
         {
@@ -143,7 +147,7 @@
                 "hardwareProfile": {
                     "vmSize": "[parameters('virtualMachineSize')]"
                 },
-                "availabilitySet": "[parameters('availabilitySetRef')]",
+                "availabilitySet": "[if(equals(parameters('availabilitySetName'), ''), json('null'), variables('availabilitySetRef'))]",
                 "storageProfile": {
                     "osDisk": {
                         "createOption": "FromImage",

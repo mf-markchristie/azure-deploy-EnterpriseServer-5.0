@@ -549,10 +549,8 @@
                     "subnetRef": {
                         "value": "[variables('applicationSubnetRef')]"
                     },
-                    "availabilitySetRef": {
-                        "value": {
-                            "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('esAvailabilitySetName'))]"
-                        }
+                    "availabilitySetName": {
+                        "value": "[variables('esAvailabilitySetName')]"
                     },
                     "esLicenseKey": {
                         "value": "[parameters('esLicenseKey')]"
@@ -669,9 +667,6 @@
                     },
                     "subnetRef": {
                         "value": "[variables('managementSubnetRef')]"
-                    },
-                    "availabilitySetRef": {
-                        "value": {}
                     },
                     "esLicenseKey": {
                         "value": "[parameters('esLicenseKey')]"
