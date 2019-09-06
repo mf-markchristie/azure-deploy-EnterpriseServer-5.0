@@ -72,12 +72,6 @@
                 "description": "Reference for the subnet"
             }
         },
-        "nsgName": {
-            "type": "string",
-            "metadata": {
-                "description": "Name of network security group"
-            }
-        },
         "availabilitySetName": {
             "type": "string",
             "metadata": {
@@ -181,9 +175,6 @@
                 "dnsSettings": {
                     "dnsServers": [
                     ]
-                },
-                "networkSecurityGroup": {
-                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsgName'))]"
                 }
             }
         },
@@ -206,9 +197,6 @@
                 "dnsSettings": {
                     "dnsServers": [
                     ]
-                },
-                "networkSecurityGroup": {
-                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsgName'))]"
                 }
             }
         },

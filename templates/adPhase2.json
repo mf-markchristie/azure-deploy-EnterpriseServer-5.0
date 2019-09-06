@@ -59,12 +59,6 @@
                 "description": "Reference for the subnet"
             }
         },
-        "nsgName": {
-            "type": "string",
-            "metadata": {
-                "description": "Name of network security group"
-            }
-        },
         "domainName": {
             "type": "string",
             "metadata": {
@@ -103,13 +97,10 @@
         }
     },
     "variables": {
-        "osDiskType": "StandardSSD_LRS",
-        "primaryHostName": "[concat(parameters('hostName'), 'P')]",
         "backupHostName": "[concat(parameters('hostName'), 'B')]",
         "adBDCModulesURL": "[uri(parameters('artifactsLocation'), concat('DSC/ConfigureADBDC.ps1.zip', parameters('artifactsLocationSasToken')))]",
         "adBDCConfigurationScript": "ConfigureADBDC.ps1",
-        "adBDCConfigurationFunction": "ConfigureADBDC",
-        "dataDiskSize": 32
+        "adBDCConfigurationFunction": "ConfigureADBDC"
     },
     "resources": [
         {
@@ -132,9 +123,6 @@
                     "dnsServers": [
                         "[parameters('primaryAdIpAddress')]"
                     ]
-                },
-                "networkSecurityGroup": {
-                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsgName'))]"
                 }
             }
         },

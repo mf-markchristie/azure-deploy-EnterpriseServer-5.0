@@ -33,12 +33,6 @@
                 "description": "Reference for the subnet"
             }
         },
-        "nsgName": {
-            "type": "string",
-            "metadata": {
-                "description": "Name of network security group"
-            }
-        },
         "dnsSettings": {
             "type": "object",
             "metadata": {
@@ -72,10 +66,7 @@
                         }
                     }
                 }],
-                "dnsSettings": "[parameters('dnsSettings')]",
-                "networkSecurityGroup": {
-                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsgName'))]"
-                }
+                "dnsSettings": "[parameters('dnsSettings')]"
             }
         }
     ]

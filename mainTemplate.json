@@ -278,6 +278,10 @@
                 "10.0.144.10",
                 "10.0.144.20"
             ]
+        },
+        "escwaNodeIp": {
+            "type": "string",
+            "defaultValue": "10.0.128.10"
         }
     },
     "variables": {
@@ -296,6 +300,7 @@
         "esHostname": "[concat(variables('clusterPrefixLower'), '-es')]",
         "adHostname": "[concat(variables('clusterPrefixLower'), '-ad')]",
         "fsHostname": "[concat(variables('clusterPrefixLower'), '-fs')]",
+        "escwaHostname": "[concat(variables('clusterPrefixLower'), '-esadmin')]",
         "diagStorageAccount": "[concat(variables('clusterPrefixLower'), uniqueString(concat(resourceGroup().id, 'dsa')))]",
         "esAvailabilitySetName": "[concat(variables('esHostname'), '-as')]",
         "rdgAvailabilitySetName": "[concat(variables('rdgHostname'), '-as')]",
@@ -305,6 +310,7 @@
         "adPhase1TemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/adPhase1.json', parameters('artifactsLocationSasToken')))]",
         "adPhase2TemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/adPhase2.json', parameters('artifactsLocationSasToken')))]",
         "esConfigureNodeUrl": "[uri(parameters('artifactsLocation'), concat('templates/esNodeConfig.json', parameters('artifactsLocationSasToken')))]",
+        "escwaConfigureNodeUrl": "[uri(parameters('artifactsLocation'), concat('templates/escwaNodeConfig.json', parameters('artifactsLocationSasToken')))]",
         "resetNicUrl": "[uri(parameters('artifactsLocation'), concat('templates/resetNic.json', parameters('artifactsLocationSasToken')))]",
         "domainJoinOptions": 3,
         "addressSpace": {
@@ -315,17 +321,26 @@
         "subnets": [{
             "name": "[parameters('managementSubnetName')]",
             "properties": {
-                "addressPrefix": "[parameters('managementSubnetPrefix')]"
+                "addressPrefix": "[parameters('managementSubnetPrefix')]",
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('managementNsgName'))]"
+                }
             }
         }, {
             "name": "[parameters('applicationSubnetName')]",
             "properties": {
-                "addressPrefix": "[parameters('applicationSubnetPrefix')]"
+                "addressPrefix": "[parameters('applicationSubnetPrefix')]",
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('applicationNsgName'))]"
+                }
             }
         }, {
             "name": "[parameters('adSubnetName')]",
             "properties": {
-                "addressPrefix": "[parameters('adSubnetPrefix')]"
+                "addressPrefix": "[parameters('adSubnetPrefix')]",
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('adNsgName'))]"
+                }
             }
         }],
         "dnsSettings": {
@@ -333,6 +348,22 @@
                 "[parameters('primaryAdIpAddress')]",
                 "[parameters('backupAdIpAddress')]"
             ]
+        },
+        "domainJoinProperties": {
+            "publisher": "Microsoft.Compute",
+            "type": "JsonADDomainExtension",
+            "typeHandlerVersion": "1.3",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+                "Name": "[parameters('domainDNSName')]",
+                "OUPath": "",
+                "User": "[concat(parameters('domainDNSName'), '\\', parameters('domainAdminUserName'))]",
+                "Restart": "true",
+                "Options": "[variables('domainJoinOptions')]"
+            },
+            "protectedSettings": {
+                "Password": "[parameters('domainAdminPassword')]"
+            }
         }
     },
     "resources": [
@@ -389,20 +420,6 @@
             }
         },
         {
-            "condition": "[equals(parameters('virtualNetworkNewOrExisting'), 'new')]",
-            "apiVersion": "[variables('apiVersionNetwork')]",
-            "type": "Microsoft.Network/virtualNetworks",
-            "name": "[parameters('virtualNetworkName')]",
-            "location": "[parameters('location')]",
-            "properties": {
-                "addressSpace": "[variables('addressSpace')]",
-                "dhcpOptions": {
-                    "dnsServers": []
-                },
-                "subnets": "[variables('subnets')]"
-            }
-        },
-        {
             "apiVersion": "[variables('apiVersionNetwork')]",
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('applicationNsgName')]",
@@ -445,6 +462,25 @@
             }
         },
         {
+            "condition": "[equals(parameters('virtualNetworkNewOrExisting'), 'new')]",
+            "apiVersion": "[variables('apiVersionNetwork')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('managementNsgName'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('applicationNsgName'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('adNsgName'))]"
+            ],
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('virtualNetworkName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "addressSpace": "[variables('addressSpace')]",
+                "dhcpOptions": {
+                    "dnsServers": []
+                },
+                "subnets": "[variables('subnets')]"
+            }
+        },
+        {
             "apiVersion": "[variables('apiVersionStorage')]",
             "type": "Microsoft.Storage/storageAccounts",
             "name": "[variables('diagStorageAccount')]",
@@ -461,7 +497,6 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorageAccount'))]",
                 "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('applicationNsgName'))]",
                 "[resourceId('Microsoft.Compute/availabilitySets', variables('esAvailabilitySetName'))]"
             ],
             "copy": {
@@ -514,11 +549,10 @@
                     "subnetRef": {
                         "value": "[variables('applicationSubnetRef')]"
                     },
-                    "nsgName": {
-                        "value": "[variables('applicationNsgName')]"
-                    },
-                    "availabilitySetName": {
-                        "value": "[variables('esAvailabilitySetName')]"
+                    "availabilitySetRef": {
+                        "value": {
+                            "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('esAvailabilitySetName'))]"
+                        }
                     },
                     "esLicenseKey": {
                         "value": "[parameters('esLicenseKey')]"
@@ -533,7 +567,6 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorageAccount'))]",
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('managementNsgName'))]",
                 "[resourceId('Microsoft.Compute/availabilitySets', variables('rdgAvailabilitySetName'))]"
             ],
             "copy": {
@@ -577,11 +610,71 @@
                     "subnetRef": {
                         "value": "[variables('managementSubnetRef')]"
                     },
-                    "nsgName": {
-                        "value": "[variables('managementNsgName')]"
-                    },
                     "availabilitySetName": {
                         "value": "[variables('rdgAvailabilitySetName')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "type": "Microsoft.Resources/deployments",
+            "name": "createEscwaNode",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorageAccount'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('esDeploymentTemplateUrl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "apiVersionCompute": {
+                        "value": "[variables('apiVersionCompute')]"
+                    },
+                    "apiVersionStorage": {
+                        "value": "[variables('apiVersionStorage')]"
+                    },
+                    "apiVersionNetwork": {
+                        "value": "[variables('apiVersionNetwork')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "artifactsLocation": {
+                        "value": "[parameters('artifactsLocation')]"
+                    },
+                    "artifactsLocationSasToken": {
+                        "value": "[parameters('artifactsLocationSasToken')]"
+                    },
+                    "hostName": {
+                        "value": "[variables('escwaHostname')]"
+                    },
+                    "virtualMachineSize": {
+                        "value": "[parameters('rdgInstanceSize')]"
+                    },
+                    "dataDiskSize": {
+                        "value": 0
+                    },
+                    "diagStorageAccount": {
+                        "value": "[variables('diagStorageAccount')]"
+                    },
+                    "adminUsername": {
+                        "value": "[parameters('esAdminUsername')]"
+                    },
+                    "adminPassword": {
+                        "value": "[parameters('esAdminPassword')]"
+                    },
+                    "subnetRef": {
+                        "value": "[variables('managementSubnetRef')]"
+                    },
+                    "availabilitySetRef": {
+                        "value": {}
+                    },
+                    "esLicenseKey": {
+                        "value": "[parameters('esLicenseKey')]"
                     }
                 }
             }
@@ -593,7 +686,6 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorageAccount'))]",
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('adNsgName'))]",
                 "[resourceId('Microsoft.Compute/availabilitySets', variables('adAvailabilitySetName'))]"
             ],
             "properties": {
@@ -638,9 +730,6 @@
                     },
                     "subnetRef": {
                         "value": "[variables('adSubnetRef')]"
-                    },
-                    "nsgName": {
-                        "value": "[variables('adNsgName')]"
                     },
                     "availabilitySetName": {
                         "value": "[variables('adAvailabilitySetName')]"
@@ -722,9 +811,6 @@
                     "subnetRef": {
                         "value": "[variables('adSubnetRef')]"
                     },
-                    "nsgName": {
-                        "value": "[variables('adNsgName')]"
-                    },
                     "domainName": {
                         "value": "[parameters('domainDNSName')]"
                     },
@@ -783,9 +869,6 @@
                     "subnetRef": {
                         "value": "[variables('applicationSubnetRef')]"
                     },
-                    "nsgName": {
-                        "value": "[variables('applicationNsgName')]"
-                    },
                     "dnsSettings": {
                         "value": "[variables('dnsSettings')]"
                     },
@@ -807,22 +890,60 @@
                 "name": "joinDomainEsNodeLoop",
                 "count": "[parameters('esInstanceCount')]"
             },
+            "properties": "[variables('domainJoinProperties')]"
+        },
+
+        {
+            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "type": "Microsoft.Resources/deployments",
+            "name": "resetEscwaNodeNic",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'createEscwaNode')]",
+                "[resourceId('Microsoft.Resources/deployments', 'adPhase2')]"
+            ],
             "properties": {
-                "publisher": "Microsoft.Compute",
-                "type": "JsonADDomainExtension",
-                "typeHandlerVersion": "1.3",
-                "autoUpgradeMinorVersion": true,
-                "settings": {
-                    "Name": "[parameters('domainDNSName')]",
-                    "OUPath": "",
-                    "User": "[concat(parameters('domainDNSName'), '\\', parameters('domainAdminUserName'))]",
-                    "Restart": "true",
-                    "Options": "[variables('domainJoinOptions')]"
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('resetNicUrl')]",
+                    "contentVersion": "1.0.0.0"
                 },
-                "protectedSettings": {
-                    "Password": "[parameters('domainAdminPassword')]"
+                "parameters": {
+                    "apiVersionCompute": {
+                        "value": "[variables('apiVersionCompute')]"
+                    },
+                    "apiVersionStorage": {
+                        "value": "[variables('apiVersionStorage')]"
+                    },
+                    "apiVersionNetwork": {
+                        "value": "[variables('apiVersionNetwork')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "hostName": {
+                        "value": "[variables('escwaHostname')]"
+                    },
+                    "subnetRef": {
+                        "value": "[variables('managementSubnetRef')]"
+                    },
+                    "dnsSettings": {
+                        "value": "[variables('dnsSettings')]"
+                    },
+                    "ipAddress": {
+                        "value": "[parameters('escwaNodeIp')]"
+                    }
                 }
             }
+        },
+        {
+            "apiVersion": "[variables('apiVersionCompute')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('escwaHostname'), '/joindomain')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'resetEscwaNodeNic')]"
+            ],
+            "properties": "[variables('domainJoinProperties')]"
         },
         {
             "apiVersion": "[variables('apiVersionLinkTemplate')]",
@@ -877,6 +998,53 @@
                     },
                     "demoAccountPassword": {
                         "value": "[parameters('demoAccountPassword')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "type": "Microsoft.Resources/deployments",
+            "name": "configureEscwaNode",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('escwaHostName'), 'joindomain')]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('escwaConfigureNodeUrl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "apiVersionCompute": {
+                        "value": "[variables('apiVersionCompute')]"
+                    },
+                    "apiVersionStorage": {
+                        "value": "[variables('apiVersionStorage')]"
+                    },
+                    "apiVersionNetwork": {
+                        "value": "[variables('apiVersionNetwork')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "artifactsLocation": {
+                        "value": "[parameters('artifactsLocation')]"
+                    },
+                    "artifactsLocationSasToken": {
+                        "value": "[parameters('artifactsLocationSasToken')]"
+                    },
+                    "hostName": {
+                        "value": "[variables('escwaHostname')]"
+                    },
+                    "domainNetBIOSName": {
+                        "value": "[parameters('domainNetBIOSName')]"
+                    },
+                    "serviceAccountUserName": {
+                        "value": "[parameters('serviceAccountUserName')]"
+                    },
+                    "serviceAccountPassword": {
+                        "value": "[parameters('serviceAccountPassword')]"
                     }
                 }
             }

@@ -79,16 +79,10 @@
                 "description": "Reference for the subnet"
             }
         },
-        "nsgName": {
-            "type": "string",
+        "availabilitySetRef": {
+            "type": "object",
             "metadata": {
-                "description": "Name of network security group"
-            }
-        },
-        "availabilitySetName": {
-            "type": "string",
-            "metadata": {
-                "description": "Name of availability set"
+                "description": "Reference for availability set"
             }
         },
         "esLicenseKey": {
@@ -101,7 +95,19 @@
     },
     "variables": {
         "osDiskType": "StandardSSD_LRS",
-        "scriptFileUri": "[uri(parameters('artifactsLocation'), concat('scripts/Install-ES.ps1', parameters('artifactsLocationSasToken')))]"
+        "scriptFileUri": "[uri(parameters('artifactsLocation'), concat('scripts/Install-ES.ps1', parameters('artifactsLocationSasToken')))]",
+        "dataDisks": [
+            {
+                "name": "[concat(parameters('hostName'), '-data-disk')]",
+                "diskSizeGB": "[parameters('dataDiskSize')]",
+                "lun": 0,
+                "managedDisk": {
+                    "storageAccountType": "Standard_LRS"
+                },
+                "createOption": "Empty"
+            }
+        ],
+        "dataDisksEmpty": []
     },
     "resources": [
         {
@@ -122,9 +128,6 @@
                 "dnsSettings": {
                     "dnsServers": [],
                     "appliedDnsServers": []
-                },
-                "networkSecurityGroup": {
-                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsgName'))]"
                 }
             }
         },
@@ -140,9 +143,7 @@
                 "hardwareProfile": {
                     "vmSize": "[parameters('virtualMachineSize')]"
                 },
-                "availabilitySet": {
-                    "id": "[resourceId('Microsoft.Compute/availabilitySets',parameters('availabilitySetName'))]"
-                },
+                "availabilitySet": "[parameters('availabilitySetRef')]",
                 "storageProfile": {
                     "osDisk": {
                         "createOption": "FromImage",
@@ -156,17 +157,7 @@
                         "sku": "2019-Datacenter",
                         "version": "latest"
                     },
-                    "dataDisks": [
-                        {
-                            "name": "[concat(parameters('hostName'), '-data-disk')]",
-                            "diskSizeGB": "[parameters('dataDiskSize')]",
-                            "lun": 0,
-                            "managedDisk": {
-                                "storageAccountType": "Standard_LRS"
-                            },
-                            "createOption": "Empty"
-                        }
-                    ]
+                    "dataDisks": "[if(equals(parameters('dataDiskSize'), 0), variables('dataDisksEmpty'), variables('dataDisks'))]"
                 },
                 "networkProfile": {
                     "networkInterfaces": [
@@ -212,7 +203,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('powershell ./scripts/Install-ES.ps1', if(equals(parameters('esLicenseKey'), ''), '', concat(' -licenseKey ', parameters('esLicenseKey'))))]"
+                    "commandToExecute": "[concat('powershell ./scripts/Install-ES.ps1', if(equals(parameters('esLicenseKey'), ''), '', concat(' -licenseKey ', parameters('esLicenseKey'))), if(equals(parameters('dataDiskSize'), 0), ' -mountDrive $false', ''))]"
                 }
             }
         }
