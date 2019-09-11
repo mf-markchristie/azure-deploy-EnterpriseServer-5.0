@@ -202,14 +202,12 @@
         },
         "domainDNSName": {
             "type": "string",
-            "defaultValue": "",
             "metadata": {
                 "description": "The fully qualified domain name (FQDN), e.g., example.com. Must be 2-255 characters."
             }
         },
         "domainNetBIOSName": {
             "type": "string",
-            "defaultValue": "",
             "metadata": {
                 "description": "The NetBIOS name of the domain (up to 15 characters) for users of earlier versions of Microsoft Windows, e.g., example."
             }
@@ -1040,6 +1038,12 @@
                     },
                     "serviceAccountPassword": {
                         "value": "[parameters('serviceAccountPassword')]"
+                    },
+                    "clusterPrefix": {
+                        "value": "[variables('clusterPrefixLower')]"
+                    },
+                    "esInstanceCount": {
+                        "value": "[parameters('esInstanceCount')]"
                     }
                 }
             }

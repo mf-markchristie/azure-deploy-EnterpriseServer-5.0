@@ -59,6 +59,21 @@
             "metadata": {
                 "description": "Password for MF service account user."
             }
+        },
+        "clusterPrefix": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "Prefix for machine name."
+            }
+        },
+        "esInstanceCount": {
+            "type": "int",
+            "defaultValue": 1,
+            "allowedValues": [1, 2],
+            "metadata": {
+                "description": "Number of Enterprise Sever hosting nodes"
+            }
         }
     },
     "variables": {
@@ -86,7 +101,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('powershell ./scripts/Configure-ESCWA-Node.ps1 -DomainNetBIOSName ', parameters('domainNetBIOSName'), variables('credentialsArg'))]"
+                    "commandToExecute": "[concat('powershell ./scripts/Configure-ESCWA-Node.ps1 -DomainNetBIOSName ', parameters('domainNetBIOSName'), ' -ESCount ', parameters('esInstanceCount'), ' -clusterPrefix ', parameters('clusterPrefix'), variables('credentialsArg'))]"
                 }
             }
         }

@@ -98,32 +98,11 @@
     "domainAdminPassword": {
       "value": "f7BY9MPWf7qJjVYD"
     },
-    "primaryAdIpAddress": {
-      "value": "10.0.0.10"
-    },
-    "backupAdIpAddress": {
-      "value": "10.0.0.20"
-    },
-    "serviceAccountUserName": {
-      "value": "mfservice"
-    },
     "serviceAccountPassword": {
         "value": "f7BY9MPWf7qJjVYD"
     },
-    "demoAccountUserName": {
-      "value": "mfdemo"
-    },
     "demoAccountPassword": {
         "value": "f7BY9MPWf7qJjVYD"
-    },
-    "esNodeIpArray": {
-      "value": [
-        "10.0.144.10",
-        "10.0.144.20"
-      ]
-    },
-    "escwaNodeIp": {
-      "value": "10.0.128.10"
     }
   }
 }
