@@ -207,7 +207,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('powershell ./scripts/Install-ES.ps1', if(equals(parameters('esLicenseKey'), ''), '', concat(' -licenseKey ', parameters('esLicenseKey'))), if(equals(parameters('dataDiskSize'), 0), ' -mountDrive $false', ''))]"
+                    "commandToExecute": "[concat('scripts\\Install-ES.exe', if(equals(parameters('esLicenseKey'), ''), '', concat(' -licenseKey ', parameters('esLicenseKey'))), if(equals(parameters('dataDiskSize'), 0), ' -mountDrive $false', ''))]"
                 }
             }
         }
