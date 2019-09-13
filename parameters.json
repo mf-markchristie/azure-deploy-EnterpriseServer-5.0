@@ -14,45 +14,6 @@
     "clusterPrefix": {
       "value": "mfes"
     },
-    "virtualNetworkNewOrExisting": {
-      "value": "new"
-    },
-    "virtualNetworkResourceGroupName": {
-      "value": "[resourceGroup().name]"
-    },
-    "virtualNetworkName": {
-      "value": "mfesvnet"
-    },
-    "addressPrefixes": {
-      "value": "10.0.0.0/16"
-    },
-    "managementSubnetName": {
-      "value": "managementsubnet"
-    },
-    "managementSubnetPrefix": {
-      "value": "10.0.128.0/20"
-    },
-    "existingManagementSubnetReference": {
-      "value": "fsdfds"
-    },
-    "applicationSubnetName": {
-      "value": "applicationsubnet"
-    },
-    "applicationSubnetPrefix": {
-      "value": "10.0.144.0/20"
-    },
-    "existingApplicationSubnetReference": {
-      "value": "fsdfds"
-    },
-    "adSubnetName": {
-      "value": "adnsubnet"
-    },
-    "adSubnetPrefix": {
-      "value": "10.0.0.0/19"
-    },
-    "existingAdSubnetReference": {
-      "value": "fsdfds"
-    },
     "esInstanceCount": {
       "value": 1
     },
@@ -102,6 +63,9 @@
         "value": "f7BY9MPWf7qJjVYD"
     },
     "demoAccountPassword": {
+        "value": "f7BY9MPWf7qJjVYD"
+    },
+    "fsviewPassword": {
         "value": "f7BY9MPWf7qJjVYD"
     }
   }
