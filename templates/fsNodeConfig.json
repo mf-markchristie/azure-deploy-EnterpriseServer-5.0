@@ -1,0 +1,86 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "apiVersionCompute": {
+            "type": "string"
+        },
+        "apiVersionStorage": {
+            "type": "string"
+        },
+        "apiVersionNetwork": {
+            "type": "string"
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Region in which the resource group and components will be deployed"
+            }
+        },
+        "artifactsLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "The base URI where artifacts required by this template are located including a trailing '/'"
+            }
+        },
+        "artifactsLocationSasToken": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The sasToken required to access artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
+            }
+        },
+        "hostName": {
+            "type": "string",
+            "defaultValue": "VM-mfed",
+            "minLength": 4,
+            "maxLength": 20,
+            "metadata": {
+                "description": "Virtual machine name to be used."
+            }
+        },
+        "fsviewPassword": {
+            "type": "securestring",
+            "minLength": 5,
+            "metadata": {
+                "description": "Password for fileshare administrative user."
+            }
+        },
+        "fsPort": {
+            "type": "int",
+            "defaultValue": 3000,
+            "minValue": 1,
+            "maxLength": 65535,
+            "metadata": {
+                "description": "TCP port for fileshare listener."
+            }
+        }
+    },
+    "variables": {
+        "osDiskType": "StandardSSD_LRS",
+        "scriptFileUri": "[uri(parameters('artifactsLocation'), concat('scripts/Configure-FS-Node.ps1', parameters('artifactsLocationSasToken')))]"
+    },
+    "resources": [
+        {
+            "apiVersion": "[parameters('apiVersionCompute')]",
+            "name": "[concat(parameters('hostName'), '/Setup')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "location": "[parameters('location')]",
+            "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.9",
+                "autoUpgradeMinorVersion": true,
+                "forceUpdateTag": "v.2.0",
+                "settings": {
+                    "fileUris": [
+                        "[variables('scriptFileUri1')]"
+                    ]
+                },
+                "protectedSettings": {
+                    "commandToExecute": "[concat('scripts\\Configure-FS-Node.exe -FSViewPassword ', parameters('fsviewPassword'), ' -FSPort ', parameters('fsPort'))]"
+                }
+            }
+        }
+    ]
+}

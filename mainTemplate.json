@@ -32,28 +32,6 @@
                 "description": "Cluster prefix. Used to generate cluster hostnames. Maximum of 20 characters."
             }
         },
-        "virtualNetworkNewOrExisting": {
-            "type": "string",
-            "defaultValue": "new",
-            "allowedValues": ["new", "existing"],
-            "metadata": {
-                "description": "Determines whether to provision a new virtual network or use an existing virtual network"
-            }
-        },
-        "virtualNetworkResourceGroupName": {
-            "type": "string",
-            "defaultValue": "[resourceGroup().name]",
-            "metadata": {
-                "description": "Name of the resource group for the new virtual network"
-            }
-        },
-        "virtualNetworkName": {
-            "type": "string",
-            "defaultValue": "mfesvnet",
-            "metadata": {
-                "description": "Name of the new virtual network"
-            }
-        },
         "addressPrefixes": {
             "type": "string",
             "defaultValue": "10.0.0.0/16",
@@ -75,12 +53,6 @@
                 "description": "CIDR used for the management subnet - needs to be a subset of the addressPrefix"
             }
         },
-        "existingManagementSubnetReference": {
-            "type": "string",
-            "metadata": {
-                "description": "Full reference to existing subnet for management subnet"
-            }
-        },
         "applicationSubnetName": {
             "type": "string",
             "defaultValue": "applicationsubnet",
@@ -95,15 +67,9 @@
                 "description": "CIDR used for the application subnet - needs to be a subset of the addressPrefix"
             }
         },
-        "existingApplicationSubnetReference": {
-            "type": "string",
-            "metadata": {
-                "description": "Full reference to existing subnet for application subnet"
-            }
-        },
         "adSubnetName": {
             "type": "string",
-            "defaultValue": "adnsubnet",
+            "defaultValue": "adsubnet",
             "metadata": {
                 "description": "Name of the AD subnet"
             }
@@ -115,10 +81,18 @@
                 "description": "CIDR used for the AD subnet - needs to be a subset of the addressPrefix"
             }
         },
-        "existingAdSubnetReference": {
+        "dataSubnetName": {
             "type": "string",
+            "defaultValue": "datasubnet",
             "metadata": {
-                "description": "Full reference to existing subnet for AD subnet"
+                "description": "Name of the data subnet"
+            }
+        },
+        "dataSubnetPrefix": {
+            "type": "string",
+            "defaultValue": "10.0.32.0/19",
+            "metadata": {
+                "description": "CIDR used for the data subnet - needs to be a subset of the addressPrefix"
             }
         },
         "esInstanceCount": {
@@ -280,6 +254,26 @@
         "escwaNodeIp": {
             "type": "string",
             "defaultValue": "10.0.128.10"
+        },
+        "fsNodeIp": {
+            "type": "string",
+            "defaultValue": "10.0.32.10"
+        },
+        "fsviewPassword": {
+            "type": "securestring",
+            "minLength": 5,
+            "metadata": {
+                "description": "Password for fileshare administrative user."
+            }
+        },
+        "fsPort": {
+            "type": "int",
+            "defaultValue": 3000,
+            "minValue": 1,
+            "maxLength": 65535,
+            "metadata": {
+                "description": "TCP port for fileshare listener."
+            }
         }
     },
     "variables": {
@@ -291,9 +285,12 @@
         "managementNsgName": "[concat(variables('clusterPrefixLower'), '-mNsg')]",
         "applicationNsgName": "[concat(variables('clusterPrefixLower'), '-aNsg')]",
         "adNsgName": "[concat(variables('clusterPrefixLower'), '-adNsg')]",
-        "managementSubnetRef": "[if(equals(parameters('virtualNetworkNewOrExisting'), 'new'), resourceId(parameters('virtualNetworkResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('managementSubnetName')), parameters('existingManagementSubnetReference'))]",
-        "applicationSubnetRef": "[if(equals(parameters('virtualNetworkNewOrExisting'), 'new'), resourceId(parameters('virtualNetworkResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('applicationSubnetName')), parameters('existingApplicationSubnetReference'))]",
-        "adSubnetRef": "[if(equals(parameters('virtualNetworkNewOrExisting'), 'new'), resourceId(parameters('virtualNetworkResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('adSubnetName')), parameters('existingAdSubnetReference'))]",
+        "dataNsgName": "[concat(variables('clusterPrefixLower'), '-dNsg')]",
+        "virtualNetworkName": "[concat(variables('clusterPrefixLower'), '-vnet')]",
+        "managementSubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), parameters('managementSubnetName'))]",
+        "applicationSubnetRef": "[resourceId(parameters('virtualNetworkResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), parameters('applicationSubnetName'))]",
+        "adSubnetRef": "[resourceId(parameters('virtualNetworkResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), parameters('adSubnetName'))]",
+        "dataSubnetRef": "[resourceId(parameters('virtualNetworkResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), parameters('dataSubnetName'))]",
         "rdgHostname": "[concat(variables('clusterPrefixLower'), '-rdg')]",
         "esHostname": "[concat(variables('clusterPrefixLower'), '-es')]",
         "adHostname": "[concat(variables('clusterPrefixLower'), '-ad')]",
@@ -309,6 +306,7 @@
         "adPhase2TemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/adPhase2.json', parameters('artifactsLocationSasToken')))]",
         "esConfigureNodeUrl": "[uri(parameters('artifactsLocation'), concat('templates/esNodeConfig.json', parameters('artifactsLocationSasToken')))]",
         "escwaConfigureNodeUrl": "[uri(parameters('artifactsLocation'), concat('templates/escwaNodeConfig.json', parameters('artifactsLocationSasToken')))]",
+        "fsConfigureNodeUrl": "[uri(parameters('artifactsLocation'), concat('templates/fsNodeConfig.json', parameters('artifactsLocationSasToken')))]",
         "resetNicUrl": "[uri(parameters('artifactsLocation'), concat('templates/resetNic.json', parameters('artifactsLocationSasToken')))]",
         "domainJoinOptions": 3,
         "addressSpace": {
@@ -338,6 +336,14 @@
                 "addressPrefix": "[parameters('adSubnetPrefix')]",
                 "networkSecurityGroup": {
                     "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('adNsgName'))]"
+                }
+            }
+        }, {
+            "name": "[parameters('dataSubnetName')]",
+            "properties": {
+                "addressPrefix": "[parameters('dataSubnetPrefix')]",
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('dataNsgName'))]"
                 }
             }
         }],
@@ -460,15 +466,24 @@
             }
         },
         {
-            "condition": "[equals(parameters('virtualNetworkNewOrExisting'), 'new')]",
+            "apiVersion": "[variables('apiVersionNetwork')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('dataNsgName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "securityRules": []
+            }
+        },
+        {
             "apiVersion": "[variables('apiVersionNetwork')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('managementNsgName'))]",
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('applicationNsgName'))]",
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('adNsgName'))]"
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('adNsgName'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('dataNsgName'))]"
             ],
             "type": "Microsoft.Network/virtualNetworks",
-            "name": "[parameters('virtualNetworkName')]",
+            "name": "[variables('virtualNetworkName')]",
             "location": "[parameters('location')]",
             "properties": {
                 "addressSpace": "[variables('addressSpace')]",
@@ -494,7 +509,7 @@
             "name": "[esdeploy.getLoopName('createEsNode', copyIndex())]",
             "dependsOn": [
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorageAccount'))]",
-                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
                 "[resourceId('Microsoft.Compute/availabilitySets', variables('esAvailabilitySetName'))]"
             ],
             "copy": {
@@ -561,7 +576,7 @@
             "type": "Microsoft.Resources/deployments",
             "name": "[esdeploy.getLoopName('rdgDeployment', copyIndex())]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorageAccount'))]",
                 "[resourceId('Microsoft.Compute/availabilitySets', variables('rdgAvailabilitySetName'))]"
             ],
@@ -618,7 +633,7 @@
             "name": "createEscwaNode",
             "dependsOn": [
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorageAccount'))]",
-                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]"
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -675,9 +690,69 @@
         {
             "apiVersion": "[variables('apiVersionLinkTemplate')]",
             "type": "Microsoft.Resources/deployments",
+            "name": "createFsNode",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorageAccount'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('esDeploymentTemplateUrl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "apiVersionCompute": {
+                        "value": "[variables('apiVersionCompute')]"
+                    },
+                    "apiVersionStorage": {
+                        "value": "[variables('apiVersionStorage')]"
+                    },
+                    "apiVersionNetwork": {
+                        "value": "[variables('apiVersionNetwork')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "artifactsLocation": {
+                        "value": "[parameters('artifactsLocation')]"
+                    },
+                    "artifactsLocationSasToken": {
+                        "value": "[parameters('artifactsLocationSasToken')]"
+                    },
+                    "hostName": {
+                        "value": "[variables('fsHostname')]"
+                    },
+                    "virtualMachineSize": {
+                        "value": "[parameters('esInstanceSize')]"
+                    },
+                    "dataDiskSize": {
+                        "value": "[parameters('esDataDiskSize')]"
+                    },
+                    "diagStorageAccount": {
+                        "value": "[variables('diagStorageAccount')]"
+                    },
+                    "adminUsername": {
+                        "value": "[parameters('esAdminUsername')]"
+                    },
+                    "adminPassword": {
+                        "value": "[parameters('esAdminPassword')]"
+                    },
+                    "subnetRef": {
+                        "value": "[variables('dataSubnetRef')]"
+                    },
+                    "esLicenseKey": {
+                        "value": "[parameters('esLicenseKey')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "type": "Microsoft.Resources/deployments",
             "name": "adPhase1",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorageAccount'))]",
                 "[resourceId('Microsoft.Compute/availabilitySets', variables('adAvailabilitySetName'))]"
             ],
@@ -731,7 +806,7 @@
                         "value": "[parameters('domainDNSName')]"
                     },
                     "virtualNetworkName": {
-                        "value": "[parameters('virtualNetworkName')]"
+                        "value": "[variables('virtualNetworkName')]"
                     },
                     "addressSpace": {
                         "value": "[variables('addressSpace')]"
@@ -808,7 +883,7 @@
                         "value": "[parameters('domainDNSName')]"
                     },
                     "virtualNetworkName": {
-                        "value": "[parameters('virtualNetworkName')]"
+                        "value": "[variables('virtualNetworkName')]"
                     },
                     "addressSpace": {
                         "value": "[variables('addressSpace')]"
@@ -885,7 +960,6 @@
             },
             "properties": "[variables('domainJoinProperties')]"
         },
-
         {
             "apiVersion": "[variables('apiVersionLinkTemplate')]",
             "type": "Microsoft.Resources/deployments",
@@ -935,6 +1009,58 @@
             "location": "[parameters('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Resources/deployments', 'resetEscwaNodeNic')]"
+            ],
+            "properties": "[variables('domainJoinProperties')]"
+        },
+        {
+            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "type": "Microsoft.Resources/deployments",
+            "name": "resetFsNic",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'createFsNode')]",
+                "[resourceId('Microsoft.Resources/deployments', 'adPhase2')]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('resetNicUrl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "apiVersionCompute": {
+                        "value": "[variables('apiVersionCompute')]"
+                    },
+                    "apiVersionStorage": {
+                        "value": "[variables('apiVersionStorage')]"
+                    },
+                    "apiVersionNetwork": {
+                        "value": "[variables('apiVersionNetwork')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "hostName": {
+                        "value": "[variables('fsHostname')]"
+                    },
+                    "subnetRef": {
+                        "value": "[variables('dataSubnetRef')]"
+                    },
+                    "dnsSettings": {
+                        "value": "[variables('dnsSettings')]"
+                    },
+                    "ipAddress": {
+                        "value": "[parameters('fsNodeIp')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "[variables('apiVersionCompute')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('fsHostname'), '/joindomain')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'resetFsNodeNic')]"
             ],
             "properties": "[variables('domainJoinProperties')]"
         },
@@ -1044,6 +1170,50 @@
                     },
                     "esInstanceCount": {
                         "value": "[parameters('esInstanceCount')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "type": "Microsoft.Resources/deployments",
+            "name": "configureFsNode",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('fsHostName'), 'joindomain')]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('fsConfigureNodeUrl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "apiVersionCompute": {
+                        "value": "[variables('apiVersionCompute')]"
+                    },
+                    "apiVersionStorage": {
+                        "value": "[variables('apiVersionStorage')]"
+                    },
+                    "apiVersionNetwork": {
+                        "value": "[variables('apiVersionNetwork')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "artifactsLocation": {
+                        "value": "[parameters('artifactsLocation')]"
+                    },
+                    "artifactsLocationSasToken": {
+                        "value": "[parameters('artifactsLocationSasToken')]"
+                    },
+                    "hostName": {
+                        "value": "[variables('fsHostname')]"
+                    },
+                    "fsviewPassword": {
+                        "value": "[parameters('fsviewPassword')]"
+                    },
+                    "fsPort": {
+                        "value": "[parameters('fsPort')]"
                     }
                 }
             }
