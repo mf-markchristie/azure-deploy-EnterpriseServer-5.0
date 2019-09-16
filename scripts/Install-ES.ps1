@@ -2,8 +2,8 @@ param(
     [string]
     $licenseKey,
 
-    [bool]
-    $mountDrive=$true
+    [string]
+    $mountDrive="Y"
 )
 
 Write-Host "Creating temporary working directory."
@@ -56,7 +56,7 @@ else {
     Write-Warning "No license key provided during installation, a license will need to be added before you can use the product."
 }
 
-if ($mountDrive -eq $true) {
+if ($mountDrive -eq "Y") {
     Write-Host "Setting up Data Disk"
     Get-Disk | Where-Object PartitionStyle -Eq "RAW" | Initialize-Disk -PartitionStyle MBR
     New-Partition -DiskNumber 2 -UseMaximumSize -DriveLetter f
