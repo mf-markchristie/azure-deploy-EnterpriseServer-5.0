@@ -96,7 +96,7 @@
     },
     "variables": {
         "osDiskType": "StandardSSD_LRS",
-        "scriptFileUri": "[uri(parameters('artifactsLocation'), concat('scripts/Install-ES.ps1', parameters('artifactsLocationSasToken')))]",
+        "scriptFileUri": "[uri(parameters('artifactsLocation'), concat('scripts/Install-ES.exe', parameters('artifactsLocationSasToken')))]",
         "dataDisks": [
             {
                 "name": "[concat(parameters('hostName'), '-data-disk')]",

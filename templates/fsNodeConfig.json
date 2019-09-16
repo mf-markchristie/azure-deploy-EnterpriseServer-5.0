@@ -58,7 +58,7 @@
     },
     "variables": {
         "osDiskType": "StandardSSD_LRS",
-        "scriptFileUri": "[uri(parameters('artifactsLocation'), concat('scripts/Configure-FS-Node.ps1', parameters('artifactsLocationSasToken')))]"
+        "scriptFileUri": "[uri(parameters('artifactsLocation'), concat('scripts/Configure-FS-Node.exe', parameters('artifactsLocationSasToken')))]"
     },
     "resources": [
         {
@@ -74,7 +74,7 @@
                 "forceUpdateTag": "v.2.0",
                 "settings": {
                     "fileUris": [
-                        "[variables('scriptFileUri1')]"
+                        "[variables('scriptFileUri')]"
                     ]
                 },
                 "protectedSettings": {
