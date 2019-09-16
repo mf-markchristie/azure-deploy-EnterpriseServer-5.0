@@ -50,7 +50,7 @@
             "type": "int",
             "defaultValue": 3000,
             "minValue": 1,
-            "maxLength": 65535,
+            "maxValue": 65535,
             "metadata": {
                 "description": "TCP port for fileshare listener."
             }

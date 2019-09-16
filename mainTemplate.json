@@ -270,7 +270,7 @@
             "type": "int",
             "defaultValue": 3000,
             "minValue": 1,
-            "maxLength": 65535,
+            "maxValue": 65535,
             "metadata": {
                 "description": "TCP port for fileshare listener."
             }
@@ -288,9 +288,9 @@
         "dataNsgName": "[concat(variables('clusterPrefixLower'), '-dNsg')]",
         "virtualNetworkName": "[concat(variables('clusterPrefixLower'), '-vnet')]",
         "managementSubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), parameters('managementSubnetName'))]",
-        "applicationSubnetRef": "[resourceId(parameters('virtualNetworkResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), parameters('applicationSubnetName'))]",
-        "adSubnetRef": "[resourceId(parameters('virtualNetworkResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), parameters('adSubnetName'))]",
-        "dataSubnetRef": "[resourceId(parameters('virtualNetworkResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), parameters('dataSubnetName'))]",
+        "applicationSubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), parameters('applicationSubnetName'))]",
+        "adSubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), parameters('adSubnetName'))]",
+        "dataSubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), parameters('dataSubnetName'))]",
         "rdgHostname": "[concat(variables('clusterPrefixLower'), '-rdg')]",
         "esHostname": "[concat(variables('clusterPrefixLower'), '-es')]",
         "adHostname": "[concat(variables('clusterPrefixLower'), '-ad')]",
@@ -1015,7 +1015,7 @@
         {
             "apiVersion": "[variables('apiVersionLinkTemplate')]",
             "type": "Microsoft.Resources/deployments",
-            "name": "resetFsNic",
+            "name": "resetFsNodeNic",
             "dependsOn": [
                 "[resourceId('Microsoft.Resources/deployments', 'createFsNode')]",
                 "[resourceId('Microsoft.Resources/deployments', 'adPhase2')]"
