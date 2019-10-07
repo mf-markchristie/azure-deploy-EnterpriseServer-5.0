@@ -77,6 +77,9 @@
     "deployDbDemo": {
       "value": true
     },
+    "deployPacDemo": {
+      "value": false
+    },
     "dbVmUserName": {
       "value": "testing"
     },

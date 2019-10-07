@@ -346,6 +346,14 @@
             "metadata": {
                 "description": "Ip address for SQL Load Balancer"
             }
+        },
+        "sqlNodeIpArray": {
+            "type": "array",
+            "defaultValue": [
+                "10.0.32.31",
+                "10.0.32.32",
+                "10.0.32.33"
+            ]
         }
     },
     "variables": {
@@ -377,6 +385,7 @@
         "adPhase1TemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/adPhase1.json', parameters('artifactsLocationSasToken')))]",
         "adPhase2TemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/adPhase2.json', parameters('artifactsLocationSasToken')))]",
         "sqlPhase1TemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/sqlPhase1.json', parameters('artifactsLocationSasToken')))]",
+        "sqlPhase2TemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/sqlPhase2.json', parameters('artifactsLocationSasToken')))]",
         "esConfigureNodeUrl": "[uri(parameters('artifactsLocation'), concat('templates/esNodeConfig.json', parameters('artifactsLocationSasToken')))]",
         "escwaConfigureNodeUrl": "[uri(parameters('artifactsLocation'), concat('templates/escwaNodeConfig.json', parameters('artifactsLocationSasToken')))]",
         "fsConfigureNodeUrl": "[uri(parameters('artifactsLocation'), concat('templates/fsNodeConfig.json', parameters('artifactsLocationSasToken')))]",
@@ -1372,6 +1381,55 @@
                     },
                     "fsPort": {
                         "value": "[parameters('fsPort')]"
+                    }
+                }
+            }
+        },
+        {
+            "condition": "[variables('deployDatabase')]",
+            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "type": "Microsoft.Resources/deployments",
+            "name": "sqlPhase2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'sqlPhase1')]",
+                "[resourceId('Microsoft.Resources/deployments', 'adPhase2')]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('sqlPhase2TemplateUrl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "apiVersionCompute": {
+                        "value": "[variables('apiVersionCompute')]"
+                    },
+                    "apiVersionStorage": {
+                        "value": "[variables('apiVersionStorage')]"
+                    },
+                    "apiVersionNetwork": {
+                        "value": "[variables('apiVersionNetwork')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "artifactsLocation": {
+                        "value": "[parameters('artifactsLocation')]"
+                    },
+                    "artifactsLocationSasToken": {
+                        "value": "[parameters('artifactsLocationSasToken')]"
+                    },
+                    "clusterPrefix": {
+                        "value": "[variables('clusterPrefixLower')]"
+                    },
+                    "subnetRef": {
+                        "value": "[variables('dataSubnetRef')]"
+                    },
+                    "ipAddresses": {
+                        "value": "[parameters('sqlNodeIpArray')]"
+                    },
+                    "domainJoinProperties": {
+                        "value": "[variables('domainJoinProperties')]"
                     }
                 }
             }

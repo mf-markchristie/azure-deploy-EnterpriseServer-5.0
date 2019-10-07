@@ -88,8 +88,6 @@
     },
     "variables": {
         "osDiskType": "StandardSSD_LRS",
-        "scriptFileUri": "[uri(parameters('artifactsLocation'), concat('scripts/Install-ES.exe', parameters('artifactsLocationSasToken')))]",
-        "dataDisksEmpty": [],
         "availabilitySetName": "[concat(parameters('clusterPrefix'), '-sql-as')]",
         "witnessVMName": "[concat(parameters('clusterPrefix'), '-sqlw')]",
         "slaveVmName": "[concat(parameters('clusterPrefix'), '-sqls')]",
