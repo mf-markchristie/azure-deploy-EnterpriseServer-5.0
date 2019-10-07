@@ -339,6 +339,13 @@
             "metadata": {
                 "description": "VM size for SQL Slave"
             }
+        },
+        "sqlLBIPAddress": {
+            "type": "string",
+            "defaultValue": "10.0.32.30",
+            "metadata": {
+                "description": "Ip address for SQL Load Balancer"
+            }
         }
     },
     "variables": {
@@ -839,6 +846,8 @@
             "type": "Microsoft.Resources/deployments",
             "name": "sqlPhase1",
             "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorageAccount'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -885,6 +894,9 @@
                     },
                     "subnetRef": {
                         "value": "[variables('dataSubnetRef')]"
+                    },
+                    "sqlLBIPAddress": {
+                        "value": "[parameters('sqlLBIPAddress')]"
                     }
                 }
             }

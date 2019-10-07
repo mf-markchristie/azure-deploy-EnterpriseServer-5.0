@@ -78,6 +78,12 @@
             "metadata": {
                 "description": "Reference for the subnet"
             }
+        },
+        "sqlLBIPAddress": {
+            "type": "string",
+            "metadata": {
+                "description": "Ip address for SQL Load Balancer"
+            }
         }
     },
     "variables": {
