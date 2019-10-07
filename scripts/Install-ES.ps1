@@ -6,8 +6,10 @@ param(
     $mountDrive="Y"
 )
 
+
 Write-Host "Creating temporary working directory."
 mkdir -path "c:\tmp"
+Copy-Item ".\scripts\AzCopy.exe" "c:\tmp"
 Set-Location "c:\tmp"
 
 $installerExeName = "es.exe"
@@ -15,8 +17,7 @@ $updateExeName = "es_update.exe"
 $installerLocation ="https://mfenterprisestorage.blob.core.windows.net/enterpriseserverdeploy"
 
 Write-Host "Downloading installer $installerExeName"
-
-Copy-Item "$PSScriptRoot/AzCopy.exe" .
+Copy-Item "$PSScriptRoot\AzCopy.exe" .
 .\AzCopy copy "$installerLocation/$installerExeName" .
 if(!$?) {
     Write-Error "Failed to download installer"

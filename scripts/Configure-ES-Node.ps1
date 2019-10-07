@@ -12,9 +12,7 @@ param(
     [string]$DemoUser,
 
     [Parameter(Mandatory = $True)]
-    [string]$DemoPassword,
-
-    [String]$DomainNetBIOSName=(Get-NetBIOSName -DomainName $DomainDNSName)
+    [string]$DemoPassword
 )
 
 function Get-NetBIOSName
@@ -42,6 +40,7 @@ function Get-NetBIOSName
 }
 
 $ErrorActionPreference = "Stop"
+$DomainNetBIOSName=(Get-NetBIOSName -DomainName $DomainDNSName)
 
 Write-Host "Configuring Service Account Permission"
 $cmd = "$PSScriptRoot/Configure-UserLogonPrivileges.ps1"

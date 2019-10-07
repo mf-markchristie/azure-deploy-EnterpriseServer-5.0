@@ -181,13 +181,13 @@
                         "name": "SQLAlwaysOnEndPointListener",
                         "properties": {
                         "backendAddressPool": {
-                            "id": "[resourceId('Microsoft.Network/loadBalancers', variables('sqlLBName'), 'backendAddressPools', 'sqlLBBE')]"
+                            "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('sqlLBName')), '/backendAddressPools/sqlLBBE')]"
                         },
                         "frontendIPConfiguration": {
-                            "id": "[resourceId('Microsoft.Network/loadBalancers', variables('sqlLBName'), 'frontendIPConfigurations', 'sqlLBFE')]"
+                            "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('sqlLBName')), '/frontendIPConfigurations/sqlLBFE')]"
                         },
                         "probe": {
-                            "id": "[resourceId('Microsoft.Network/loadBalancers', variables('sqlLBName'), 'probes', 'SQLAlwaysOnEndPointProbe')]"
+                            "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('sqlLBName')), '/probes/SQLAlwaysOnEndPointProbe')]"
                         },
                         "protocol": "Tcp",
                         "frontendPort": 1433,
