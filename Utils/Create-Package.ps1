@@ -1,3 +1,7 @@
+param(
+    [boolean]$test=$false
+)
+
 function createExe{
     param(
         [Parameter(Mandatory=$true)]
@@ -29,6 +33,10 @@ createExe -scriptName "Install-ES"
 createExe -scriptName "Configure-FS-Node"
 
 Compress-Archive -Path .\package\* -DestinationPath .\package.zip -Force
+if ($test -eq $true) {
+    .\package\scripts\azcopy copy ".\package" "https://teststoragemarkc.blob.core.windows.net/estest?sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-12-31T20:03:44Z&st=2019-10-07T11:03:44Z&spr=https&sig=X7fw6WNRHs1us%2BcHFG4xFqZMGylyYKZKy%2BL0dXwq%2F3Y%3D" --recursive
+}
+
 Remove-Item -Path ".\package" -Recurse -Force
 
 Pop-Location
