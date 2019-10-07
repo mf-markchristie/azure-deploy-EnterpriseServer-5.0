@@ -16,8 +16,8 @@ $installerLocation ="https://mfenterprisestorage.blob.core.windows.net/enterpris
 
 Write-Host "Downloading installer $installerExeName"
 
-Import-Module BitsTransfer
-Start-BitsTransfer -Source "$installerLocation/$installerExeName" -Destination ("./" + $installerExeName)
+Copy-Item "$PSScriptRoot/AzCopy.exe" .
+.\AzCopy copy "$installerLocation/$installerExeName" .
 if(!$?) {
     Write-Error "Failed to download installer"
     exit 500
@@ -37,7 +37,7 @@ if (!(Select-String -Path ".\log.txt" -Pattern "Exit Code: 0x0")) {
 
 Write-Host "Successfully installed product"
 
-Start-BitsTransfer -Source "$installerLocation/$updateExeName" -Destination ("./" + $updateExeName)
+.\AzCopy copy "$installerLocation/$updateExeName" .
 if($?) {
     Write-Host "Installing update file."
     Start-Process -FilePath $updateExeName -ArgumentList "/q /log c:\tmp\log.txt" -Wait

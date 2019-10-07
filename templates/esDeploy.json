@@ -96,7 +96,6 @@
     },
     "variables": {
         "osDiskType": "StandardSSD_LRS",
-        "scriptFileUri": "[uri(parameters('artifactsLocation'), concat('scripts/Install-ES.exe', parameters('artifactsLocationSasToken')))]",
         "dataDisks": [
             {
                 "name": "[concat(parameters('hostName'), '-data-disk')]",
@@ -203,7 +202,8 @@
                 "forceUpdateTag": "v.1.0",
                 "settings": {
                     "fileUris": [
-                        "[variables('scriptFileUri')]"
+                        "[uri(parameters('artifactsLocation'), concat('scripts/Install-ES.exe', parameters('artifactsLocationSasToken')))]",
+                        "[uri(parameters('artifactsLocation'), concat('scripts/azcopy.exe', parameters('artifactsLocationSasToken')))]"
                     ]
                 },
                 "protectedSettings": {

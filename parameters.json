@@ -67,6 +67,27 @@
     },
     "fsviewPassword": {
         "value": "f7BY9MPWf7qJjVYD"
+    },
+    "redisCacheName": {
+      "value": "testmarkc"
+    },
+    "redisCacheSKU": {
+      "value": "Standard"
+    },
+    "deployDbDemo": {
+      "value": true
+    },
+    "dbVmUserName": {
+      "value": "testing"
+    },
+    "dbVmPassword": {
+        "value": "f7BY9MPWf7qJjVYD"
+    },
+    "sqlWitnessInstanceSize": {
+      "value": "Standard_DS2_v2"
+    },
+    "sqlSlaveInstanceSize": {
+      "value": "Standard_DS2_v2"
     }
   }
 }

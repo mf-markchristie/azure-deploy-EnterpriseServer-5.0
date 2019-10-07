@@ -180,12 +180,6 @@
                 "description": "The fully qualified domain name (FQDN), e.g., example.com. Must be 2-255 characters."
             }
         },
-        "domainNetBIOSName": {
-            "type": "string",
-            "metadata": {
-                "description": "The NetBIOS name of the domain (up to 15 characters) for users of earlier versions of Microsoft Windows, e.g., example."
-            }
-        },
         "domainAdminUserName": {
             "type": "string",
             "minLength": 1,
@@ -255,9 +249,20 @@
             "type": "string",
             "defaultValue": "10.0.128.10"
         },
+        "deployFsDemo": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Flag to determine whether fileshare demo is deployed"
+            }
+        },
         "fsNodeIp": {
             "type": "string",
             "defaultValue": "10.0.32.10"
+        },
+        "redisIp": {
+            "type": "string",
+            "defaultValue": "10.0.32.20"
         },
         "fsviewPassword": {
             "type": "securestring",
@@ -273,6 +278,66 @@
             "maxValue": 65535,
             "metadata": {
                 "description": "TCP port for fileshare listener."
+            }
+        },
+        "deployPacDemo": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Flag to determine whether PAC demo is deployed"
+            }
+        },
+        "redisCacheName": {
+            "type": "string",
+            "metadata": {
+            "description": "The name of the Azure Redis Cache to create."
+            }
+        },
+        "redisCacheSKU": {
+            "type": "string",
+            "allowedValues": [
+              "Basic",
+              "Standard",
+              "Premium"
+            ],
+            "defaultValue": "Standard",
+            "metadata": {
+              "description": "The pricing tier of the new Azure Redis Cache."
+            }
+        },
+        "deployDbDemo": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Flag to determine whether database demo is deployed"
+            }
+        },
+        "dbVmUserName": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "Administrator username for db hosting virtual machines."
+            }
+        },
+        "dbVmPassword": {
+            "type": "securestring",
+            "minLength": 5,
+            "metadata": {
+                "description": "Password for db hosting virtual machines."
+            }
+        },
+        "sqlWitnessInstanceSize": {
+            "type": "string",
+            "defaultValue": "Standard_DS2_v2",
+            "metadata": {
+                "description": "VM size for SQL Witness"
+            }
+        },
+        "sqlSlaveInstanceSize": {
+            "type": "string",
+            "defaultValue": "Standard_DS2_v2",
+            "metadata": {
+                "description": "VM size for SQL Slave"
             }
         }
     },
@@ -304,11 +369,15 @@
         "esDeploymentTemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/esDeploy.json', parameters('artifactsLocationSasToken')))]",
         "adPhase1TemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/adPhase1.json', parameters('artifactsLocationSasToken')))]",
         "adPhase2TemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/adPhase2.json', parameters('artifactsLocationSasToken')))]",
+        "sqlPhase1TemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/sqlPhase1.json', parameters('artifactsLocationSasToken')))]",
         "esConfigureNodeUrl": "[uri(parameters('artifactsLocation'), concat('templates/esNodeConfig.json', parameters('artifactsLocationSasToken')))]",
         "escwaConfigureNodeUrl": "[uri(parameters('artifactsLocation'), concat('templates/escwaNodeConfig.json', parameters('artifactsLocationSasToken')))]",
         "fsConfigureNodeUrl": "[uri(parameters('artifactsLocation'), concat('templates/fsNodeConfig.json', parameters('artifactsLocationSasToken')))]",
         "resetNicUrl": "[uri(parameters('artifactsLocation'), concat('templates/resetNic.json', parameters('artifactsLocationSasToken')))]",
+        "deployDatabase": "[or(parameters('deployDbDemo'), parameters('deployPacDemo'))]",
         "domainJoinOptions": 3,
+        "redisCacheFamily": "C",
+        "redisCacheCapacity": 1,
         "addressSpace": {
             "addressPrefixes": [
                 "[parameters('addressPrefixes')]"
@@ -504,6 +573,22 @@
             }
         },
         {
+            "condition": "[parameters('deployPacDemo')]",
+            "apiVersion": "2015-08-01",
+            "type": "Microsoft.Cache/Redis",
+            "name": "[parameters('redisCacheName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "redisConfiguration": {},
+                "enableNonSslPort": true,
+                "sku": {
+                    "capacity": "[variables('redisCacheCapacity')]",
+                    "family": "[variables('redisCacheFamily')]",
+                    "name": "[parameters('redisCacheSKU')]"
+                }
+            }
+        },
+        {
             "apiVersion": "[variables('apiVersionLinkTemplate')]",
             "type": "Microsoft.Resources/deployments",
             "name": "[esdeploy.getLoopName('createEsNode', copyIndex())]",
@@ -688,6 +773,7 @@
             }
         },
         {
+            "condition": "[parameters('deployFsDemo')]",
             "apiVersion": "[variables('apiVersionLinkTemplate')]",
             "type": "Microsoft.Resources/deployments",
             "name": "createFsNode",
@@ -743,6 +829,62 @@
                     },
                     "esLicenseKey": {
                         "value": "[parameters('esLicenseKey')]"
+                    }
+                }
+            }
+        },
+        {
+            "condition": "[variables('deployDatabase')]",
+            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "type": "Microsoft.Resources/deployments",
+            "name": "sqlPhase1",
+            "dependsOn": [
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('sqlPhase1TemplateUrl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "apiVersionCompute": {
+                        "value": "[variables('apiVersionCompute')]"
+                    },
+                    "apiVersionStorage": {
+                        "value": "[variables('apiVersionStorage')]"
+                    },
+                    "apiVersionNetwork": {
+                        "value": "[variables('apiVersionNetwork')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "artifactsLocation": {
+                        "value": "[parameters('artifactsLocation')]"
+                    },
+                    "artifactsLocationSasToken": {
+                        "value": "[parameters('artifactsLocationSasToken')]"
+                    },
+                    "clusterPrefix": {
+                        "value": "[variables('clusterPrefixLower')]"
+                    },
+                    "diagStorageAccount": {
+                        "value": "[variables('diagStorageAccount')]"
+                    },
+                    "adminUsername": {
+                        "value": "[parameters('dbVmUserName')]"
+                    },
+                    "adminPassword": {
+                        "value": "[parameters('dbVmPassword')]"
+                    },
+                    "witnessInstanceSize": {
+                        "value": "[parameters('sqlWitnessInstanceSize')]"
+                    },
+                    "slaveInstanceSize": {
+                        "value": "[parameters('sqlSlaveInstanceSize')]"
+                    },
+                    "subnetRef": {
+                        "value": "[variables('dataSubnetRef')]"
                     }
                 }
             }
@@ -1013,6 +1155,7 @@
             "properties": "[variables('domainJoinProperties')]"
         },
         {
+            "condition": "[parameters('deployFsDemo')]",
             "apiVersion": "[variables('apiVersionLinkTemplate')]",
             "type": "Microsoft.Resources/deployments",
             "name": "resetFsNodeNic",
@@ -1055,6 +1198,7 @@
             }
         },
         {
+            "condition": "[parameters('deployFsDemo')]",
             "apiVersion": "[variables('apiVersionCompute')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('fsHostname'), '/joindomain')]",
@@ -1103,8 +1247,8 @@
                     "hostName": {
                         "value": "[esdeploy.getLoopName(variables('esHostname'), copyIndex())]"
                     },
-                    "domainNetBIOSName": {
-                        "value": "[parameters('domainNetBIOSName')]"
+                    "domainDNSName": {
+                        "value": "[parameters('domainDNSName')]"
                     },
                     "serviceAccountUserName": {
                         "value": "[parameters('serviceAccountUserName')]"
@@ -1126,7 +1270,8 @@
             "type": "Microsoft.Resources/deployments",
             "name": "configureEscwaNode",
             "dependsOn": [
-                "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('escwaHostName'), 'joindomain')]"
+                "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('escwaHostName'), 'joindomain')]",
+                "[resourceId('Microsoft.Cache/Redis', parameters('redisCacheName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -1156,8 +1301,8 @@
                     "hostName": {
                         "value": "[variables('escwaHostname')]"
                     },
-                    "domainNetBIOSName": {
-                        "value": "[parameters('domainNetBIOSName')]"
+                    "domainDNSName": {
+                        "value": "[parameters('domainDNSName')]"
                     },
                     "serviceAccountUserName": {
                         "value": "[parameters('serviceAccountUserName')]"
@@ -1175,6 +1320,7 @@
             }
         },
         {
+            "condition": "[parameters('deployFsDemo')]",
             "apiVersion": "[variables('apiVersionLinkTemplate')]",
             "type": "Microsoft.Resources/deployments",
             "name": "configureFsNode",

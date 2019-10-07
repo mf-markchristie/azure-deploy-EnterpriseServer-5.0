@@ -1,0 +1,350 @@
+{
+    "$schema": "http: //schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "apiVersionCompute": {
+            "type": "string"
+        },
+        "apiVersionStorage": {
+            "type": "string"
+        },
+        "apiVersionNetwork": {
+            "type": "string"
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Region in which the resource group and components will be deployed"
+            }
+        },
+        "artifactsLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "The base URI where artifacts required by this template are located including a trailing '/'"
+            }
+        },
+        "artifactsLocationSasToken": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The sasToken required to access artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
+            }
+        },
+        "clusterPrefix": {
+            "type": "string",
+            "defaultValue": "mfes",
+            "minLength": 4,
+            "maxLength": 20,
+            "metadata": {
+                "description": "Cluster prefix. Used to generate cluster hostnames. Maximum of 20 characters."
+            }
+        },
+        "diagStorageAccount": {
+            "type": "string",
+            "metadata": {
+                "description": "Storage account name for boot diags"
+            }
+        },
+        "adminUsername": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "Administrator username on VM."
+            }
+        },
+        "adminPassword": {
+            "type": "securestring",
+            "minLength": 5,
+            "metadata": {
+                "description": "Password for administrator user."
+            }
+        },
+        "witnessInstanceSize": {
+            "type": "string",
+            "defaultValue": "Standard_DS2_v2",
+            "metadata": {
+                "description": "VM size for SQL witness node"
+            }
+        },
+        "slaveInstanceSize": {
+            "type": "string",
+            "defaultValue": "Standard_DS2_v2",
+            "metadata": {
+                "description": "VM size for SQL slave nodes"
+            }
+        },
+        "subnetRef": {
+            "type": "string",
+            "metadata": {
+                "description": "Reference for the subnet"
+            }
+        }
+    },
+    "variables": {
+        "osDiskType": "StandardSSD_LRS",
+        "scriptFileUri": "[uri(parameters('artifactsLocation'), concat('scripts/Install-ES.exe', parameters('artifactsLocationSasToken')))]",
+        "dataDisksEmpty": [],
+        "availabilitySetName": "[concat(parameters('clusterPrefix'), '-sql-as')]",
+        "witnessVMName": "[concat(parameters('clusterPrefix'), '-sqlw')]",
+        "slaveVmName": "[concat(parameters('clusterPrefix'), '-sqls')]",
+        "sqlLBName": "sqlLoadBalancer"
+    },
+    "resources": [
+        {
+            "apiVersion": "[parameters('apiVersionCompute')]",
+            "type": "Microsoft.Compute/availabilitySets",
+            "name": "[variables('availabilitySetName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Aligned"
+            },
+            "properties": {
+                "platformFaultDomainCount": 2,
+                "platformUpdateDomainCount": 5
+            }
+        },
+        {
+            "apiVersion": "[parameters('apiVersionNetwork')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(variables('witnessVMName'), '-nic')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "ipConfigurations": [{
+                    "name": "[concat(variables('witnessVMName'), '-ipconfig')]",
+                    "properties": {
+                        "privateIPAllocationMethod": "Dynamic",
+                        "subnet": {
+                            "id": "[parameters('subnetRef')]"
+                        }
+                    }
+                }],
+                "dnsSettings": {
+                    "dnsServers": [],
+                    "appliedDnsServers": []
+                }
+            }
+        },
+        {
+            "apiVersion": "[parameters('apiVersionNetwork')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(variables('slaveVmName'), copyIndex(), '-nic')]",
+            "location": "[parameters('location')]",
+            "copy": {
+                "name": "nicLoop",
+                "count": 2
+            },
+            "properties": {
+                "ipConfigurations": [{
+                    "name": "[concat(variables('slaveVmName'), copyIndex(), '-ipconfig')]",
+                    "properties": {
+                        "privateIPAllocationMethod": "Dynamic",
+                        "subnet": {
+                            "id": "[parameters('subnetRef')]"
+                        }
+                    }
+                }],
+                "dnsSettings": {
+                    "dnsServers": [],
+                    "appliedDnsServers": []
+                }
+            }
+        },
+        {
+            "apiVersion": "[parameters('apiVersionNetwork')]",
+            "name": "[variables('sqlLBName')]",
+            "type": "Microsoft.Network/loadBalancers",
+            "location": "[parameters('location')]",
+            "properties": {
+                "frontendIPConfigurations": [
+                    {
+                        "name": "sqlLBFE",
+                        "properties": {
+                            "privateIPAllocationMethod": "Static",
+                            "privateIPAddress": "[parameters('sqlLBIPAddress')]",
+                            "subnet": {
+                                "id": "[parameters('subnetRef')]"
+                            }
+                        }
+                    }
+                ],
+                "backendAddressPools": [{
+                    "name": "sqlLBBE"
+                }],
+                "loadBalancingRules": [
+                    {
+                        "name": "SQLAlwaysOnEndPointListener",
+                        "properties": {
+                        "backendAddressPool": {
+                            "id": "[resourceId('Microsoft.Network/loadBalancers', variables('sqlLBName'), 'backendAddressPools', 'sqlLBBE')]"
+                        },
+                        "frontendIPConfiguration": {
+                            "id": "[resourceId('Microsoft.Network/loadBalancers', variables('sqlLBName'), 'frontendIPConfigurations', 'sqlLBFE')]"
+                        },
+                        "probe": {
+                            "id": "[resourceId('Microsoft.Network/loadBalancers', variables('sqlLBName'), 'probes', 'SQLAlwaysOnEndPointProbe')]"
+                        },
+                        "protocol": "Tcp",
+                        "frontendPort": 1433,
+                        "backendPort": 1433,
+                        "enableFloatingIP": true
+                        }
+                    }
+                ],
+                "probes": [
+                    {
+                        "name": "SQLAlwaysOnEndPointProbe",
+                        "properties": {
+                        "protocol": "Tcp",
+                        "port": 59999,
+                        "intervalInSeconds": 5,
+                        "numberOfProbes": 2
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "[parameters('apiVersionCompute')]",
+            "name": "[variables('witnessVMName')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('witnessVMName'), '-nic'))]",
+                "[resourceId('Microsoft.Compute/availabilitySets', variables('availabilitySetName'))]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('witnessInstanceSize')]"
+                },
+                "availabilitySet": {
+                    "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('availabilitySetName'))]"
+                },
+                "storageProfile": {
+                    "osDisk": {
+                        "createOption": "FromImage",
+                        "managedDisk": {
+                            "storageAccountType": "[variables('osDiskType')]"
+                        }
+                    },
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "2019-Datacenter",
+                        "version": "latest"
+                    },
+                    "dataDisks": [
+                        {
+                            "name": "[concat(variables('witnessVMName'), '-data-disk')]",
+                            "diskSizeGB": 128,
+                            "lun": 0,
+                            "managedDisk": {
+                                "storageAccountType": "Standard_LRS"
+                            },
+                            "createOption": "Empty"
+                        }
+                    ]
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('witnessVMName'), '-nic'))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true,
+                        "storageUri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', parameters('diagStorageAccount')), parameters('apiVersionStorage')).primaryEndpoints['blob']))]"
+                    }
+                },
+                "osProfile": {
+                    "computerName": "[variables('witnessVMName')]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]",
+                    "windowsConfiguration": {
+                        "enableAutomaticUpdates": true,
+                        "provisionVmAgent": true
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "[parameters('apiVersionCompute')]",
+            "name": "[concat(variables('slaveVmName'), copyIndex())]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "nicLoop",
+                "[resourceId('Microsoft.Compute/availabilitySets', variables('availabilitySetName'))]"
+            ],
+            "copy": {
+                "name": "vmLoop",
+                "count": 2
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('slaveInstanceSize')]"
+                },
+                "availabilitySet": {
+                    "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('availabilitySetName'))]"
+                },
+                "storageProfile": {
+                    "osDisk": {
+                        "createOption": "FromImage",
+                        "managedDisk": {
+                            "storageAccountType": "[variables('osDiskType')]"
+                        }
+                    },
+                    "imageReference": {
+                        "publisher": "MicrosoftSQLServer",
+                        "offer": "SQL2016SP1-WS2016",
+                        "sku": "Enterprise",
+                        "version": "latest"
+                    },
+                    "dataDisks": [
+                        {
+                            "name": "[concat(variables('slaveVmName'), copyIndex(), '-data-disk1')]",
+                            "diskSizeGB": 1000,
+                            "lun": 0,
+                            "managedDisk": {
+                                "storageAccountType": "Standard_LRS"
+                            },
+                            "createOption": "Empty"
+                        },
+                        {
+                            "name": "[concat(variables('slaveVmName'), copyIndex(), '-data-disk2')]",
+                            "diskSizeGB": 1000,
+                            "lun": 1,
+                            "managedDisk": {
+                                "storageAccountType": "Standard_LRS"
+                            },
+                            "createOption": "Empty"
+                        }
+                    ]
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('slaveVmName'), copyIndex(), '-nic'))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true,
+                        "storageUri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', parameters('diagStorageAccount')), parameters('apiVersionStorage')).primaryEndpoints['blob']))]"
+                    }
+                },
+                "osProfile": {
+                    "computerName": "[concat(variables('slaveVmName'), copyIndex())]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]",
+                    "windowsConfiguration": {
+                        "enableAutomaticUpdates": true,
+                        "provisionVmAgent": true
+                    }
+                }
+            }
+        }
+    ]
+}

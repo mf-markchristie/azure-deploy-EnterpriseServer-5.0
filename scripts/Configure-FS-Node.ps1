@@ -6,7 +6,7 @@ param(
     [int]$FSPort = 3000
 )
 $ErrorActionPreference = "Stop"
-$WorkDir = "c:\FSWork"
+$WorkDir = "f:\FSWork"
 mkdir -Path $WorkDir
 $cmd = "C:\Program Files (x86)\Micro Focus\Enterprise Server\bin\fs.exe"
 Start-Process -FilePath $cmd -ArgumentList "-pf $WorkDir\pass.dat -u SYSAD -pw SYSAD" -Wait

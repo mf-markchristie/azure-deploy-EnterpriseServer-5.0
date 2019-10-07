@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory = $True)]
-    [string]$DomainNetBIOSName,
+    [string]$DomainDNSName,
 
     [Parameter(Mandatory = $True)]
     [string]$ServiceUser,
@@ -12,8 +12,35 @@ param(
     [string]$DemoUser,
 
     [Parameter(Mandatory = $True)]
-    [string]$DemoPassword
+    [string]$DemoPassword,
+
+    [String]$DomainNetBIOSName=(Get-NetBIOSName -DomainName $DomainDNSName)
 )
+
+function Get-NetBIOSName
+{
+    [OutputType([string])]
+    param(
+        [string]$DomainName
+    )
+
+    if ($DomainName.Contains('.')) {
+        $length=$DomainName.IndexOf('.')
+        if ( $length -ge 16) {
+            $length=15
+        }
+        return $DomainName.Substring(0,$length)
+    }
+    else {
+        if ($DomainName.Length -gt 15) {
+            return $DomainName.Substring(0,15)
+        }
+        else {
+            return $DomainName
+        }
+    }
+}
+
 $ErrorActionPreference = "Stop"
 
 Write-Host "Configuring Service Account Permission"

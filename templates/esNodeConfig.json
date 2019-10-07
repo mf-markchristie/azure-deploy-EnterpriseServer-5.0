@@ -39,11 +39,10 @@
                 "description": "Virtual machine name to be used."
             }
         },
-        "domainNetBIOSName": {
+        "domainDNSName": {
             "type": "string",
-            "defaultValue": "",
             "metadata": {
-                "description": "The NetBIOS name of the domain (up to 15 characters) for users of earlier versions of Microsoft Windows, e.g., example."
+                "description": "The fully qualified domain name (FQDN), e.g., example.com. Must be 2-255 characters."
             }
         },
         "serviceAccountUserName": {
@@ -100,7 +99,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('powershell ./scripts/Configure-ES-Node.ps1 -DomainNetBIOSName ', parameters('domainNetBIOSName'), variables('credentialsArg'))]"
+                    "commandToExecute": "[concat('powershell ./scripts/Configure-ES-Node.ps1 -DomainDNSName ', parameters('domainDNSName'), variables('credentialsArg'))]"
                 }
             }
         }
