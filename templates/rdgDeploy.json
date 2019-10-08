@@ -18,6 +18,18 @@
                 "description": "Region in which the resource group and components will be deployed"
             }
         },
+        "artifactsLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "The base URI where artifacts required by this template are located including a trailing '/'"
+            }
+        },
+        "artifactsLocationSasToken": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The sasToken required to access artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
+            }
+        },
         "hostName": {
             "type": "string",
             "defaultValue": "VM-mfed",
@@ -65,10 +77,17 @@
             "metadata": {
                 "description": "Name of availability set"
             }
+        },
+        "escwaHostname": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of escwa hosting machine"
+            }
         }
     },
     "variables": {
-        "osDiskType": "StandardSSD_LRS"
+        "osDiskType": "StandardSSD_LRS",
+        "scriptFileUri1": "[uri(parameters('artifactsLocation'), concat('scripts/Configure-RDG-Node.exe', parameters('artifactsLocationSasToken')))]",
     },
     "resources": [
         {
@@ -160,6 +179,27 @@
                         "enableAutomaticUpdates": true,
                         "provisionVmAgent": true
                     }
+                }
+            }
+        },
+        {
+            "apiVersion": "[parameters('apiVersionCompute')]",
+            "name": "[concat(parameters('hostName'), '/Setup')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "location": "[parameters('location')]",
+            "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.9",
+                "autoUpgradeMinorVersion": true,
+                "forceUpdateTag": "v.2.0",
+                "settings": {
+                    "fileUris": [
+                        "[variables('scriptFileUri')]"
+                    ]
+                },
+                "protectedSettings": {
+                    "commandToExecute": "[concat('./scripts/Configure-RDG-Node.exe -escwaHostname ', parameters('escwaHostname'))]"
                 }
             }
         }

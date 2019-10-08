@@ -704,6 +704,12 @@
                     "location": {
                         "value": "[parameters('location')]"
                     },
+                    "artifactsLocation": {
+                        "value": "[parameters('artifactsLocation')]"
+                    },
+                    "artifactsLocationSasToken": {
+                        "value": "[parameters('artifactsLocationSasToken')]"
+                    },
                     "hostName": {
                         "value": "[esdeploy.getLoopName(variables('rdgHostname'), copyIndex())]"
                     },
@@ -724,6 +730,9 @@
                     },
                     "availabilitySetName": {
                         "value": "[variables('rdgAvailabilitySetName')]"
+                    },
+                    "escwaHostname": {
+                        "value": "[variables('escwaHostname')]"
                     }
                 }
             }

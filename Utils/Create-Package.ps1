@@ -31,6 +31,7 @@ Copy-Item -Path "$PSScriptRoot\..\mainTemplate.json" -Destination ".\package"
 
 createExe -scriptName "Install-ES"
 createExe -scriptName "Configure-FS-Node"
+createExe -scriptName "Configure-RDG-Node"
 
 Compress-Archive -Path .\package\* -DestinationPath .\package.zip -Force
 if ($test -eq $true) {
