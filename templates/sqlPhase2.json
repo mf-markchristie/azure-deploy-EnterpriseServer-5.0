@@ -56,118 +56,66 @@
             "metadata": {
                 "description": "Domain join properties object"
             }
+        },
+        "dnsSettings": {
+            "type": "object",
+            "metadata": {
+                "description": "Dns configuration to apply"
+            }
         }
     },
     "variables": {
-        "resetNicUrl": "[uri(parameters('artifactsLocation'), concat('templates/resetNic.json', parameters('artifactsLocationSasToken')))]",
         "witnessVMName": "[concat(parameters('clusterPrefix'), '-sqlw')]",
         "slaveVmName": "[concat(parameters('clusterPrefix'), '-sqls')]",
         "sqlLBName": "sqlLoadBalancer"
     },
     "resources": [
         {
-            "apiVersion": "[parameters('apiVersionLinkTemplate')]",
-            "type": "Microsoft.Resources/deployments",
-            "name": "resetWitnessNic",
+            "apiVersion": "[parameters('apiVersionNetwork')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(variables('witnessVMName'), '-nic')]",
+            "location": "[parameters('location')]",
             "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[variables('resetNicUrl')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "apiVersionCompute": {
-                        "value": "[parameters('apiVersionCompute')]"
-                    },
-                    "apiVersionStorage": {
-                        "value": "[parameters('apiVersionStorage')]"
-                    },
-                    "apiVersionNetwork": {
-                        "value": "[parameters('apiVersionNetwork')]"
-                    },
-                    "location": {
-                        "value": "[parameters('location')]"
-                    },
-                    "hostName": {
-                        "value": "[variables('witnessVMName')]"
-                    },
-                    "subnetRef": {
-                        "value": "[parameters('subnetRef')]"
-                    },
-                    "dnsSettings": {
-                        "value": "[parameters('dnsSettings')]"
-                    },
-                    "ipAddress": {
-                        "value": "[parameters('ipAddresses')[0]]"
+                "ipConfigurations": [{
+                    "name": "[concat(variables('witnessVMName'), 'ipconfig')]",
+                    "properties": {
+                        "privateIPAllocationMethod": "Static",
+                        "privateIPAddress":  "[parameters('ipAddresses')[2]]",
+                        "subnet": {
+                            "id": "[parameters('subnetRef')]"
+                        }
                     }
-                }
+                }],
+                "dnsSettings": "[parameters('dnsSettings')]"
             }
         },
         {
-            "apiVersion": "[variables('apiVersionCompute')]",
-            "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(variables('witnessVmName'), '/joindomain')]",
+            "apiVersion": "[parameters('apiVersionNetwork')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(variables('slaveVmName'), copyIndex(), '-nic')]",
             "location": "[parameters('location')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', 'resetWitnessNic')]"
-            ],
-            "properties": "[parameters('domainJoinProperties')]"
-        },
-        {
-            "apiVersion": "[parameters('apiVersionLinkTemplate')]",
-            "type": "Microsoft.Resources/deployments",
-            "name": "[concat(variables('slaveVmName'), copyIndex(), '-resetnic')]",
             "copy": {
                 "name": "resetSlaveNicLoop",
                 "count": 2
             },
             "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[variables('resetNicUrl')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "apiVersionCompute": {
-                        "value": "[parameters('apiVersionCompute')]"
-                    },
-                    "apiVersionStorage": {
-                        "value": "[parameters('apiVersionStorage')]"
-                    },
-                    "apiVersionNetwork": {
-                        "value": "[parameters('apiVersionNetwork')]"
-                    },
-                    "location": {
-                        "value": "[parameters('location')]"
-                    },
-                    "hostName": {
-                        "value": "[concat(variables('slaveVmName'), copyIndex())]"
-                    },
-                    "subnetRef": {
-                        "value": "[parameters('subnetRef')]"
-                    },
-                    "dnsSettings": {
-                        "value": "[parameters('dnsSettings')]"
-                    },
-                    "ipAddress": {
-                        "value": "[parameters('ipAddresses')[copyIndex()]]"
+                "ipConfigurations": [{
+                    "name": "[concat(variables('slaveVmName'), copyIndex(), 'ipconfig')]",
+                    "properties": {
+                        "privateIPAllocationMethod": "Static",
+                        "privateIPAddress":  "[parameters('ipAddresses')[copyIndex()]]",
+                        "subnet": {
+                            "id": "[parameters('subnetRef')]"
+                        },
+                        "loadBalancerBackendAddressPools": [
+                            {
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('sqlLBName')), '/backendAddressPools/sqlLBBE')]"
+                            }
+                        ]
                     }
-                }
+                }],
+                "dnsSettings": "[parameters('dnsSettings')]"
             }
-        },
-        {
-            "apiVersion": "[variables('apiVersionCompute')]",
-            "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(variables('slaveVmName'), copyIndex(), '/joindomain')]",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "resetSlaveNicLoop"
-            ],
-            "copy": {
-                "name": "joinDomainSlaveLoop",
-                "count": 2
-            },
-            "properties": "[parameters('domainJoinProperties')]"
         }
     ]
 }

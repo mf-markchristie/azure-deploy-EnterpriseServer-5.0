@@ -198,10 +198,10 @@
                     {
                         "name": "SQLAlwaysOnEndPointProbe",
                         "properties": {
-                        "protocol": "Tcp",
-                        "port": 59999,
-                        "intervalInSeconds": 5,
-                        "numberOfProbes": 2
+                            "protocol": "Tcp",
+                            "port": 59999,
+                            "intervalInSeconds": 5,
+                            "numberOfProbes": 2
                         }
                     }
                 ]

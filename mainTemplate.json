@@ -1430,6 +1430,9 @@
                     },
                     "domainJoinProperties": {
                         "value": "[variables('domainJoinProperties')]"
+                    },
+                    "dnsSettings": {
+                        "value": "[variables('dnsSettings')]"
                     }
                 }
             }
