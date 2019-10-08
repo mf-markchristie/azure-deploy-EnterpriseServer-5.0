@@ -213,14 +213,14 @@
             "minLength": 1,
             "defaultValue": "mfservice",
             "metadata": {
-                "description": "Administrator username for MF service account user."
+                "description": "Administrator username for service account user."
             }
         },
         "serviceAccountPassword": {
             "type": "securestring",
             "minLength": 5,
             "metadata": {
-                "description": "Password for MF service account user."
+                "description": "Password for service account user."
             }
         },
         "demoAccountUserName": {
@@ -1433,6 +1433,24 @@
                     },
                     "dnsSettings": {
                         "value": "[variables('dnsSettings')]"
+                    },
+                    "domainDNSName": {
+                        "value": "[parameters('domainDNSName')]"
+                    },
+                    "domainAdminUserName": {
+                        "value": "[parameters('domainAdminUserName')]"
+                    },
+                    "domainAdminPassword": {
+                        "value": "[parameters('domainAdminPassword')]"
+                    },
+                    "serviceAccountUserName": {
+                        "value": "[parameters('serviceAccountUserName')]"
+                    },
+                    "serviceAccountPassword": {
+                        "value": "[parameters('serviceAccountPassword')]"
+                    },
+                    "sqlLBIPAddress": {
+                        "value": "[parameters('sqlLBIPAddress')]"
                     }
                 }
             }

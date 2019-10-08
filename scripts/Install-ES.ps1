@@ -17,7 +17,6 @@ $updateExeName = "es_update.exe"
 $installerLocation ="https://mfenterprisestorage.blob.core.windows.net/enterpriseserverdeploy"
 
 Write-Host "Downloading installer $installerExeName"
-Copy-Item "$PSScriptRoot\AzCopy.exe" .
 .\AzCopy copy "$installerLocation/$installerExeName" .
 if(!$?) {
     Write-Error "Failed to download installer"

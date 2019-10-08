@@ -62,12 +62,59 @@
             "metadata": {
                 "description": "Dns configuration to apply"
             }
+        },
+        "domainDNSName": {
+            "type": "string",
+            "metadata": {
+                "description": "The fully qualified domain name (FQDN), e.g., example.com. Must be 2-255 characters."
+            }
+        },
+        "domainAdminUserName": {
+            "type": "string",
+            "metadata": {
+                "description": "Domain administrator username."
+            }
+        },
+        "domainAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The password for the domain Admin account."
+            }
+        },
+        "serviceAccountUserName": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "Administrator username for service account user."
+            }
+        },
+        "serviceAccountPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password for service account user."
+            }
+        },
+        "sqlLBIPAddress": {
+            "type": "string",
+            "metadata": {
+                "description": "Ip address for SQL Load Balancer"
+            }
         }
     },
     "variables": {
         "witnessVMName": "[concat(parameters('clusterPrefix'), '-sqlw')]",
         "slaveVmName": "[concat(parameters('clusterPrefix'), '-sqls')]",
-        "sqlLBName": "sqlLoadBalancer"
+        "adPDCVMName": "[concat(parameters('clusterPrefix'), '-adP')]",
+        "sqlLBName": "sqlLoadBalancer",
+        "fswModulesURL": "[uri(parameters('artifactsLocation'), concat('DSC/CreateFileShareWitness.ps1.zip', parameters('artifactsLocationSasToken')))]",
+        "fswConfigurationFunction": "CreateFileShareWitness.ps1\\CreateFileShareWitness",
+        "sqlAOPrepareModulesURL": "[uri(parameters('artifactsLocation'), concat('DSC/PrepareAlwaysOnSqlServer.ps1.zip', parameters('artifactsLocationSasToken')))]",
+        "sqlAOPrepareConfigurationFunction": "PrepareAlwaysOnSqlServer.ps1\\PrepareAlwaysOnSqlServer",
+        "createClusterModulesURL": "[uri(parameters('artifactsLocation'), concat('DSC/CreateFailoverCluster.ps1.zip', parameters('artifactsLocationSasToken')))]",
+        "createClusterConfigurationFunction": "CreateFailoverCluster.ps1\\CreateFailoverCluster",
+        "sharePath": "sqlha-fsw",
+        "sqlAOEPName": "sqlha-hadr",
+        "clusterName": "sqlha-fc"
     },
     "resources": [
         {
@@ -77,7 +124,7 @@
             "location": "[parameters('location')]",
             "properties": {
                 "ipConfigurations": [{
-                    "name": "[concat(variables('witnessVMName'), 'ipconfig')]",
+                    "name": "[concat(variables('witnessVMName'), '-ipconfig')]",
                     "properties": {
                         "privateIPAllocationMethod": "Static",
                         "privateIPAddress":  "[parameters('ipAddresses')[2]]",
@@ -100,7 +147,7 @@
             },
             "properties": {
                 "ipConfigurations": [{
-                    "name": "[concat(variables('slaveVmName'), copyIndex(), 'ipconfig')]",
+                    "name": "[concat(variables('slaveVmName'), copyIndex(), '-ipconfig')]",
                     "properties": {
                         "privateIPAllocationMethod": "Static",
                         "privateIPAddress":  "[parameters('ipAddresses')[copyIndex()]]",
@@ -115,6 +162,174 @@
                     }
                 }],
                 "dnsSettings": "[parameters('dnsSettings')]"
+            }
+        },
+        {
+            "apiVersion": "[parameters('apiVersionCompute')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('witnessVMName'),'/CreateFileShareWitness')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('witnessVMName'), '-nic'))]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Powershell",
+                "type": "DSC",
+                "typeHandlerVersion": "2.71",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "modulesURL": "[variables('fswModulesURL')]",
+                    "configurationFunction": "[variables('fswConfigurationFunction')]",
+                    "properties": {
+                        "domainName": "[parameters('domainDNSName')]",
+                        "SharePath": "[variables('sharePath')]",
+                        "adminCreds": {
+                            "userName": "[parameters('domainAdminUserName')]",
+                            "password": "privateSettingsRef:adminPassword"
+                        }
+                    }
+                },
+                "protectedSettings": {
+                    "items": {
+                        "adminPassword": "[parameters('domainAdminPassword')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "[parameters('apiVersionCompute')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('slaveVmName'), copyIndex(), '/SqlVmIaasExtension')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "resetSlaveNicLoop"
+            ],
+            "copy": {
+                "name": "slaveIaasLoop",
+                "count": 2
+            },
+            "properties": {
+                "type": "SqlIaaSAgent",
+                "publisher": "Microsoft.SqlServer.Management",
+                "typeHandlerVersion": "1.2",
+                "autoUpgradeMinorVersion": "true",
+                "settings": {
+                    "AutoTelemetrySettings": {
+                        "Region": "[parameters('location')]"
+                    },
+                    "AutoPatchingSettings": {
+                        "PatchCategory": "WindowsMandatoryUpdates",
+                        "Enable": true,
+                        "DayOfWeek": "Sunday",
+                        "MaintenanceWindowStartingHour": 2,
+                        "MaintenanceWindowDuration": "60"
+                    },
+                    "AutoBackupSettings": {
+                        "Enable": false,
+                        "RetentionPeriod": "30",
+                        "EnableEncryption": false
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "[parameters('apiVersionCompute')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('slaveVmName'),'0/sqlAOPrepare')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('witnessVMName'), 'CreateFileShareWitness')]",
+                "slaveIaasLoop"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Powershell",
+                "type": "DSC",
+                "typeHandlerVersion": "2.71",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "modulesURL": "[variables('sqlAOPrepareModulesURL')]",
+                    "configurationFunction": "[variables('sqlAOPrepareConfigurationFunction')]",
+                    "properties": {
+                        "domainName": "[parameters('domainDNSName')]",
+                        "sqlAlwaysOnEndpointName": "[variables('sqlAOEPName')]",
+                        "adminCreds": {
+                            "userName": "[parameters('domainAdminUserName')]",
+                            "password": "privateSettingsRef:AdminPassword"
+                        },
+                        "sqlServiceCreds": {
+                            "userName": "[parameters('serviceAccountUserName')]",
+                            "password": "privateSettingsRef:SqlServerServiceAccountPassword"
+                        },
+                        "NumberOfDisks": "2",
+                        "WorkloadType": "GENERAL"
+                    }
+                },
+                "protectedSettings": {
+                    "items": {
+                        "adminPassword": "[parameters('domainAdminPassword')]",
+                        "sqlServerServiceAccountPassword": "[parameters('serviceAccountPassword')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "[parameters('apiVersionCompute')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('slaveVmName'),'1/configuringAlwaysOn')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines/extensions', concat(variables('slaveVmName'), '0'), 'sqlAOPrepare')]",
+                "slaveIaasLoop"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Powershell",
+                "type": "DSC",
+                "typeHandlerVersion": "2.71",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "modulesURL": "[parameters('createClusterModulesURL')]",
+                    "configurationFunction": "[parameters('createClusterConfigurationFunction')]",
+                    "properties": {
+                        "domainName": "[parameters('domainDNSName')]",
+                        "clusterName": "[variables('clusterName')]",
+                        "sharePath": "[concat('\\\\', variables('witnessVMName'), '\\', variables('sharePath'))]",
+                        "nodes": [
+                            "[concat(variables('slaveVmName'), '0')]",
+                            "[concat(variables('slaveVmName'), '1')]"
+                        ],
+                        "sqlAlwaysOnEndpointName": "[variables('sqlAOEPName')]",
+                        "sqlAlwaysOnAvailabilityGroupName": "alwayson-ag",
+                        "sqlAlwaysOnAvailabilityGroupListenerName": "alwayson-ag-listener",
+                        "SqlAlwaysOnAvailabilityGroupListenerPort": "1433",
+                        "databaseNames": "AutoHa-sample",
+                        "lbName": "[variables('sqlLBName')]",
+                        "lbAddress": "[parameters('sqlLBIPAddress')]",
+                        "primaryReplica": "[concat(variables('slaveVmName'),'1')]",
+                        "secondaryReplica": "[concat(variables('slaveVmName'),'0')]",
+                        "dnsServerName": "[variables('adPDCVMName')]",
+                        "adminCreds": {
+                            "userName": "[parameters('domainAdminUserName')]",
+                            "password": "privateSettingsRef:adminPassword"
+                        },
+                        "sqlServiceCreds": {
+                            "userName": "[parameters('serviceAccountUserName')]",
+                            "password": "privateSettingsRef:sqlServerServiceAccountPassword"
+                        },
+                        "SQLAuthCreds": {
+                            "userName": "sqlsa",
+                            "password": "privateSettingsRef:sqlAuthPassword"
+                        },
+                        "NumberOfDisks": "2",
+                        "WorkloadType": "GENERAL"
+                    }
+                },
+                "protectedSettings": {
+                    "items": {
+                        "adminPassword": "[parameters('domainAdminPassword')]",
+                        "sqlServerServiceAccountPassword": "[parameters('serviceAccountPassword')]",
+                        "sqlAuthPassword": "[parameters('serviceAccountPassword')]"
+                    }
+                }
             }
         }
     ]
