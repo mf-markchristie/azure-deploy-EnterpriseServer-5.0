@@ -287,8 +287,8 @@
                 "typeHandlerVersion": "2.71",
                 "autoUpgradeMinorVersion": true,
                 "settings": {
-                    "modulesURL": "[parameters('createClusterModulesURL')]",
-                    "configurationFunction": "[parameters('createClusterConfigurationFunction')]",
+                    "modulesURL": "[variables('createClusterModulesURL')]",
+                    "configurationFunction": "[variables('createClusterConfigurationFunction')]",
                     "properties": {
                         "domainName": "[parameters('domainDNSName')]",
                         "clusterName": "[variables('clusterName')]",
