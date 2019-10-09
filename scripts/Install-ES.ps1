@@ -9,7 +9,8 @@ param(
 
 Write-Host "Creating temporary working directory."
 mkdir -path "c:\tmp"
-Copy-Item ".\scripts\AzCopy.exe" "c:\tmp"
+mkdir -path "C:\Utils"
+Copy-Item ".\scripts\AzCopy.exe" "c:\Utils"
 Set-Location "c:\tmp"
 
 $installerExeName = "es.exe"
@@ -17,7 +18,7 @@ $updateExeName = "es_update.exe"
 $installerLocation ="https://mfenterprisestorage.blob.core.windows.net/enterpriseserverdeploy"
 
 Write-Host "Downloading installer $installerExeName"
-.\AzCopy copy "$installerLocation/$installerExeName" .
+C:\Utils\AzCopy copy "$installerLocation/$installerExeName" .
 if(!$?) {
     Write-Error "Failed to download installer"
     exit 500
@@ -37,7 +38,7 @@ if (!(Select-String -Path ".\log.txt" -Pattern "Exit Code: 0x0")) {
 
 Write-Host "Successfully installed product"
 
-.\AzCopy copy "$installerLocation/$updateExeName" .
+C:\Utils\AzCopy copy "$installerLocation/$updateExeName" .
 if($?) {
     Write-Host "Installing update file."
     Start-Process -FilePath $updateExeName -ArgumentList "/q /log c:\tmp\log.txt" -Wait
@@ -67,3 +68,8 @@ if ($mountDrive -eq "Y") {
 Write-Host "Cleaning up temporary working directory."
 Set-Location "C:\"
 Remove-Item "C:\tmp" -Force -Recurse
+
+Write-Host "Configuring Directory Server"
+$cmd = "C:\Program Files (x86)\Micro Focus\Enterprise Server\bin\mfds.exe"
+Start-Process -FilePath $cmd -ArgumentList "--listen-all" -Wait
+Restart-Service -Name "MF_CCITCP2"

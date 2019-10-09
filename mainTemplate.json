@@ -1291,6 +1291,12 @@
                     },
                     "demoAccountPassword": {
                         "value": "[parameters('demoAccountPassword')]"
+                    },
+                    "deployDbDemo": {
+                        "value": "[parameters('deployDbDemo')]"
+                    },
+                    "deployPacDemo": {
+                        "value": "[parameters('deployPacDemo')]"
                     }
                 }
             }

@@ -12,7 +12,11 @@ param(
     [string]$DemoUser,
 
     [Parameter(Mandatory = $True)]
-    [string]$DemoPassword
+    [string]$DemoPassword,
+
+    [string]$DeployDbDemo = "N",
+
+    [string]$DeployPacDemo = "N"
 )
 
 function Get-NetBIOSName
@@ -74,14 +78,27 @@ $args += ("-PrivilegeName", 'SeRemoteInteractiveLogonRight')
 $args += ("-Status", 'Grant')
 Invoke-Expression "$cmd $args"
 
+if ($DeployDbDemo -eq "Y" -or $DeployPacDemo -eq "Y") {
+    Import-Module BitsTransfer
+    Start-BitsTransfer -Source "https://download.microsoft.com/download/D/5/E/D5EEF288-A277-45C8-855B-8E2CB7E25B96/x64/msodbcsql.msi" -Destination "."
+    Start-Process -Wait -FilePath "msiexec" -ArgumentList "/quiet /passive /qn /i msodbcsql.msi IACCEPTMSODBCSQLLICENSETERMS=YES ADDLOCAL=ALL"
 
-Write-Host "Configuring Directory Server"
-$cmd = "C:\Program Files (x86)\Micro Focus\Enterprise Server\bin\mfds.exe"
-Start-Process -FilePath $cmd -ArgumentList "--listen-all" -Wait
-Restart-Service -Name "MF_CCITCP2"
+    Start-BitsTransfer -Source "https://download.microsoft.com/download/C/8/8/C88C2E51-8D23-4301-9F4B-64C8E2F163C5/x64/MsSqlCmdLnUtils.msi" -Destination "."
+    Start-Process -Wait -FilePath "msiexec" -ArgumentList "/quiet /passive /qn /i MsSqlCmdLnUtils.msi IACCEPTMSSQLCMDLNUTILSLICENSETERMS=YES"
+
+    $env:Path += "c:\Program Files\Microsoft SQL Server\Client SDK\ODBC\130\Tools\Binn"
+}
+if ($DeployDbDemo -eq "Y") {
+    Add-OdbcDsn -Name DBNASEDB -DriverName "ODBC Driver 13 for SQL Server" -DsnType "System" -Platform "32-bit" -SetPropertyValue @("Server=sqlLoadBalancer", "Trusted_Connection=Yes", "Database=BANKDEMO")
+}
+if ($DeployPacDemo -eq "Y") {
+    Add-OdbcDsn -Name SS.VSAM -DriverName "ODBC Driver 13 for SQL Server" -DsnType "System" -Platform "32-bit" -SetPropertyValue @("Server=sqlLoadBalancer", 'Database=MicroFocus$SEE$Files$VSAM')
+    Add-OdbcDsn -Name SS.MASTER -DriverName "ODBC Driver 13 for SQL Server" -DsnType "System" -Platform "32-bit" -SetPropertyValue @("Server=sqlLoadBalancer", "Database=master")
+    Add-OdbcDsn -Name SS.REGION -DriverName "ODBC Driver 13 for SQL Server" -DsnType "System" -Platform "32-bit" -SetPropertyValue @("Server=sqlLoadBalancer", 'Database=MicroFocus$CAS$Region$DEMOPAC')
+    Add-OdbcDsn -Name SS.CROSSREGION -DriverName "ODBC Driver 13 for SQL Server" -DsnType "System" -Platform "32-bit" -SetPropertyValue @("Server=sqlLoadBalancer", 'Database=MicroFocus$CAS$CrossRegion')
+}
 
 #Download & Import Region Definitions
-#Configure ODBC drivers
 #Setup region files
 
 Set-NetFirewallProfile -Profile Domain -Enabled False

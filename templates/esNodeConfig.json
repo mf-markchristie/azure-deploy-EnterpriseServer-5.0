@@ -72,13 +72,27 @@
             "metadata": {
                 "description": "Password for MF service account user."
             }
+        },
+        "deployDbDemo": {
+            "type": "bool",
+            "metadata": {
+                "description": "Flag to determine whether database demo is deployed"
+            }
+        },
+        "deployPacDemo": {
+            "type": "bool",
+            "metadata": {
+                "description": "Flag to determine whether PAC demo is deployed"
+            }
         }
     },
     "variables": {
         "osDiskType": "StandardSSD_LRS",
-        "scriptFileUri1": "[uri(parameters('artifactsLocation'), concat('scripts/Configure-ES-Node.ps1', parameters('artifactsLocationSasToken')))]",
+        "scriptFileUri1": "[uri(parameters('artifactsLocation'), concat('scripts/Configure-ES-Node.exe', parameters('artifactsLocationSasToken')))]",
         "scriptFileUri2": "[uri(parameters('artifactsLocation'), concat('scripts/Configure-UserLogonPrivileges.ps1', parameters('artifactsLocationSasToken')))]",
-        "credentialsArg": "[concat(' -ServiceUser ', parameters('serviceAccountUserName'), ' -ServicePassword ', parameters('serviceAccountPassword'), ' -DemoUser ', parameters('demoAccountUserName'), ' -DemoPassword ', parameters('demoAccountPassword'))]"
+        "credentialsArg": "[concat(' -ServiceUser ', parameters('serviceAccountUserName'), ' -ServicePassword ', parameters('serviceAccountPassword'), ' -DemoUser ', parameters('demoAccountUserName'), ' -DemoPassword ', parameters('demoAccountPassword'))]",
+        "deployDbFlag": "[if(deployDbDemo, '-DeployDbDemo Y', '')]",
+        "deployPacFlag": "[if(deployPacDemo, '-DeployPacDemo Y', '')]"
     },
     "resources": [
         {
@@ -99,7 +113,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('powershell ./scripts/Configure-ES-Node.ps1 -DomainDNSName ', parameters('domainDNSName'), variables('credentialsArg'))]"
+                    "commandToExecute": "[concat('./scripts/Configure-ES-Node.exe -DomainDNSName ', parameters('domainDNSName'), variables('credentialsArg'), variables('deployDbFlag'), variables('deployPacFlag'))]"
                 }
             }
         }
