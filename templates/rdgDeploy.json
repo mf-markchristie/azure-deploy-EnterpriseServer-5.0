@@ -209,7 +209,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('.\\scripts\\Configure-RDG-Node.exe -escwaHostname ', parameters('escwaHostname'))]"
+                    "commandToExecute": "[concat('Configure-RDG-Node.exe -escwaHostname ', parameters('escwaHostname'))]"
                 }
             }
         }

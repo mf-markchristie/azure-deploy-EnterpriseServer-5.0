@@ -126,7 +126,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('powershell .\\scripts\\Configure-ESCWA-Node.ps1 -DomainDNSName ', parameters('domainDNSName'), ' -ESCount ', parameters('esInstanceCount'), ' -clusterPrefix ', parameters('clusterPrefix'), variables('credentialsArg'), variables('redisArg'), variables('deployPacFlag'), variables('deployFsFlag'))]"
+                    "commandToExecute": "[concat('powershell .\\Configure-ESCWA-Node.ps1 -DomainDNSName ', parameters('domainDNSName'), ' -ESCount ', parameters('esInstanceCount'), ' -clusterPrefix ', parameters('clusterPrefix'), variables('credentialsArg'), variables('redisArg'), variables('deployPacFlag'), variables('deployFsFlag'))]"
                 }
             }
         }

@@ -136,7 +136,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('.\\scripts\\Configure-ES-Node.exe -DomainDNSName ', parameters('domainDNSName'), ' -ClusterPrefix ', parameters('clusterPrefix'), ' -Index ', parameters('index'), variables('credentialsArg'), variables('redisArg'), variables('deployDbFlag'), variables('deployPacFlag'), variables('deployFsFlag'))]"
+                    "commandToExecute": "[concat('Configure-ES-Node.exe -DomainDNSName ', parameters('domainDNSName'), ' -ClusterPrefix ', parameters('clusterPrefix'), ' -Index ', parameters('index'), variables('credentialsArg'), variables('redisArg'), variables('deployDbFlag'), variables('deployPacFlag'), variables('deployFsFlag'))]"
                 }
             }
         }
