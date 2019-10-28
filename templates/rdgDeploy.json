@@ -94,7 +94,7 @@
     },
     "variables": {
         "osDiskType": "StandardSSD_LRS",
-        "scriptFileUri": "[uri(parameters('_artifactsLocation'), concat('scripts/Configure-RDG-Node.exe', parameters('_artifactsLocationSasToken')))]"
+        "scriptFileUri": "[uri(parameters('_artifactsLocation'), concat('scripts_win/Configure-RDG-Node.exe', parameters('_artifactsLocationSasToken')))]"
     },
     "resources": [
         {

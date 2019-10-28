@@ -209,8 +209,8 @@
                 "forceUpdateTag": "v.1.0",
                 "settings": {
                     "fileUris": [
-                        "[uri(parameters('_artifactsLocation'), concat('scripts/Install-ES.exe', parameters('_artifactsLocationSasToken')))]",
-                        "[uri(parameters('_artifactsLocation'), concat('scripts/azcopy.exe', parameters('_artifactsLocationSasToken')))]"
+                        "[uri(parameters('_artifactsLocation'), concat('scripts_win/Install-ES.exe', parameters('_artifactsLocationSasToken')))]",
+                        "[uri(parameters('_artifactsLocation'), concat('scripts_win/azcopy.exe', parameters('_artifactsLocationSasToken')))]"
                     ]
                 },
                 "protectedSettings": {

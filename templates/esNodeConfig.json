@@ -130,9 +130,9 @@
                 "forceUpdateTag": "v.2.0",
                 "settings": {
                     "fileUris": [
-                        "[uri(parameters('_artifactsLocation'), concat('scripts/Configure-ES-Node.exe', parameters('_artifactsLocationSasToken')))]",
-                        "[uri(parameters('_artifactsLocation'), concat('scripts/Configure-UserLogonPrivileges.ps1', parameters('_artifactsLocationSasToken')))]",
-                        "[uri(parameters('_artifactsLocation'), concat('scripts/Deploy-Start-ES.bat', parameters('_artifactsLocationSasToken')))]"
+                        "[uri(parameters('_artifactsLocation'), concat('scripts_win/Configure-ES-Node.exe', parameters('_artifactsLocationSasToken')))]",
+                        "[uri(parameters('_artifactsLocation'), concat('scripts_win/Configure-UserLogonPrivileges.ps1', parameters('_artifactsLocationSasToken')))]",
+                        "[uri(parameters('_artifactsLocation'), concat('scripts_win/Deploy-Start-ES.bat', parameters('_artifactsLocationSasToken')))]"
                     ]
                 },
                 "protectedSettings": {

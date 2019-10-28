@@ -77,7 +77,7 @@
     },
     "variables": {
         "osDiskType": "StandardSSD_LRS",
-        "scriptFileUri": "[uri(parameters('_artifactsLocation'), concat('scripts/Configure-FS-Node.exe', parameters('_artifactsLocationSasToken')))]"
+        "scriptFileUri": "[uri(parameters('_artifactsLocation'), concat('scripts_win/Configure-FS-Node.exe', parameters('_artifactsLocationSasToken')))]"
     },
     "resources": [
         {

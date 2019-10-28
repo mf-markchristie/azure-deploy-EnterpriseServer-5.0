@@ -117,7 +117,7 @@
         "witnessVMName": "[concat(parameters('clusterPrefix'), '-sqlw')]",
         "slaveVmName": "[concat(parameters('clusterPrefix'), '-sqls')]",
         "adPDCVMName": "[concat(parameters('clusterPrefix'), '-adP')]",
-        "scriptLocation": "[uri(parameters('_artifactsLocation'), concat('scripts/BankDemoCreateAll.SQL', parameters('_artifactsLocationSasToken')))]",
+        "scriptLocation": "[uri(parameters('_artifactsLocation'), concat('scripts_win/BankDemoCreateAll.SQL', parameters('_artifactsLocationSasToken')))]",
         "fswModulesURL": "[uri(parameters('_artifactsLocation'), concat('DSC/CreateFileShareWitness.ps1.zip', parameters('_artifactsLocationSasToken')))]",
         "fswConfigurationFunction": "CreateFileShareWitness.ps1\\CreateFileShareWitness",
         "sqlAOPrepareModulesURL": "[uri(parameters('_artifactsLocation'), concat('DSC/PrepareAlwaysOnSqlServer.ps1.zip', parameters('_artifactsLocationSasToken')))]",
