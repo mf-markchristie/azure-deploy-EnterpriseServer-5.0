@@ -18,16 +18,16 @@
                 "description": "Region in which the resource group and components will be deployed"
             }
         },
-        "artifactsLocation": {
+        "_artifactsLocation": {
             "type": "string",
             "metadata": {
                 "description": "The base URI where artifacts required by this template are located including a trailing '/'"
             }
         },
-        "artifactsLocationSasToken": {
+        "_artifactsLocationSasToken": {
             "type": "securestring",
             "metadata": {
-                "description": "The sasToken required to access artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
+                "description": "The sasToken required to access _artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
             }
         },
         "clusterPrefix": {
@@ -84,14 +84,19 @@
             "metadata": {
                 "description": "Ip address for SQL Load Balancer"
             }
+        },
+        "sqlLBName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name for SQL Load Balancer"
+            }
         }
     },
     "variables": {
         "osDiskType": "StandardSSD_LRS",
         "availabilitySetName": "[concat(parameters('clusterPrefix'), '-sql-as')]",
         "witnessVMName": "[concat(parameters('clusterPrefix'), '-sqlw')]",
-        "slaveVmName": "[concat(parameters('clusterPrefix'), '-sqls')]",
-        "sqlLBName": "sqlLoadBalancer"
+        "slaveVmName": "[concat(parameters('clusterPrefix'), '-sqls')]"
     },
     "resources": [
         {
@@ -155,7 +160,7 @@
         },
         {
             "apiVersion": "[parameters('apiVersionNetwork')]",
-            "name": "[variables('sqlLBName')]",
+            "name": "[parameters('sqlLBName')]",
             "type": "Microsoft.Network/loadBalancers",
             "location": "[parameters('location')]",
             "properties": {
@@ -179,13 +184,13 @@
                         "name": "SQLAlwaysOnEndPointListener",
                         "properties": {
                         "backendAddressPool": {
-                            "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('sqlLBName')), '/backendAddressPools/sqlLBBE')]"
+                            "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('sqlLBName')), '/backendAddressPools/sqlLBBE')]"
                         },
                         "frontendIPConfiguration": {
-                            "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('sqlLBName')), '/frontendIPConfigurations/sqlLBFE')]"
+                            "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('sqlLBName')), '/frontendIPConfigurations/sqlLBFE')]"
                         },
                         "probe": {
-                            "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('sqlLBName')), '/probes/SQLAlwaysOnEndPointProbe')]"
+                            "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('sqlLBName')), '/probes/SQLAlwaysOnEndPointProbe')]"
                         },
                         "protocol": "Tcp",
                         "frontendPort": 1433,

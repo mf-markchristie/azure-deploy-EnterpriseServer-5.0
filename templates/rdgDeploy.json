@@ -18,16 +18,16 @@
                 "description": "Region in which the resource group and components will be deployed"
             }
         },
-        "artifactsLocation": {
+        "_artifactsLocation": {
             "type": "string",
             "metadata": {
                 "description": "The base URI where artifacts required by this template are located including a trailing '/'"
             }
         },
-        "artifactsLocationSasToken": {
+        "_artifactsLocationSasToken": {
             "type": "securestring",
             "metadata": {
-                "description": "The sasToken required to access artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
+                "description": "The sasToken required to access _artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
             }
         },
         "hostName": {
@@ -83,11 +83,18 @@
             "metadata": {
                 "description": "Name of escwa hosting machine"
             }
+        },
+        "deployLinux": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Flag to determine whether linux VMs are deployed for ES."
+            }
         }
     },
     "variables": {
         "osDiskType": "StandardSSD_LRS",
-        "scriptFileUri": "[uri(parameters('artifactsLocation'), concat('scripts/Configure-RDG-Node.exe', parameters('artifactsLocationSasToken')))]"
+        "scriptFileUri": "[uri(parameters('_artifactsLocation'), concat('scripts/Configure-RDG-Node.exe', parameters('_artifactsLocationSasToken')))]"
     },
     "resources": [
         {
@@ -187,6 +194,9 @@
             "name": "[concat(parameters('hostName'), '/Setup')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines', parameters('hostName'))]"
+            ],
             "properties": {
                 "publisher": "Microsoft.Compute",
                 "type": "CustomScriptExtension",
@@ -199,7 +209,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('./scripts/Configure-RDG-Node.exe -escwaHostname ', parameters('escwaHostname'))]"
+                    "commandToExecute": "[concat('.\\scripts\\Configure-RDG-Node.exe -escwaHostname ', parameters('escwaHostname'))]"
                 }
             }
         }

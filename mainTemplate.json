@@ -9,17 +9,17 @@
                 "description": "Region in which the resource group and components will be deployed"
             }
         },
-        "artifactsLocation": {
+        "_artifactsLocation": {
             "type": "string",
             "metadata": {
                 "description": "The base URI where artifacts required by this template are located including a trailing '/'"
             },
             "defaultValue": "[deployment().properties.templateLink.uri]"
         },
-        "artifactsLocationSasToken": {
+        "_artifactsLocationSasToken": {
             "type": "securestring",
             "metadata": {
-                "description": "The sasToken required to access artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
+                "description": "The sasToken required to access _artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
             },
             "defaultValue": ""
         },
@@ -95,12 +95,18 @@
                 "description": "CIDR used for the data subnet - needs to be a subset of the addressPrefix"
             }
         },
-        "esInstanceCount": {
-            "type": "int",
-            "defaultValue": 1,
-            "allowedValues": [1, 2],
+        "redisSubnetName": {
+            "type": "string",
+            "defaultValue": "redissubnet",
             "metadata": {
-                "description": "Number of Enterprise Sever hosting nodes"
+                "description": "Name of the Redis subnet"
+            }
+        },
+        "redisSubnetPrefix": {
+            "type": "string",
+            "defaultValue": "10.0.64.0/19",
+            "metadata": {
+                "description": "CIDR used for the Redis subnet - needs to be a subset of the addressPrefix"
             }
         },
         "esInstanceSize": {
@@ -117,24 +123,10 @@
                 "description": "Size of Datadisk in GB for ES hosting VMs."
             }
         },
-        "esAdminUserName": {
-            "type": "string",
-            "minLength": 1,
-            "metadata": {
-                "description": "Administrator username on ES VM."
-            }
-        },
-        "esAdminPassword": {
-            "type": "securestring",
-            "minLength": 5,
-            "metadata": {
-                "description": "Password for ES administrator user."
-            }
-        },
         "rdgInstanceCount": {
             "type": "int",
             "defaultValue": 1,
-            "allowedValues": [0, 1, 2, 3, 4],
+            "maxValue": 4,
             "metadata": {
                 "description": "Number of Remote Desktop Gateway nodes"
             }
@@ -146,25 +138,26 @@
                 "description": "VM size for RDG nodes"
             }
         },
-        "rdgAdminUserName": {
+        "bastionInstanceCount": {
+            "type": "int",
+            "defaultValue": 1,
+            "maxValue": 4,
+            "metadata": {
+                "description": "Number of Bastion nodes"
+            }
+        },
+        "bastionInstanceSize": {
             "type": "string",
-            "minLength": 1,
+            "defaultValue": "Standard_DS2_v2",
             "metadata": {
-                "description": "Administrator username on ES VM."
+                "description": "VM size for Bastion nodes"
             }
         },
-        "rdgAdminPassword": {
-            "type": "securestring",
-            "minLength": 5,
-            "metadata": {
-                "description": "Password for ES administrator user."
-            }
-        },
-        "esLicenseKey": {
+        "esLicense": {
             "type": "string",
             "defaultValue": "",
             "metadata": {
-                "description": "License key for Enterprise Server."
+                "description": "Location of license key file for Enterprise Server."
             }
         },
         "adInstanceSize": {
@@ -180,35 +173,35 @@
                 "description": "The fully qualified domain name (FQDN), e.g., example.com. Must be 2-255 characters."
             }
         },
-        "domainAdminUserName": {
+        "administratorUserName": {
             "type": "string",
             "minLength": 1,
             "metadata": {
-                "description": "Domain administrator username."
+                "description": "Machine and domain administrator username."
             }
         },
-        "domainAdminPassword": {
+        "administratorPassword": {
             "type": "securestring",
             "minLength": 5,
             "metadata": {
-                "description": "The password for the domain Admin account."
+                "description": "The password for the machine and domain administrator account."
             }
         },
         "primaryAdIpAddress": {
             "type": "string",
             "defaultValue": "10.0.0.10",
             "metadata": {
-                "description": "The NetBIOS name of the domain (up to 15 characters) for users of earlier versions of Microsoft Windows, e.g., example."
+                "description": "IP Address of primary DC."
             }
         },
         "backupAdIpAddress": {
             "type": "string",
             "defaultValue": "10.0.0.20",
             "metadata": {
-                "description": "The NetBIOS name of the domain (up to 15 characters) for users of earlier versions of Microsoft Windows, e.g., example."
+                "description": "IP Address of backup DC."
             }
         },
-        "serviceAccountUserName": {
+        "applicationUsername": {
             "type": "string",
             "minLength": 1,
             "defaultValue": "mfservice",
@@ -216,26 +209,11 @@
                 "description": "Administrator username for service account user."
             }
         },
-        "serviceAccountPassword": {
+        "applicationUserPassword": {
             "type": "securestring",
             "minLength": 5,
             "metadata": {
                 "description": "Password for service account user."
-            }
-        },
-        "demoAccountUserName": {
-            "type": "string",
-            "minLength": 1,
-            "defaultValue": "mfdemo",
-            "metadata": {
-                "description": "Administrator username for MF service account user."
-            }
-        },
-        "demoAccountPassword": {
-            "type": "securestring",
-            "minLength": 5,
-            "metadata": {
-                "description": "Password for MF service account user."
             }
         },
         "esNodeIpArray": {
@@ -247,7 +225,10 @@
         },
         "escwaNodeIp": {
             "type": "string",
-            "defaultValue": "10.0.128.10"
+            "defaultValue": "10.0.128.10",
+            "metadata": {
+                "description": "Ip address of ESCWA node."
+            }
         },
         "deployFsDemo": {
             "type": "bool",
@@ -258,15 +239,21 @@
         },
         "fsNodeIp": {
             "type": "string",
-            "defaultValue": "10.0.32.10"
+            "defaultValue": "10.0.32.10",
+            "metadata": {
+                "description": "Ip address of fileshare node."
+            }
         },
         "redisIp": {
             "type": "string",
-            "defaultValue": "10.0.32.20"
+            "defaultValue": "10.0.64.10",
+            "metadata": {
+                "description": "Ip address of Redis cache."
+            }
         },
         "fsviewPassword": {
             "type": "securestring",
-            "minLength": 5,
+            "defaultValue": "",
             "metadata": {
                 "description": "Password for fileshare administrative user."
             }
@@ -280,6 +267,20 @@
                 "description": "TCP port for fileshare listener."
             }
         },
+        "fsInstanceSize": {
+            "type": "string",
+            "defaultValue": "Standard_DS2_v2",
+            "metadata": {
+                "description": "VM size for FS node"
+            }
+        },
+        "fsDataDiskSize": {
+            "type": "int",
+            "defaultValue": 32,
+            "metadata": {
+                "description": "Size of Datadisk in GB for FS hosting VMs."
+            }
+        },
         "deployPacDemo": {
             "type": "bool",
             "defaultValue": true,
@@ -287,43 +288,11 @@
                 "description": "Flag to determine whether PAC demo is deployed"
             }
         },
-        "redisCacheName": {
-            "type": "string",
-            "metadata": {
-            "description": "The name of the Azure Redis Cache to create."
-            }
-        },
-        "redisCacheSKU": {
-            "type": "string",
-            "allowedValues": [
-              "Basic",
-              "Standard",
-              "Premium"
-            ],
-            "defaultValue": "Standard",
-            "metadata": {
-              "description": "The pricing tier of the new Azure Redis Cache."
-            }
-        },
         "deployDbDemo": {
             "type": "bool",
             "defaultValue": true,
             "metadata": {
                 "description": "Flag to determine whether database demo is deployed"
-            }
-        },
-        "dbVmUserName": {
-            "type": "string",
-            "minLength": 1,
-            "metadata": {
-                "description": "Administrator username for db hosting virtual machines."
-            }
-        },
-        "dbVmPassword": {
-            "type": "securestring",
-            "minLength": 5,
-            "metadata": {
-                "description": "Password for db hosting virtual machines."
             }
         },
         "sqlWitnessInstanceSize": {
@@ -354,52 +323,76 @@
                 "10.0.32.32",
                 "10.0.32.33"
             ]
+        },
+        "deployLinux": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Flag to determine whether linux VMs are deployed for ES."
+            }
+        },
+        "sshKey": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "SSH key for Linux machine."
+            }
         }
     },
     "variables": {
         "apiVersionCompute": "2018-06-01",
         "apiVersionNetwork": "2018-06-01",
         "apiVersionStorage": "2018-07-01",
+        "apiVersionRedis": "2018-03-01",
         "apiVersionLinkTemplate": "2015-01-01",
+        "esInstanceCount": 2,
         "clusterPrefixLower": "[toLower(parameters('clusterPrefix'))]",
         "managementNsgName": "[concat(variables('clusterPrefixLower'), '-mNsg')]",
         "applicationNsgName": "[concat(variables('clusterPrefixLower'), '-aNsg')]",
         "adNsgName": "[concat(variables('clusterPrefixLower'), '-adNsg')]",
         "dataNsgName": "[concat(variables('clusterPrefixLower'), '-dNsg')]",
+        "redisNsgName": "[concat(variables('clusterPrefixLower'), '-rNsg')]",
         "virtualNetworkName": "[concat(variables('clusterPrefixLower'), '-vnet')]",
         "managementSubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), parameters('managementSubnetName'))]",
         "applicationSubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), parameters('applicationSubnetName'))]",
         "adSubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), parameters('adSubnetName'))]",
         "dataSubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), parameters('dataSubnetName'))]",
+        "redisSubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), parameters('redisSubnetName'))]",
         "rdgHostname": "[concat(variables('clusterPrefixLower'), '-rdg')]",
         "esHostname": "[concat(variables('clusterPrefixLower'), '-es')]",
         "adHostname": "[concat(variables('clusterPrefixLower'), '-ad')]",
         "fsHostname": "[concat(variables('clusterPrefixLower'), '-fs')]",
+        "sqlLBName": "[concat(variables('clusterPrefixLower'), '-sqlLB')]",
         "escwaHostname": "[concat(variables('clusterPrefixLower'), '-esadmin')]",
         "diagStorageAccount": "[concat(variables('clusterPrefixLower'), uniqueString(concat(resourceGroup().id, 'dsa')))]",
         "esAvailabilitySetName": "[concat(variables('esHostname'), '-as')]",
         "rdgAvailabilitySetName": "[concat(variables('rdgHostname'), '-as')]",
         "adAvailabilitySetName": "[concat(variables('adHostname'), '-as')]",
-        "rdgDeploymentTemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/rdgDeploy.json', parameters('artifactsLocationSasToken')))]",
-        "esDeploymentTemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/esDeploy.json', parameters('artifactsLocationSasToken')))]",
-        "adPhase1TemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/adPhase1.json', parameters('artifactsLocationSasToken')))]",
-        "adPhase2TemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/adPhase2.json', parameters('artifactsLocationSasToken')))]",
-        "sqlPhase1TemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/sqlPhase1.json', parameters('artifactsLocationSasToken')))]",
-        "sqlPhase2TemplateUrl": "[uri(parameters('artifactsLocation'), concat('templates/sqlPhase2.json', parameters('artifactsLocationSasToken')))]",
-        "esConfigureNodeUrl": "[uri(parameters('artifactsLocation'), concat('templates/esNodeConfig.json', parameters('artifactsLocationSasToken')))]",
-        "escwaConfigureNodeUrl": "[uri(parameters('artifactsLocation'), concat('templates/escwaNodeConfig.json', parameters('artifactsLocationSasToken')))]",
-        "fsConfigureNodeUrl": "[uri(parameters('artifactsLocation'), concat('templates/fsNodeConfig.json', parameters('artifactsLocationSasToken')))]",
-        "resetNicUrl": "[uri(parameters('artifactsLocation'), concat('templates/resetNic.json', parameters('artifactsLocationSasToken')))]",
+        "rdgDeploymentTemplateUrl": "[uri(parameters('_artifactsLocation'), concat('templates/rdgDeploy.json', parameters('_artifactsLocationSasToken')))]",
+        "esDeploymentTemplateUrl": "[uri(parameters('_artifactsLocation'), concat('templates/esDeploy.json', parameters('_artifactsLocationSasToken')))]",
+        "adPhase1TemplateUrl": "[uri(parameters('_artifactsLocation'), concat('templates/adPhase1.json', parameters('_artifactsLocationSasToken')))]",
+        "adPhase2TemplateUrl": "[uri(parameters('_artifactsLocation'), concat('templates/adPhase2.json', parameters('_artifactsLocationSasToken')))]",
+        "sqlPhase1TemplateUrl": "[uri(parameters('_artifactsLocation'), concat('templates/sqlPhase1.json', parameters('_artifactsLocationSasToken')))]",
+        "sqlPhase2TemplateUrl": "[uri(parameters('_artifactsLocation'), concat('templates/sqlPhase2.json', parameters('_artifactsLocationSasToken')))]",
+        "esConfigureNodeUrl": "[uri(parameters('_artifactsLocation'), concat('templates/esNodeConfig.json', parameters('_artifactsLocationSasToken')))]",
+        "escwaConfigureNodeUrl": "[uri(parameters('_artifactsLocation'), concat('templates/escwaNodeConfig.json', parameters('_artifactsLocationSasToken')))]",
+        "fsConfigureNodeUrl": "[uri(parameters('_artifactsLocation'), concat('templates/fsNodeConfig.json', parameters('_artifactsLocationSasToken')))]",
+        "resetNicUrl": "[uri(parameters('_artifactsLocation'), concat('templates/resetNic.json', parameters('_artifactsLocationSasToken')))]",
         "deployDatabase": "[or(parameters('deployDbDemo'), parameters('deployPacDemo'))]",
+        "deployEsLb": "[or(parameters('deployDbDemo'), parameters('deployPacDemo'), parameters('deployFsDemo'))]",
+        "esLbName": "[concat(parameters('clusterPrefix'), '-eslb')]",
+        "esLBBERef": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('esLbName')), '/backendAddressPools/esLBBE')]",
         "domainJoinOptions": 3,
-        "redisCacheFamily": "C",
+        "redisCacheName": "[concat(variables('clusterPrefixLower'), '-redis', uniqueString(concat(resourceGroup().id, 'redis')))]",
+        "redisCacheSKU": "Premium",
+        "redisCacheFamily": "P",
         "redisCacheCapacity": 1,
         "addressSpace": {
             "addressPrefixes": [
                 "[parameters('addressPrefixes')]"
             ]
         },
-        "subnets": [{
+        "baseSubnetArr": [{
             "name": "[parameters('managementSubnetName')]",
             "properties": {
                 "addressPrefix": "[parameters('managementSubnetPrefix')]",
@@ -423,7 +416,8 @@
                     "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('adNsgName'))]"
                 }
             }
-        }, {
+        }],
+        "dataSubnetArr": [{
             "name": "[parameters('dataSubnetName')]",
             "properties": {
                 "addressPrefix": "[parameters('dataSubnetPrefix')]",
@@ -432,6 +426,16 @@
                 }
             }
         }],
+        "redisSubnetArr": [{
+            "name": "[parameters('redisSubnetName')]",
+            "properties": {
+                "addressPrefix": "[parameters('redisSubnetPrefix')]",
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('redisNsgName'))]"
+                }
+            }
+        }],
+        "subnets": "[concat(variables('baseSubnetArr'), if(variables('deployEsLb'), variables('dataSubnetArr'), json('[]')), if(parameters('deployPacDemo'), variables('redisSubnetArr'), json('[]')))]",
         "dnsSettings": {
             "dnsServers": [
                 "[parameters('primaryAdIpAddress')]",
@@ -446,12 +450,12 @@
             "settings": {
                 "Name": "[parameters('domainDNSName')]",
                 "OUPath": "",
-                "User": "[concat(parameters('domainDNSName'), '\\', parameters('domainAdminUserName'))]",
+                "User": "[concat(parameters('domainDNSName'), '\\', parameters('administratorUserName'))]",
                 "Restart": "true",
                 "Options": "[variables('domainJoinOptions')]"
             },
             "protectedSettings": {
-                "Password": "[parameters('domainAdminPassword')]"
+                "Password": "[parameters('administratorPassword')]"
             }
         }
     },
@@ -514,7 +518,120 @@
             "name": "[variables('applicationNsgName')]",
             "location": "[parameters('location')]",
             "properties": {
-                "securityRules": []
+                "securityRules": [
+                    {
+                        "name": "RDP_Gateway",
+                        "properties": {
+                            "description": "Allow RDP traffic from management subnet",
+                            "priority": 300,
+                            "protocol": "Tcp",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('managementSubnetPrefix')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "3389"
+                        }
+                    },
+                    {
+                        "name": "RDP_NonGateway",
+                        "properties": {
+                            "description": "Deny RDP traffic from anywhere outside management subnet",
+                            "priority": 310,
+                            "protocol": "Tcp",
+                            "access": "Deny",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "3389"
+                        }
+                    },
+                    {
+                        "name": "domainController_inbound",
+                        "properties": {
+                            "description": "Allow all traffic from domain controller subnet",
+                            "priority": 320,
+                            "protocol": "*",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('adSubnetPrefix')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "*"
+                        }
+                    },
+                    {
+                        "name": "tn3270_inbound",
+                        "properties": {
+                            "description": "Allow 3270 traffic inbound",
+                            "priority": 500,
+                            "protocol": "Tcp",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "5555-5557"
+                        }
+                    },
+                    {
+                        "name": "escwa_mfds_inbound",
+                        "properties": {
+                            "description": "Allow access to mfds port for ESCWA",
+                            "priority": 510,
+                            "protocol": "*",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('escwaNodeIp')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "86"
+                        }
+                    },
+                    {
+                        "name": "escwa_webservices_inbound",
+                        "properties": {
+                            "description": "Allow access to web services ports for ESCWA",
+                            "priority": 520,
+                            "protocol": "Tcp",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('escwaNodeIp')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "5558-5560"
+                        }
+                    },
+                    {
+                        "name": "denymanagement_inbound",
+                        "properties": {
+                            "description": "Deny all other traffic from management subnet",
+                            "priority": 700,
+                            "protocol": "*",
+                            "access": "Deny",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('managementSubnetPrefix')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "*"
+                        }
+                    },
+                    {
+                        "name": "denydata_inbound",
+                        "properties": {
+                            "description": "Deny all other traffic from management subnet",
+                            "priority": 710,
+                            "protocol": "*",
+                            "access": "Deny",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('dataSubnetPrefix')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "*"
+                        }
+                    }
+                ]
             }
         },
         {
@@ -537,6 +654,48 @@
                             "destinationAddressPrefix": "*",
                             "destinationPortRange": "3389"
                         }
+                    },
+                    {
+                        "name": "escwa_inbound",
+                        "properties": {
+                            "description": "Allow traffic to escwa port",
+                            "priority": 310,
+                            "protocol": "Tcp",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('applicationSubnetPrefix')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "10004"
+                        }
+                    },
+                    {
+                        "name": "denyapplication_inbound",
+                        "properties": {
+                            "description": "Deny all other traffic from application subnet",
+                            "priority": 700,
+                            "protocol": "*",
+                            "access": "Deny",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('applicationSubnetPrefix')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "*"
+                        }
+                    },
+                    {
+                        "name": "denydata_inbound",
+                        "properties": {
+                            "description": "Deny all other traffic from data subnet",
+                            "priority": 710,
+                            "protocol": "*",
+                            "access": "Deny",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('dataSubnetPrefix')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "*"
+                        }
                     }
                 ]
             }
@@ -547,7 +706,36 @@
             "name": "[variables('adNsgName')]",
             "location": "[parameters('location')]",
             "properties": {
-                "securityRules": []
+                "securityRules": [
+                    {
+                        "name": "RDP_Gateway",
+                        "properties": {
+                            "description": "Allow RDP traffic from management subnet",
+                            "priority": 300,
+                            "protocol": "Tcp",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('managementSubnetPrefix')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "3389"
+                        }
+                    },
+                    {
+                        "name": "RDP_NonGateway",
+                        "properties": {
+                            "description": "Deny RDP traffic from anywhere outside management subnet",
+                            "priority": 310,
+                            "protocol": "Tcp",
+                            "access": "Deny",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "3389"
+                        }
+                    }
+                ]
             }
         },
         {
@@ -555,8 +743,245 @@
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('dataNsgName')]",
             "location": "[parameters('location')]",
+            "condition": "[variables('deployEsLb')]",
             "properties": {
-                "securityRules": []
+                "securityRules": [
+                    {
+                        "name": "RDP_Gateway",
+                        "properties": {
+                            "description": "Allow RDP traffic from management subnet",
+                            "priority": 300,
+                            "protocol": "Tcp",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('managementSubnetPrefix')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "3389"
+                        }
+                    },
+                    {
+                        "name": "RDP_NonGateway",
+                        "properties": {
+                            "description": "Deny RDP traffic from anywhere outside management subnet",
+                            "priority": 310,
+                            "protocol": "Tcp",
+                            "access": "Deny",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "3389"
+                        }
+                    },
+                    {
+                        "name": "domainController_inbound",
+                        "properties": {
+                            "description": "Allow all traffic from domain controller subnet",
+                            "priority": 320,
+                            "protocol": "*",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('adSubnetPrefix')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "*"
+                        }
+                    },
+                    {
+                        "name": "escwa_inbound",
+                        "properties": {
+                            "description": "Allow access to mfds port for ESCWA",
+                            "priority": 500,
+                            "protocol": "*",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('escwaNodeIp')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "86"
+                        }
+                    },
+                    {
+                        "name": "fileshare_inbound",
+                        "properties": {
+                            "description": "Allow access to fileshare from application subnet",
+                            "priority": 510,
+                            "protocol": "Tcp",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('applicationSubnetPrefix')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "[parameters('fsPort')]"
+                        }
+                    },
+                    {
+                        "name": "odbc_inbound",
+                        "properties": {
+                            "description": "Allow access to odbc listener from application subnet",
+                            "priority": 520,
+                            "protocol": "Tcp",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('applicationSubnetPrefix')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "1433"
+                        }
+                    },
+                    {
+                        "name": "aoendpoint_inbound",
+                        "properties": {
+                            "description": "Allow access to alwaysOn endpoint from application subnet",
+                            "priority": 530,
+                            "protocol": "Tcp",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('applicationSubnetPrefix')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "59999"
+                        }
+                    },
+                    {
+                        "name": "networkdrive_inbound",
+                        "properties": {
+                            "description": "Allow access to network drive from application subnet",
+                            "priority": 540,
+                            "protocol": "*",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('applicationSubnetPrefix')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "137-139"
+                        }
+                    },
+                    {
+                        "name": "networkdrive_inbound2",
+                        "properties": {
+                            "description": "Allow access to network drive from application subnet",
+                            "priority": 550,
+                            "protocol": "*",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('applicationSubnetPrefix')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "445"
+                        }
+                    },
+                    {
+                        "name": "mfds_inbound",
+                        "properties": {
+                            "description": "Allow access to mfds port from application subnet",
+                            "priority": 560,
+                            "protocol": "*",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('applicationSubnetPrefix')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "86"
+                        }
+                    },
+                    {
+                        "name": "denymanagement_inbound",
+                        "properties": {
+                            "description": "Deny all other traffic from management subnet",
+                            "priority": 700,
+                            "protocol": "*",
+                            "access": "Deny",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('managementSubnetPrefix')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "*"
+                        }
+                    },
+                    {
+                        "name": "denyapplication_inbound",
+                        "properties": {
+                            "description": "Deny all other traffic from management subnet",
+                            "priority": 710,
+                            "protocol": "*",
+                            "access": "Deny",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('applicationSubnetPrefix')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "*"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "[variables('apiVersionNetwork')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('redisNsgName')]",
+            "location": "[parameters('location')]",
+            "condition": "[parameters('deployPacDemo')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "redisendpoint_inbound",
+                        "properties": {
+                            "description": "Allow all traffic to redis port",
+                            "priority": 500,
+                            "protocol": "*",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('addressPrefixes')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "6379"
+                        }
+                    },
+                    {
+                        "name": "denymanagement_inbound",
+                        "properties": {
+                            "description": "Deny all other traffic from management subnet",
+                            "priority": 700,
+                            "protocol": "*",
+                            "access": "Deny",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('managementSubnetPrefix')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "*"
+                        }
+                    },
+                    {
+                        "name": "denyapplication_inbound",
+                        "properties": {
+                            "description": "Deny all other traffic from management subnet",
+                            "priority": 710,
+                            "protocol": "*",
+                            "access": "Deny",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('applicationSubnetPrefix')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "*"
+                        }
+                    },
+                    {
+                        "name": "denydata_inbound",
+                        "properties": {
+                            "description": "Deny all other traffic from data subnet",
+                            "priority": 720,
+                            "protocol": "*",
+                            "access": "Deny",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('dataSubnetPrefix')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "*"
+                        }
+                    }
+                ]
             }
         },
         {
@@ -565,7 +990,8 @@
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('managementNsgName'))]",
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('applicationNsgName'))]",
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('adNsgName'))]",
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('dataNsgName'))]"
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('dataNsgName'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('redisNsgName'))]"
             ],
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[variables('virtualNetworkName')]",
@@ -590,18 +1016,143 @@
         },
         {
             "condition": "[parameters('deployPacDemo')]",
-            "apiVersion": "2015-08-01",
+            "apiVersion": "[variables('apiVersionRedis')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]"
+            ],
             "type": "Microsoft.Cache/Redis",
-            "name": "[parameters('redisCacheName')]",
+            "name": "[variables('redisCacheName')]",
             "location": "[parameters('location')]",
             "properties": {
-                "redisConfiguration": {},
                 "enableNonSslPort": true,
                 "sku": {
                     "capacity": "[variables('redisCacheCapacity')]",
                     "family": "[variables('redisCacheFamily')]",
-                    "name": "[parameters('redisCacheSKU')]"
+                    "name": "[variables('redisCacheSKU')]"
+                },
+                "subnetId": "[variables('redisSubnetRef')]",
+                "staticIP": "[parameters('redisIp')]"
+            }
+        },
+        {
+            "condition": "[variables('deployEsLb')]",
+            "apiVersion": "[variables('apiVersionNetwork')]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[concat(variables('esLbName'), '-publicip')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "publicIPAllocationMethod": "Static",
+                "dnsSettings": {
+                    "domainNameLabel": "[concat(variables('esLbName'), '-dns', uniqueString(resourceGroup().id))]"
                 }
+            }
+        },
+        {
+            "condition": "[variables('deployEsLb')]",
+            "apiVersion": "[variables('apiVersionNetwork')]",
+            "name": "[variables('esLbName')]",
+            "type": "Microsoft.Network/loadBalancers",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', concat(variables('esLbName'), '-publicip'))]"
+            ],
+            "properties": {
+                "frontendIPConfigurations": [
+                    {
+                        "name": "esLBFE",
+                        "properties": {
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(variables('esLbName'), '-publicip'))]"
+                            }
+                        }
+                    }
+                ],
+                "backendAddressPools": [{
+                    "name": "esLBBE"
+                }],
+                "loadBalancingRules": [
+                    {
+                        "name": "fsRule",
+                        "properties": {
+                            "backendAddressPool": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('esLbName')), '/backendAddressPools/esLBBE')]"
+                            },
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('esLbName')), '/frontendIPConfigurations/esLBFE')]"
+                            },
+                            "probe": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('esLbName')), '/probes/fsProbe')]"
+                            },
+                            "protocol": "Tcp",
+                            "frontendPort": 5555,
+                            "backendPort": 5555,
+                            "enableFloatingIP": false,
+                            "loadDistribution": "SourceIP"
+                        }
+                    }, {
+                        "name": "sqlRule",
+                        "properties": {
+                            "backendAddressPool": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('esLbName')), '/backendAddressPools/esLBBE')]"
+                            },
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('esLbName')), '/frontendIPConfigurations/esLBFE')]"
+                            },
+                            "probe": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('esLbName')), '/probes/sqlProbe')]"
+                            },
+                            "protocol": "Tcp",
+                            "frontendPort": 5556,
+                            "backendPort": 5556,
+                            "enableFloatingIP": false,
+                            "loadDistribution": "SourceIP"
+                        }
+                    }, {
+                        "name": "pacRule",
+                        "properties": {
+                            "backendAddressPool": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('esLbName')), '/backendAddressPools/esLBBE')]"
+                            },
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('esLbName')), '/frontendIPConfigurations/esLBFE')]"
+                            },
+                            "probe": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('esLbName')), '/probes/pacProbe')]"
+                            },
+                            "protocol": "Tcp",
+                            "frontendPort": 5557,
+                            "backendPort": 5557,
+                            "enableFloatingIP": false,
+                            "loadDistribution": "SourceIP"
+                        }
+                    }
+                ],
+                "probes": [{
+                        "name": "fsProbe",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "port": 5555,
+                            "intervalInSeconds": 5,
+                            "numberOfProbes": 2
+                        }
+                    }, {
+                        "name": "sqlProbe",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "port": 5556,
+                            "intervalInSeconds": 5,
+                            "numberOfProbes": 2
+                        }
+                    }, {
+                        "name": "pacProbe",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "port": 5557,
+                            "intervalInSeconds": 5,
+                            "numberOfProbes": 2
+                        }
+                    }
+                ]
             }
         },
         {
@@ -615,7 +1166,7 @@
             ],
             "copy": {
                 "name": "createEsNodeLoop",
-                "count": "[parameters('esInstanceCount')]"
+                "count": "[variables('esInstanceCount')]"
             },
             "properties": {
                 "mode": "Incremental",
@@ -636,11 +1187,11 @@
                     "location": {
                         "value": "[parameters('location')]"
                     },
-                    "artifactsLocation": {
-                        "value": "[parameters('artifactsLocation')]"
+                    "_artifactsLocation": {
+                        "value": "[parameters('_artifactsLocation')]"
                     },
-                    "artifactsLocationSasToken": {
-                        "value": "[parameters('artifactsLocationSasToken')]"
+                    "_artifactsLocationSasToken": {
+                        "value": "[parameters('_artifactsLocationSasToken')]"
                     },
                     "hostName": {
                         "value": "[esdeploy.getLoopName(variables('esHostname'), copyIndex())]"
@@ -655,10 +1206,10 @@
                         "value": "[variables('diagStorageAccount')]"
                     },
                     "adminUsername": {
-                        "value": "[parameters('esAdminUsername')]"
+                        "value": "[parameters('administratorUserName')]"
                     },
                     "adminPassword": {
-                        "value": "[parameters('esAdminPassword')]"
+                        "value": "[parameters('administratorPassword')]"
                     },
                     "subnetRef": {
                         "value": "[variables('applicationSubnetRef')]"
@@ -666,8 +1217,11 @@
                     "availabilitySetName": {
                         "value": "[variables('esAvailabilitySetName')]"
                     },
-                    "esLicenseKey": {
-                        "value": "[parameters('esLicenseKey')]"
+                    "esLicense": {
+                        "value": "[parameters('esLicense')]"
+                    },
+                    "deployLinux": {
+                        "value": "[parameters('deployLinux')]"
                     }
                 }
             }
@@ -704,11 +1258,11 @@
                     "location": {
                         "value": "[parameters('location')]"
                     },
-                    "artifactsLocation": {
-                        "value": "[parameters('artifactsLocation')]"
+                    "_artifactsLocation": {
+                        "value": "[parameters('_artifactsLocation')]"
                     },
-                    "artifactsLocationSasToken": {
-                        "value": "[parameters('artifactsLocationSasToken')]"
+                    "_artifactsLocationSasToken": {
+                        "value": "[parameters('_artifactsLocationSasToken')]"
                     },
                     "hostName": {
                         "value": "[esdeploy.getLoopName(variables('rdgHostname'), copyIndex())]"
@@ -720,10 +1274,10 @@
                         "value": "[variables('diagStorageAccount')]"
                     },
                     "adminUsername": {
-                        "value": "[parameters('rdgAdminUsername')]"
+                        "value": "[parameters('administratorUserName')]"
                     },
                     "adminPassword": {
-                        "value": "[parameters('rdgAdminPassword')]"
+                        "value": "[parameters('administratorPassword')]"
                     },
                     "subnetRef": {
                         "value": "[variables('managementSubnetRef')]"
@@ -764,11 +1318,11 @@
                     "location": {
                         "value": "[parameters('location')]"
                     },
-                    "artifactsLocation": {
-                        "value": "[parameters('artifactsLocation')]"
+                    "_artifactsLocation": {
+                        "value": "[parameters('_artifactsLocation')]"
                     },
-                    "artifactsLocationSasToken": {
-                        "value": "[parameters('artifactsLocationSasToken')]"
+                    "_artifactsLocationSasToken": {
+                        "value": "[parameters('_artifactsLocationSasToken')]"
                     },
                     "hostName": {
                         "value": "[variables('escwaHostname')]"
@@ -783,16 +1337,19 @@
                         "value": "[variables('diagStorageAccount')]"
                     },
                     "adminUsername": {
-                        "value": "[parameters('esAdminUsername')]"
+                        "value": "[parameters('administratorUserName')]"
                     },
                     "adminPassword": {
-                        "value": "[parameters('esAdminPassword')]"
+                        "value": "[parameters('administratorPassword')]"
                     },
                     "subnetRef": {
                         "value": "[variables('managementSubnetRef')]"
                     },
-                    "esLicenseKey": {
-                        "value": "[parameters('esLicenseKey')]"
+                    "esLicense": {
+                        "value": "[parameters('esLicense')]"
+                    },
+                    "deployLinux": {
+                        "value": "[parameters('deployLinux')]"
                     }
                 }
             }
@@ -825,35 +1382,38 @@
                     "location": {
                         "value": "[parameters('location')]"
                     },
-                    "artifactsLocation": {
-                        "value": "[parameters('artifactsLocation')]"
+                    "_artifactsLocation": {
+                        "value": "[parameters('_artifactsLocation')]"
                     },
-                    "artifactsLocationSasToken": {
-                        "value": "[parameters('artifactsLocationSasToken')]"
+                    "_artifactsLocationSasToken": {
+                        "value": "[parameters('_artifactsLocationSasToken')]"
                     },
                     "hostName": {
                         "value": "[variables('fsHostname')]"
                     },
                     "virtualMachineSize": {
-                        "value": "[parameters('esInstanceSize')]"
+                        "value": "[parameters('fsInstanceSize')]"
                     },
                     "dataDiskSize": {
-                        "value": "[parameters('esDataDiskSize')]"
+                        "value": "[parameters('fsDataDiskSize')]"
                     },
                     "diagStorageAccount": {
                         "value": "[variables('diagStorageAccount')]"
                     },
                     "adminUsername": {
-                        "value": "[parameters('esAdminUsername')]"
+                        "value": "[parameters('administratorUserName')]"
                     },
                     "adminPassword": {
-                        "value": "[parameters('esAdminPassword')]"
+                        "value": "[parameters('administratorPassword')]"
                     },
                     "subnetRef": {
                         "value": "[variables('dataSubnetRef')]"
                     },
-                    "esLicenseKey": {
-                        "value": "[parameters('esLicenseKey')]"
+                    "esLicense": {
+                        "value": "[parameters('esLicense')]"
+                    },
+                    "deployLinux": {
+                        "value": "[parameters('deployLinux')]"
                     }
                 }
             }
@@ -886,11 +1446,11 @@
                     "location": {
                         "value": "[parameters('location')]"
                     },
-                    "artifactsLocation": {
-                        "value": "[parameters('artifactsLocation')]"
+                    "_artifactsLocation": {
+                        "value": "[parameters('_artifactsLocation')]"
                     },
-                    "artifactsLocationSasToken": {
-                        "value": "[parameters('artifactsLocationSasToken')]"
+                    "_artifactsLocationSasToken": {
+                        "value": "[parameters('_artifactsLocationSasToken')]"
                     },
                     "clusterPrefix": {
                         "value": "[variables('clusterPrefixLower')]"
@@ -899,10 +1459,10 @@
                         "value": "[variables('diagStorageAccount')]"
                     },
                     "adminUsername": {
-                        "value": "[parameters('dbVmUserName')]"
+                        "value": "[parameters('administratorUserName')]"
                     },
                     "adminPassword": {
-                        "value": "[parameters('dbVmPassword')]"
+                        "value": "[parameters('administratorPassword')]"
                     },
                     "witnessInstanceSize": {
                         "value": "[parameters('sqlWitnessInstanceSize')]"
@@ -915,6 +1475,9 @@
                     },
                     "sqlLBIPAddress": {
                         "value": "[parameters('sqlLBIPAddress')]"
+                    },
+                    "sqlLBName": {
+                        "value": "[variables('sqlLBName')]"
                     }
                 }
             }
@@ -947,11 +1510,11 @@
                     "location": {
                         "value": "[parameters('location')]"
                     },
-                    "artifactsLocation": {
-                        "value": "[parameters('artifactsLocation')]"
+                    "_artifactsLocation": {
+                        "value": "[parameters('_artifactsLocation')]"
                     },
-                    "artifactsLocationSasToken": {
-                        "value": "[parameters('artifactsLocationSasToken')]"
+                    "_artifactsLocationSasToken": {
+                        "value": "[parameters('_artifactsLocationSasToken')]"
                     },
                     "hostName": {
                         "value": "[variables('adHostname')]"
@@ -963,10 +1526,10 @@
                         "value": "[variables('diagStorageAccount')]"
                     },
                     "adminUsername": {
-                        "value": "[parameters('domainAdminUserName')]"
+                        "value": "[parameters('administratorUserName')]"
                     },
                     "adminPassword": {
-                        "value": "[parameters('domainAdminPassword')]"
+                        "value": "[parameters('administratorPassword')]"
                     },
                     "subnetRef": {
                         "value": "[variables('adSubnetRef')]"
@@ -992,17 +1555,17 @@
                     "backupAdIpAddress": {
                         "value": "[parameters('backupAdIpAddress')]"
                     },
-                    "serviceAccountUserName": {
-                        "value": "[parameters('serviceAccountUserName')]"
+                    "applicationUsername": {
+                        "value": "[parameters('applicationUsername')]"
                     },
-                    "serviceAccountPassword": {
-                        "value": "[parameters('serviceAccountPassword')]"
+                    "applicationUserPassword": {
+                        "value": "[parameters('applicationUserPassword')]"
                     },
-                    "demoAccountUserName": {
-                        "value": "[parameters('demoAccountUserName')]"
+                    "loadBalancerName": {
+                        "value": "[variables('sqlLBName')]"
                     },
-                    "demoAccountPassword": {
-                        "value": "[parameters('demoAccountPassword')]"
+                    "loadBalancerIp": {
+                        "value": "[parameters('sqlLBIPAddress')]"
                     }
                 }
             }
@@ -1033,20 +1596,20 @@
                     "location": {
                         "value": "[parameters('location')]"
                     },
-                    "artifactsLocation": {
-                        "value": "[parameters('artifactsLocation')]"
+                    "_artifactsLocation": {
+                        "value": "[parameters('_artifactsLocation')]"
                     },
-                    "artifactsLocationSasToken": {
-                        "value": "[parameters('artifactsLocationSasToken')]"
+                    "_artifactsLocationSasToken": {
+                        "value": "[parameters('_artifactsLocationSasToken')]"
                     },
                     "hostName": {
                         "value": "[variables('adHostname')]"
                     },
                     "adminUsername": {
-                        "value": "[parameters('domainAdminUserName')]"
+                        "value": "[parameters('administratorUserName')]"
                     },
                     "adminPassword": {
-                        "value": "[parameters('domainAdminPassword')]"
+                        "value": "[parameters('administratorPassword')]"
                     },
                     "subnetRef": {
                         "value": "[variables('adSubnetRef')]"
@@ -1078,11 +1641,12 @@
             "name": "[esdeploy.getLoopName('resetEsNodeNic', copyIndex())]",
             "dependsOn": [
                 "createEsNodeLoop",
-                "[resourceId('Microsoft.Resources/deployments', 'adPhase2')]"
+                "[resourceId('Microsoft.Resources/deployments', 'adPhase2')]",
+                "[resourceId('Microsoft.Network/loadBalancers', variables('esLbName'))]"
             ],
             "copy": {
                 "name": "resetEsNodeNicLoop",
-                "count": "[parameters('esInstanceCount')]"
+                "count": "[variables('esInstanceCount')]"
             },
             "properties": {
                 "mode": "Incremental",
@@ -1114,6 +1678,9 @@
                     },
                     "ipAddress": {
                         "value": "[parameters('esNodeIpArray')[copyIndex()]]"
+                    },
+                    "loadBalancerRef": {
+                        "value": "[if(variables('deployEsLb'), variables('esLBBERef'), '')]"
                     }
                 }
             }
@@ -1128,7 +1695,7 @@
             ],
             "copy": {
                 "name": "joinDomainEsNodeLoop",
-                "count": "[parameters('esInstanceCount')]"
+                "count": "[variables('esInstanceCount')]"
             },
             "properties": "[variables('domainJoinProperties')]"
         },
@@ -1241,73 +1808,10 @@
         {
             "apiVersion": "[variables('apiVersionLinkTemplate')]",
             "type": "Microsoft.Resources/deployments",
-            "name": "[esdeploy.getLoopName('configureEsNode', copyIndex())]",
-            "dependsOn": [
-                "joinDomainEsNodeLoop"
-            ],
-            "copy": {
-                "name": "configureEsNodeLoop",
-                "count": "[parameters('esInstanceCount')]"
-            },
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[variables('esConfigureNodeUrl')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "apiVersionCompute": {
-                        "value": "[variables('apiVersionCompute')]"
-                    },
-                    "apiVersionStorage": {
-                        "value": "[variables('apiVersionStorage')]"
-                    },
-                    "apiVersionNetwork": {
-                        "value": "[variables('apiVersionNetwork')]"
-                    },
-                    "location": {
-                        "value": "[parameters('location')]"
-                    },
-                    "artifactsLocation": {
-                        "value": "[parameters('artifactsLocation')]"
-                    },
-                    "artifactsLocationSasToken": {
-                        "value": "[parameters('artifactsLocationSasToken')]"
-                    },
-                    "hostName": {
-                        "value": "[esdeploy.getLoopName(variables('esHostname'), copyIndex())]"
-                    },
-                    "domainDNSName": {
-                        "value": "[parameters('domainDNSName')]"
-                    },
-                    "serviceAccountUserName": {
-                        "value": "[parameters('serviceAccountUserName')]"
-                    },
-                    "serviceAccountPassword": {
-                        "value": "[parameters('serviceAccountPassword')]"
-                    },
-                    "demoAccountUserName": {
-                        "value": "[parameters('demoAccountUserName')]"
-                    },
-                    "demoAccountPassword": {
-                        "value": "[parameters('demoAccountPassword')]"
-                    },
-                    "deployDbDemo": {
-                        "value": "[parameters('deployDbDemo')]"
-                    },
-                    "deployPacDemo": {
-                        "value": "[parameters('deployPacDemo')]"
-                    }
-                }
-            }
-        },
-        {
-            "apiVersion": "[variables('apiVersionLinkTemplate')]",
-            "type": "Microsoft.Resources/deployments",
             "name": "configureEscwaNode",
             "dependsOn": [
                 "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('escwaHostName'), 'joindomain')]",
-                "[resourceId('Microsoft.Cache/Redis', parameters('redisCacheName'))]"
+                "[resourceId('Microsoft.Cache/Redis', variables('redisCacheName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -1328,11 +1832,11 @@
                     "location": {
                         "value": "[parameters('location')]"
                     },
-                    "artifactsLocation": {
-                        "value": "[parameters('artifactsLocation')]"
+                    "_artifactsLocation": {
+                        "value": "[parameters('_artifactsLocation')]"
                     },
-                    "artifactsLocationSasToken": {
-                        "value": "[parameters('artifactsLocationSasToken')]"
+                    "_artifactsLocationSasToken": {
+                        "value": "[parameters('_artifactsLocationSasToken')]"
                     },
                     "hostName": {
                         "value": "[variables('escwaHostname')]"
@@ -1340,17 +1844,29 @@
                     "domainDNSName": {
                         "value": "[parameters('domainDNSName')]"
                     },
-                    "serviceAccountUserName": {
-                        "value": "[parameters('serviceAccountUserName')]"
+                    "applicationUsername": {
+                        "value": "[parameters('applicationUsername')]"
                     },
-                    "serviceAccountPassword": {
-                        "value": "[parameters('serviceAccountPassword')]"
+                    "applicationUserPassword": {
+                        "value": "[parameters('applicationUserPassword')]"
                     },
                     "clusterPrefix": {
                         "value": "[variables('clusterPrefixLower')]"
                     },
                     "esInstanceCount": {
-                        "value": "[parameters('esInstanceCount')]"
+                        "value": "[variables('esInstanceCount')]"
+                    },
+                    "deployFsDemo": {
+                        "value": "[parameters('deployFsDemo')]"
+                    },
+                    "deployPacDemo": {
+                        "value": "[parameters('deployPacDemo')]"
+                    },
+                    "deployLinux": {
+                        "value": "[parameters('deployLinux')]"
+                    },
+                    "redisIp": {
+                        "value": "[parameters('redisIp')]"
                     }
                 }
             }
@@ -1382,11 +1898,11 @@
                     "location": {
                         "value": "[parameters('location')]"
                     },
-                    "artifactsLocation": {
-                        "value": "[parameters('artifactsLocation')]"
+                    "_artifactsLocation": {
+                        "value": "[parameters('_artifactsLocation')]"
                     },
-                    "artifactsLocationSasToken": {
-                        "value": "[parameters('artifactsLocationSasToken')]"
+                    "_artifactsLocationSasToken": {
+                        "value": "[parameters('_artifactsLocationSasToken')]"
                     },
                     "hostName": {
                         "value": "[variables('fsHostname')]"
@@ -1396,6 +1912,15 @@
                     },
                     "fsPort": {
                         "value": "[parameters('fsPort')]"
+                    },
+                    "domainDNSName": {
+                        "value": "[parameters('domainDNSName')]"
+                    },
+                    "applicationUsername": {
+                        "value": "[parameters('applicationUsername')]"
+                    },
+                    "deployLinux": {
+                        "value": "[parameters('deployLinux')]"
                     }
                 }
             }
@@ -1428,11 +1953,11 @@
                     "location": {
                         "value": "[parameters('location')]"
                     },
-                    "artifactsLocation": {
-                        "value": "[parameters('artifactsLocation')]"
+                    "_artifactsLocation": {
+                        "value": "[parameters('_artifactsLocation')]"
                     },
-                    "artifactsLocationSasToken": {
-                        "value": "[parameters('artifactsLocationSasToken')]"
+                    "_artifactsLocationSasToken": {
+                        "value": "[parameters('_artifactsLocationSasToken')]"
                     },
                     "clusterPrefix": {
                         "value": "[variables('clusterPrefixLower')]"
@@ -1453,19 +1978,103 @@
                         "value": "[parameters('domainDNSName')]"
                     },
                     "domainAdminUserName": {
-                        "value": "[parameters('domainAdminUserName')]"
+                        "value": "[parameters('administratorUserName')]"
                     },
                     "domainAdminPassword": {
-                        "value": "[parameters('domainAdminPassword')]"
+                        "value": "[parameters('administratorPassword')]"
                     },
-                    "serviceAccountUserName": {
-                        "value": "[parameters('serviceAccountUserName')]"
+                    "applicationUsername": {
+                        "value": "[parameters('applicationUsername')]"
                     },
-                    "serviceAccountPassword": {
-                        "value": "[parameters('serviceAccountPassword')]"
+                    "applicationUserPassword": {
+                        "value": "[parameters('applicationUserPassword')]"
                     },
                     "sqlLBIPAddress": {
                         "value": "[parameters('sqlLBIPAddress')]"
+                    },
+                    "deployDbDemo": {
+                        "value": "[parameters('deployDbDemo')]"
+                    },
+                    "sqlLBName": {
+                        "value": "[variables('sqlLBName')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "type": "Microsoft.Resources/deployments",
+            "name": "[esdeploy.getLoopName('configureEsNode', copyIndex())]",
+            "dependsOn": [
+                "joinDomainEsNodeLoop",
+                "[resourceId('Microsoft.Resources/deployments', 'configureFsNode')]",
+                "[resourceId('Microsoft.Resources/deployments', 'sqlPhase2')]",
+                "[resourceId('Microsoft.Resources/deployments', 'configureEscwaNode')]"
+            ],
+            "copy": {
+                "name": "configureEsNodeLoop",
+                "count": "[variables('esInstanceCount')]"
+            },
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('esConfigureNodeUrl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "apiVersionCompute": {
+                        "value": "[variables('apiVersionCompute')]"
+                    },
+                    "apiVersionStorage": {
+                        "value": "[variables('apiVersionStorage')]"
+                    },
+                    "apiVersionNetwork": {
+                        "value": "[variables('apiVersionNetwork')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "_artifactsLocation": {
+                        "value": "[parameters('_artifactsLocation')]"
+                    },
+                    "_artifactsLocationSasToken": {
+                        "value": "[parameters('_artifactsLocationSasToken')]"
+                    },
+                    "hostName": {
+                        "value": "[esdeploy.getLoopName(variables('esHostname'), copyIndex())]"
+                    },
+                    "domainDNSName": {
+                        "value": "[parameters('domainDNSName')]"
+                    },
+                    "applicationUsername": {
+                        "value": "[parameters('applicationUsername')]"
+                    },
+                    "applicationUserPassword": {
+                        "value": "[parameters('applicationUserPassword')]"
+                    },
+                    "deployDbDemo": {
+                        "value": "[parameters('deployDbDemo')]"
+                    },
+                    "deployPacDemo": {
+                        "value": "[parameters('deployPacDemo')]"
+                    },
+                    "deployFsDemo": {
+                        "value": "[parameters('deployFsDemo')]"
+                    },
+                    "clusterPrefix": {
+                        "value": "[variables('clusterPrefixLower')]"
+                    },
+                    "index": {
+                        "value": "[copyIndex()]"
+                    },
+                    "deployLinux": {
+                        "value": "[parameters('deployLinux')]"
+                    },
+                    "redisIp": {
+                        "value": "[parameters('redisIp')]"
+                    },
+                    "redisPassword": {
+                        "value": "[if(parameters('deployPacDemo'), listkeys(resourceId('Microsoft.Cache/redis', variables('redisCacheName')), providers('Microsoft.Cache', 'redis').apiVersions[0]).primaryKey, '')]"
                     }
                 }
             }

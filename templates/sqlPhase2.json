@@ -18,16 +18,16 @@
                 "description": "Region in which the resource group and components will be deployed"
             }
         },
-        "artifactsLocation": {
+        "_artifactsLocation": {
             "type": "string",
             "metadata": {
                 "description": "The base URI where artifacts required by this template are located including a trailing '/'"
             }
         },
-        "artifactsLocationSasToken": {
+        "_artifactsLocationSasToken": {
             "type": "securestring",
             "metadata": {
-                "description": "The sasToken required to access artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
+                "description": "The sasToken required to access _artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
             }
         },
         "clusterPrefix": {
@@ -81,14 +81,14 @@
                 "description": "The password for the domain Admin account."
             }
         },
-        "serviceAccountUserName": {
+        "applicationUsername": {
             "type": "string",
             "minLength": 1,
             "metadata": {
                 "description": "Administrator username for service account user."
             }
         },
-        "serviceAccountPassword": {
+        "applicationUserPassword": {
             "type": "securestring",
             "metadata": {
                 "description": "Password for service account user."
@@ -99,18 +99,30 @@
             "metadata": {
                 "description": "Ip address for SQL Load Balancer"
             }
+        },
+        "deployDbDemo": {
+            "type": "bool",
+            "metadata": {
+                "description": "Flag to determine whether database demo is deployed"
+            }
+        },
+        "sqlLBName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name for SQL Load Balancer"
+            }
         }
     },
     "variables": {
         "witnessVMName": "[concat(parameters('clusterPrefix'), '-sqlw')]",
         "slaveVmName": "[concat(parameters('clusterPrefix'), '-sqls')]",
         "adPDCVMName": "[concat(parameters('clusterPrefix'), '-adP')]",
-        "sqlLBName": "sqlLoadBalancer",
-        "fswModulesURL": "[uri(parameters('artifactsLocation'), concat('DSC/CreateFileShareWitness.ps1.zip', parameters('artifactsLocationSasToken')))]",
+        "scriptLocation": "[uri(parameters('_artifactsLocation'), concat('scripts/BankDemoCreateAll.SQL', parameters('_artifactsLocationSasToken')))]",
+        "fswModulesURL": "[uri(parameters('_artifactsLocation'), concat('DSC/CreateFileShareWitness.ps1.zip', parameters('_artifactsLocationSasToken')))]",
         "fswConfigurationFunction": "CreateFileShareWitness.ps1\\CreateFileShareWitness",
-        "sqlAOPrepareModulesURL": "[uri(parameters('artifactsLocation'), concat('DSC/PrepareAlwaysOnSqlServer.ps1.zip', parameters('artifactsLocationSasToken')))]",
+        "sqlAOPrepareModulesURL": "[uri(parameters('_artifactsLocation'), concat('DSC/PrepareAlwaysOnSqlServer.ps1.zip', parameters('_artifactsLocationSasToken')))]",
         "sqlAOPrepareConfigurationFunction": "PrepareAlwaysOnSqlServer.ps1\\PrepareAlwaysOnSqlServer",
-        "createClusterModulesURL": "[uri(parameters('artifactsLocation'), concat('DSC/CreateFailoverCluster.ps1.zip', parameters('artifactsLocationSasToken')))]",
+        "createClusterModulesURL": "[uri(parameters('_artifactsLocation'), concat('DSC/CreateFailoverCluster.ps1.zip', parameters('_artifactsLocationSasToken')))]",
         "createClusterConfigurationFunction": "CreateFailoverCluster.ps1\\CreateFailoverCluster",
         "sharePath": "sqlha-fsw",
         "sqlAOEPName": "sqlha-hadr",
@@ -156,7 +168,7 @@
                         },
                         "loadBalancerBackendAddressPools": [
                             {
-                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('sqlLBName')), '/backendAddressPools/sqlLBBE')]"
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('sqlLBName')), '/backendAddressPools/sqlLBBE')]"
                             }
                         ]
                     }
@@ -257,7 +269,7 @@
                             "password": "privateSettingsRef:AdminPassword"
                         },
                         "sqlServiceCreds": {
-                            "userName": "[parameters('serviceAccountUserName')]",
+                            "userName": "[parameters('applicationUser')]",
                             "password": "privateSettingsRef:SqlServerServiceAccountPassword"
                         },
                         "NumberOfDisks": "2",
@@ -267,7 +279,7 @@
                 "protectedSettings": {
                     "items": {
                         "adminPassword": "[parameters('domainAdminPassword')]",
-                        "sqlServerServiceAccountPassword": "[parameters('serviceAccountPassword')]"
+                        "sqlServerServiceAccountPassword": "[parameters('applicationUserPassword')]"
                     }
                 }
             }
@@ -298,11 +310,12 @@
                             "[concat(variables('slaveVmName'), '1')]"
                         ],
                         "sqlAlwaysOnEndpointName": "[variables('sqlAOEPName')]",
+                        "scriptLocation": "[variables('scriptLocation')]",
                         "sqlAlwaysOnAvailabilityGroupName": "alwayson-ag",
                         "sqlAlwaysOnAvailabilityGroupListenerName": "alwayson-ag-listener",
                         "SqlAlwaysOnAvailabilityGroupListenerPort": "1433",
                         "databaseNames": "AutoHa-sample",
-                        "lbName": "[variables('sqlLBName')]",
+                        "lbName": "[parameters('sqlLBName')]",
                         "lbAddress": "[parameters('sqlLBIPAddress')]",
                         "primaryReplica": "[concat(variables('slaveVmName'),'1')]",
                         "secondaryReplica": "[concat(variables('slaveVmName'),'0')]",
@@ -312,7 +325,7 @@
                             "password": "privateSettingsRef:adminPassword"
                         },
                         "sqlServiceCreds": {
-                            "userName": "[parameters('serviceAccountUserName')]",
+                            "userName": "[parameters('applicationUser')]",
                             "password": "privateSettingsRef:sqlServerServiceAccountPassword"
                         },
                         "SQLAuthCreds": {
@@ -326,8 +339,8 @@
                 "protectedSettings": {
                     "items": {
                         "adminPassword": "[parameters('domainAdminPassword')]",
-                        "sqlServerServiceAccountPassword": "[parameters('serviceAccountPassword')]",
-                        "sqlAuthPassword": "[parameters('serviceAccountPassword')]"
+                        "sqlServerServiceAccountPassword": "[parameters('applicationUserPassword')]",
+                        "sqlAuthPassword": "[parameters('applicationUserPassword')]"
                     }
                 }
             }

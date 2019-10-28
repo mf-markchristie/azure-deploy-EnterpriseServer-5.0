@@ -12,7 +12,13 @@ param(
     [int]$ESCount,
 
     [Parameter(Mandatory = $True)]
-    [string]$clusterPrefix
+    [string]$clusterPrefix,
+
+    [string]$RedisIp = "",
+
+    [string]$DeployFsDemo = "N",
+
+    [string]$DeployPacDemo = "N"
 )
 
 function Get-NetBIOSName
@@ -39,6 +45,20 @@ function Get-NetBIOSName
     }
 }
 
+function Add-DirectoryPermissions
+{
+    param(
+        [string]$Directory,
+        [string]$Account
+    )
+    $Inherit = [system.security.accesscontrol.InheritanceFlags]"ContainerInherit, ObjectInherit"
+    $Propagation = [system.security.accesscontrol.PropagationFlags]"None"
+    $Acl = Get-Acl $Directory
+    $Accessrule = New-Object system.security.AccessControl.FileSystemAccessRule($Account,"FullControl", $inherit, $propagation, "Allow")
+    $Acl.AddAccessRule($Accessrule)
+    Set-Acl -aclobject $Acl $Directory
+}
+
 $ErrorActionPreference = "Stop"
 $DomainNetBIOSName=(Get-NetBIOSName -DomainName $DomainDNSName)
 
@@ -56,20 +76,14 @@ $args += ("-PrivilegeName", 'SeBatchLogonRight')
 $args += ("-Status", 'Grant')
 Invoke-Expression "$cmd $args"
 
-Write-Host "Updating ESCWA Service Propertie"
+Write-Host "Updating ESCWA Service Properties"
 Stop-Service -Name "ESCWA"
 $Account="${DomainNetBIOSName}\${ServiceUser}"
 $Service=gwmi win32_service -filter "Name='ESCWA'"
 $Service.change($null,$null,$null,$null,$null,$false,$Account,$ServicePassword,$null,$null,$null)
 
 
-$Directory = "C:\ProgramData\Micro Focus\Enterprise Developer\ESCWA"
-$Inherit = [system.security.accesscontrol.InheritanceFlags]"ContainerInherit, ObjectInherit"
-$Propagation = [system.security.accesscontrol.PropagationFlags]"None"
-$Acl = Get-Acl $directory
-$Accessrule = New-Object system.security.AccessControl.FileSystemAccessRule($Account,"FullControl", $inherit, $propagation, "Allow")
-$Acl.AddAccessRule($Accessrule)
-Set-Acl -aclobject $Acl $Directory
+Add-DirectoryPermissions -Directory "C:\ProgramData\Micro Focus\Enterprise Developer\ESCWA" -Account $Account
 Start-Service -Name "ESCWA"
 
 Write-Host "Deleting MFDS Service"
@@ -120,6 +134,29 @@ addDS -HostName "$clusterPrefix-es01" -Name "$clusterPrefix-es01" -Port "86"
 if ($ESCount -eq 2) {
     addDS -HostName "$clusterPrefix-es02" -Name "$clusterPrefix-es02" -Port "86"
 }
-addDs -HostName "$clusterPrefix-fs" -Name "$clusterPrefix-fs" -Port "86"
+if ($DeployFsDemo -eq "Y") {
+    addDs -HostName "$clusterPrefix-fs" -Name "$clusterPrefix-fs" -Port "86"
+}
 
-Set-NetFirewallProfile -Profile Domain -Enabled False
+if ($DeployPacDemo -eq "Y") {
+    $JMessage = '
+        {
+            \"SorName\": \"DemoPSOR\",
+            \"SorDescription\": \"Demo Redis\",
+            \"SorType\": \"redis\",
+            \"SorConnectPath\": \"' + $RedisIp + ':6379\"
+        }'
+
+    $RequestURL = "http://localhost:10004/server/v1/config/groups/sors"
+    $sorObj = curl.exe -sX POST $RequestURL -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H $Origin -d $Jmessage --cookie-jar cookie.txt | ConvertFrom-Json
+    $sorUid=$sorObj.Uid
+
+    $JMessage = '
+        {
+            \"PacName\": \"DemoPAC\",
+            \"PacDescription\": \"Demo PAC\",
+            \"PacResourceSorUid\": \"' + $sorUid + '\"
+        }'
+    $RequestURL = "http://localhost:10004/server/v1/config/groups/pacs"
+    curl.exe -sX POST $RequestURL -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H $Origin -d $Jmessage --cookie-jar cookie.txt | Out-Null
+}

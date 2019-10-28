@@ -18,16 +18,16 @@
                 "description": "Region in which the resource group and components will be deployed"
             }
         },
-        "artifactsLocation": {
+        "_artifactsLocation": {
             "type": "string",
             "metadata": {
                 "description": "The base URI where artifacts required by this template are located including a trailing '/'"
             }
         },
-        "artifactsLocationSasToken": {
+        "_artifactsLocationSasToken": {
             "type": "securestring",
             "metadata": {
-                "description": "The sasToken required to access artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
+                "description": "The sasToken required to access _artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
             }
         },
         "hostName": {
@@ -114,32 +114,30 @@
                 "description": "IP address of backup DC"
             }
         },
-        "serviceAccountUserName": {
+        "applicationUsername": {
             "type": "string",
             "minLength": 1,
             "metadata": {
                 "description": "Administrator username for MF service account user."
             }
         },
-        "serviceAccountPassword": {
+        "applicationUserPassword": {
             "type": "securestring",
             "minLength": 5,
             "metadata": {
                 "description": "Password for MF service account user."
             }
         },
-        "demoAccountUserName": {
+        "loadBalancerName": {
             "type": "string",
-            "minLength": 1,
             "metadata": {
-                "description": "Administrator username for MF service account user."
+                "description": "Name for SQL Load Balancer"
             }
         },
-        "demoAccountPassword": {
-            "type": "securestring",
-            "minLength": 5,
+        "loadBalancerIp": {
+            "type": "string",
             "metadata": {
-                "description": "Password for MF service account user."
+                "description": "Ip address for SQL Load Balancer"
             }
         }
     },
@@ -147,10 +145,10 @@
         "osDiskType": "StandardSSD_LRS",
         "primaryHostName": "[concat(parameters('hostName'), 'P')]",
         "backupHostName": "[concat(parameters('hostName'), 'B')]",
-        "adPDCModulesURL": "[uri(parameters('artifactsLocation'), concat('DSC/CreateADPDC.ps1.zip', parameters('artifactsLocationSasToken')))]",
+        "adPDCModulesURL": "[uri(parameters('_artifactsLocation'), concat('DSC/CreateADPDC.ps1.zip', parameters('_artifactsLocationSasToken')))]",
         "adPDCConfigurationScript": "CreateADPDC.ps1",
         "adPDCConfigurationFunction": "CreateADPDC",
-        "adBDCModulesURL": "[uri(parameters('artifactsLocation'), concat('DSC/PrepareADBDC.ps1.zip', parameters('artifactsLocationSasToken')))]",
+        "adBDCModulesURL": "[uri(parameters('_artifactsLocation'), concat('DSC/PrepareADBDC.ps1.zip', parameters('_artifactsLocationSasToken')))]",
         "adBDCConfigurationScript": "PrepareADBDC.ps1",
         "adBDCConfigurationFunction": "PrepareADBDC",
         "dataDiskSize": 32
@@ -294,13 +292,11 @@
                             "password": "[parameters('adminPassword')]"
                         },
                         "serviceCreds": {
-                            "userName": "[parameters('serviceAccountUserName')]",
-                            "password": "[parameters('serviceAccountPassword')]"
+                            "userName": "[parameters('applicationUser')]",
+                            "password": "[parameters('applicationUserPassword')]"
                         },
-                        "demoCreds": {
-                            "userName": "[parameters('demoAccountUserName')]",
-                            "password": "[parameters('demoAccountPassword')]"
-                        }
+                        "lBName": "[parameters('loadBalancerName')]",
+                        "lBIp": "[parameters('loadBalancerIp')]"
                     }
                 }
             }

@@ -18,16 +18,16 @@
                 "description": "Region in which the resource group and components will be deployed"
             }
         },
-        "artifactsLocation": {
+        "_artifactsLocation": {
             "type": "string",
             "metadata": {
                 "description": "The base URI where artifacts required by this template are located including a trailing '/'"
             }
         },
-        "artifactsLocationSasToken": {
+        "_artifactsLocationSasToken": {
             "type": "securestring",
             "metadata": {
-                "description": "The sasToken required to access artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
+                "description": "The sasToken required to access _artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
             }
         },
         "hostName": {
@@ -98,7 +98,7 @@
     },
     "variables": {
         "backupHostName": "[concat(parameters('hostName'), 'B')]",
-        "adBDCModulesURL": "[uri(parameters('artifactsLocation'), concat('DSC/ConfigureADBDC.ps1.zip', parameters('artifactsLocationSasToken')))]",
+        "adBDCModulesURL": "[uri(parameters('_artifactsLocation'), concat('DSC/ConfigureADBDC.ps1.zip', parameters('_artifactsLocationSasToken')))]",
         "adBDCConfigurationScript": "ConfigureADBDC.ps1",
         "adBDCConfigurationFunction": "ConfigureADBDC"
     },

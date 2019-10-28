@@ -44,10 +44,20 @@
             "metadata": {
                 "description": "Ip address of NIC"
             }
+        },
+        "loadBalancerRef": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Name of loadBalancer"
+            }
         }
     },
     "variables": {
-        "domainJoinOptions": 3
+        "domainJoinOptions": 3,
+        "loadBalancerArr": [{
+            "id": "[parameters('loadBalancerRef')]"
+        }]
     },
     "resources": [
         {
@@ -63,7 +73,8 @@
                         "privateIPAddress": "[parameters('ipAddress')]",
                         "subnet": {
                             "id": "[parameters('subnetRef')]"
-                        }
+                        },
+                        "loadBalancerBackendAddressPools": "[if(equals(parameters('loadBalancerRef'), ''), json('null'), variables('loadBalancerArr'))]"
                     }
                 }],
                 "dnsSettings": "[parameters('dnsSettings')]"

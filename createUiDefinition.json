@@ -1,0 +1,679 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/0.1.2-preview/CreateUIDefinition.MultiVm.json#",
+	"handler": "Microsoft.Azure.CreateUIDef",
+	"version": "0.1.2-preview",
+	"parameters": {
+		"basics": [{
+				"name": "clusterPrefix",
+				"type": "Microsoft.Common.TextBox",
+				"label": "Cluster Prefix",
+				"toolTip": "The string by which resources in the deployment will be prefixed.",
+				"defaultValue": "mfes",
+				"constraints": {
+					"regex": "^[a-z][a-z0-9-]{0,8}[a-z0-9]$",
+					"validationMessage": "Must be a 2-10 alphanumeric character string starting with a letter.",
+					"required": true
+				}
+			},
+			{
+				"name": "osPlatform",
+				"type": "Microsoft.Common.DropDown",
+				"label": "Operating System",
+				"defaultValue": "Windows",
+				"toolTip": "Choose the operating system to be used for the Enterprise Server hosting machines.",
+				"constraints": {
+					"allowedValues": [{
+							"label": "Windows",
+							"value": "Windows"
+						},
+						{
+							"label": "Linux",
+							"value": "Linux"
+						}
+					]
+				}
+			},
+			{
+				"name": "esLicense",
+				"type": "Microsoft.Common.FileUpload",
+				"label": "Licence File",
+				"toolTip": "Licence file for Enterprise Server",
+				"constraints": {
+					"required": true,
+					"accept": ".mflic"
+				},
+				"options": {
+					"multiple": false,
+					"uploadMode": "url"
+				}
+			}
+		],
+		"steps": [{
+			"name": "vnetSettings",
+			"label": "Virtual Network Configuration",
+			"subLabel": {
+				"preValidation": "Specify the Enterprise Developer machine configuration",
+				"postValidation": "Done"
+			},
+			"bladeTitle": "vnetSettings",
+			"elements": [{
+                "name": "domainSettings",
+				"type": "Microsoft.Common.Section",
+				"label": "Domain Settings",
+                "elements": [{
+                    "name": "domainDNSName",
+                    "type": "Microsoft.Common.TextBox",
+                    "label": "Domain DNS Name",
+                    "defaultValue": "",
+                    "constraints": {
+                        "regex": "^(?=^.{4,253}$)(^((?!-)[a-zA-Z0-9-]{0,62}[a-zA-Z0-9]\\.)+[a-zA-Z]{2,63}$)",
+                        "validationMessage": "Must be a valid domain name string.",
+                        "required": true
+                    },
+                    "toolTip": "The FQDN for the domain e.g. example.com."
+                }, {
+                    "name": "administratorUserName",
+                    "type": "Microsoft.Compute.UserNameTextBox",
+                    "label": "Administrator User Name",
+                    "defaultValue": "",
+                    "osPlatform": "Windows",
+                    "constraints": {
+                        "required": true
+                    },
+                    "toolTip": "Enter the name of the administrator user for the domain and the virtual machines."
+                },
+                {
+                    "name": "administratorPassword",
+                    "type": "Microsoft.Common.PasswordBox",
+                    "label": {
+                        "password": "Administrator User Password",
+                        "confirmPassword": "Confirm password"
+                    },
+                    "toolTip": "Provide domain administrator user password. On Windows this will also be the password for the VM administrator account.",
+                    "constraints": {
+                        "regex": "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)[A-Za-z\\d]{12,}$",
+                        "validationMessage": "The password must contain at least 12 characters and must contain at least one numeric character, one uppercase character and one lowercase character",
+                        "required": true
+                    },
+                    "options": {
+                        "hideConfirmation": false
+                    },
+                    "visible": true
+                }]
+            }]
+		}, {
+			"name": "vmSettings",
+			"label": "Virtual Machine Settings",
+			"subLabel": {
+				"preValidation": "Specify the Enterprise Developer machine configuration",
+				"postValidation": "Done"
+			},
+			"bladeTitle": "vmSettings",
+			"elements": [{
+				"name": "generalMachineSettings",
+				"type": "Microsoft.Common.Section",
+				"label": "General Machine Settings",
+				"elements": [{
+						"name": "sshKey",
+						"type": "Microsoft.Compute.CredentialsCombo",
+						"label": {
+							"authenticationType": "Authentication Type",
+							"password": "Password",
+							"confirmPassword": "Confirm password",
+							"sshPublicKey": "SSH Public Key for VM Admin User"
+						},
+						"toolTip": {
+							"authenticationType": "Authentication type",
+							"password": "Password",
+							"sshPublicKey": "SSH Public Key for the VM Admin User. Corresponds to the Private Key in the Key Vault that was configured as part of the pre-work."
+						},
+						"constraints": {
+							"required": "[equals(basics('osPlatform'), 'Linux')]"
+						},
+						"options": {
+							"hideConfirmation": false,
+							"hidePassword": true
+						},
+						"osPlatform": "Linux",
+						"visible": "[equals(basics('osPlatform'), 'Linux')]"
+					}, {
+						"name": "rdgInstanceCount",
+						"type": "Microsoft.Common.DropDown",
+						"label": "Remote Desktop Gateway Host Count",
+						"defaultValue": "1",
+                        "toolTip": "Choose the number of remote desktop gatewayhosts to be deployed.",
+						"constraints": {
+							"allowedValues": [{
+									"label": "0",
+									"value": 0
+								},
+								{
+									"label": "1",
+									"value": 1
+								},
+								{
+									"label": "2",
+									"value": 2
+								},
+								{
+									"label": "3",
+									"value": 3
+								},
+								{
+									"label": "4",
+									"value": 4
+								}
+							]
+						}
+					}, {
+						"name": "rdgInstanceSize",
+						"type": "Microsoft.Compute.SizeSelector",
+						"label": "Remote Desktop Gateway VM size",
+						"toolTip": "The size of the virtual machine to be deployed for the remote desktop gateway machines.",
+                        "visible": "[greater(steps('vmSettings').generalMachineSettings.rdgInstanceCount, 0)]",
+						"recommendedSizes": [
+							"Standard_D2s_v3",
+                            "Standard_E2s_v3",
+							"Standard_D4s_v3",
+							"Standard_D8s_v3",
+							"Standard_D16s_v3",
+							"Standard_D32s_v3"
+						],
+						"constraints": {
+							"allowedSizes": [
+								"Standard_D2s_v3",
+								"Standard_E2s_v3",
+								"Standard_D4s_v3",
+								"Standard_D8s_v3",
+								"Standard_D16s_v3",
+								"Standard_D32s_v3",
+								"Standard_E8s_v3",
+								"Standard_E16s_v3",
+								"Standard_E32s_v3",
+								"Standard_L8s",
+								"Standard_L16s",
+								"Standard_L32s",
+								"Standard_DS13_v2",
+								"Standard_DS14_v2",
+								"Standard_DS15_v2"
+							]
+						},
+						"osPlatform": "Windows",
+						"count": 1
+					}, {
+						"name": "bastionInstanceCount",
+						"type": "Microsoft.Common.DropDown",
+						"label": "Bastion Host Count",
+						"defaultValue": "1",
+                        "toolTip": "Choose the number of Bastion hosts to be deployed.",
+                        "visible": "[equals(basics('osPlatform'), 'Linux')]",
+						"constraints": {
+							"allowedValues": [{
+									"label": "0",
+									"value": 0
+								},
+								{
+									"label": "1",
+									"value": 1
+								},
+								{
+									"label": "2",
+									"value": 2
+								},
+								{
+									"label": "3",
+									"value": 3
+								},
+								{
+									"label": "4",
+									"value": 4
+								}
+							]
+						}
+					}, {
+						"name": "bastionInstanceSize",
+						"type": "Microsoft.Compute.SizeSelector",
+						"label": "Bastion VM size",
+						"toolTip": "The size of the virtual machine to be deployed for the Bastion machines.",
+                        "visible": "[and(equals(basics('osPlatform'), 'Linux'), greater(steps('vmSettings').generalMachineSettings.bastionInstanceCount, 0))]",
+						"recommendedSizes": [
+							"Standard_D2s_v3",
+                            "Standard_E2s_v3",
+							"Standard_D4s_v3",
+							"Standard_D8s_v3",
+							"Standard_D16s_v3",
+							"Standard_D32s_v3"
+						],
+						"constraints": {
+							"allowedSizes": [
+								"Standard_D2s_v3",
+								"Standard_E2s_v3",
+								"Standard_D4s_v3",
+								"Standard_D8s_v3",
+								"Standard_D16s_v3",
+								"Standard_D32s_v3",
+								"Standard_E8s_v3",
+								"Standard_E16s_v3",
+								"Standard_E32s_v3",
+								"Standard_L8s",
+								"Standard_L16s",
+								"Standard_L32s",
+								"Standard_DS13_v2",
+								"Standard_DS14_v2",
+								"Standard_DS15_v2"
+							]
+						},
+						"osPlatform": "Linux",
+						"count": 1
+					}, {
+						"name": "adInstanceSize",
+						"type": "Microsoft.Compute.SizeSelector",
+						"label": "Active Directory VM size",
+						"toolTip": "The size of the virtual machine to be deployed for the primary and backup domain controller.",
+						"recommendedSizes": [
+                            "Standard_E2s_v3",
+							"Standard_D4s_v3",
+							"Standard_D8s_v3",
+							"Standard_D16s_v3",
+							"Standard_D32s_v3"
+						],
+						"constraints": {
+							"allowedSizes": [
+								"Standard_E2s_v3",
+								"Standard_D4s_v3",
+								"Standard_D8s_v3",
+								"Standard_D16s_v3",
+								"Standard_D32s_v3",
+								"Standard_E8s_v3",
+								"Standard_E16s_v3",
+								"Standard_E32s_v3",
+								"Standard_L8s",
+								"Standard_L16s",
+								"Standard_L32s",
+								"Standard_DS13_v2",
+								"Standard_DS14_v2",
+								"Standard_DS15_v2"
+							]
+						},
+						"osPlatform": "Windows",
+						"count": 1
+					}
+				]
+			}, {
+				"name": "esMachineSettings",
+				"type": "Microsoft.Common.Section",
+				"label": "Enterprise Server Machines",
+				"elements": [{
+						"name": "esInstanceSize",
+						"type": "Microsoft.Compute.SizeSelector",
+						"label": "Enterprise Server Hosting VM size",
+						"toolTip": "The size of the virtual machine to be deployed for the Enterprise Server hosting machines.",
+						"recommendedSizes": [
+							"Standard_E2s_v3",
+							"Standard_D4s_v3",
+							"Standard_D8s_v3",
+							"Standard_D16s_v3",
+							"Standard_D32s_v3"
+						],
+						"constraints": {
+							"allowedSizes": [
+								"Standard_E2s_v3",
+								"Standard_D4s_v3",
+								"Standard_D8s_v3",
+								"Standard_D16s_v3",
+								"Standard_D32s_v3",
+								"Standard_E8s_v3",
+								"Standard_E16s_v3",
+								"Standard_E32s_v3",
+								"Standard_L8s",
+								"Standard_L16s",
+								"Standard_L32s",
+								"Standard_DS13_v2",
+								"Standard_DS14_v2",
+								"Standard_DS15_v2"
+							]
+						},
+						"osPlatform": "Windows",
+						"count": 1
+					}, {
+						"name": "esDataDiskSize",
+						"type": "Microsoft.Common.DropDown",
+						"label": "Data disk size for VM",
+						"defaultValue": "32GB",
+						"toolTip": "Choose the size of the data disk to be allocated to the VM.",
+						"constraints": {
+							"allowedValues": [{
+									"label": "32GB",
+									"value": 32
+								},
+								{
+									"label": "64GB",
+									"value": 64
+								},
+								{
+									"label": "128GB",
+									"value": 128
+								},
+								{
+									"label": "256GB",
+									"value": 256
+								},
+								{
+									"label": "512GB",
+									"value": 512
+								},
+								{
+									"label": "1TB",
+									"value": 1024
+								},
+								{
+									"label": "2TB",
+									"value": 2048
+								}
+							]
+						}
+					},
+					{
+						"name": "applicationUsername",
+						"type": "Microsoft.Compute.UserNameTextBox",
+						"label": "Application User Name",
+						"defaultValue": "mfuser",
+						"osPlatform": "Windows",
+						"constraints": {
+							"required": true
+						},
+						"toolTip": "Enter the name of the application user for Enterprise Server."
+					},
+					{
+						"name": "applicationUserPassword",
+						"type": "Microsoft.Common.PasswordBox",
+						"label": {
+							"password": "Application User Password",
+							"confirmPassword": "Confirm password"
+						},
+						"toolTip": "Provide application user password.",
+						"constraints": {
+							"regex": "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)[A-Za-z\\d]{12,}$",
+							"validationMessage": "The password must contain at least 12 characters and must contain at least one numeric character, one uppercase character and one lowercase character",
+							"required": true
+						},
+						"options": {
+							"hideConfirmation": false
+						},
+						"visible": true
+					}
+				]
+			}]
+		}, {
+			"name": "demoSettings",
+			"label": "Demo Settings",
+			"subLabel": {
+				"preValidation": "Specify the Demo machine configuration",
+				"postValidation": "Done"
+			},
+			"bladeTitle": "demoSettings",
+            "elements": [{
+                "name": "deployFsDemo",
+                "type": "Microsoft.Common.OptionsGroup",
+                "label": "Deploy Fileshare Demo",
+                "defaultValue": "Yes",
+                "toolTip": "Specify whether or not the Fileshare demo should be deployed.",
+                "constraints": {
+                  "allowedValues": [
+                    {
+                      "label": "Yes",
+                      "value": "Yes"
+                    },
+                    {
+                      "label": "No",
+                      "value": "No"
+                    }
+                  ],
+                  "required": true
+                },
+                "visible": true
+            }, {
+				"name": "fsSettings",
+				"type": "Microsoft.Common.Section",
+                "label": "Fileshare Settings",
+                "visible": "[equals(steps('demoSettings').deployFsDemo, 'Yes')]",
+                "elements": [{
+                    "name": "fsInstanceSize",
+                    "type": "Microsoft.Compute.SizeSelector",
+                    "label": "Fileshare VM size",
+                    "toolTip": "The size of the virtual machine to be deployed for the Fileshare hosting machine.",
+                    "recommendedSizes": [
+                        "Standard_E2s_v3",
+                        "Standard_D4s_v3",
+                        "Standard_D8s_v3",
+                        "Standard_D16s_v3",
+                        "Standard_D32s_v3"
+                    ],
+                    "constraints": {
+                        "allowedSizes": [
+                            "Standard_E2s_v3",
+                            "Standard_D4s_v3",
+                            "Standard_D8s_v3",
+                            "Standard_D16s_v3",
+                            "Standard_D32s_v3",
+                            "Standard_E8s_v3",
+                            "Standard_E16s_v3",
+                            "Standard_E32s_v3",
+                            "Standard_L8s",
+                            "Standard_L16s",
+                            "Standard_L32s",
+                            "Standard_DS13_v2",
+                            "Standard_DS14_v2",
+                            "Standard_DS15_v2"
+                        ]
+                    },
+                    "osPlatform": "Windows",
+                    "count": 1
+                }, {
+                    "name": "fsDataDiskSize",
+                    "type": "Microsoft.Common.DropDown",
+                    "label": "Data disk size for VM",
+                    "defaultValue": "32GB",
+                    "toolTip": "Choose the size of the data disk to be allocated to the VM.",
+                    "constraints": {
+                        "allowedValues": [{
+                                "label": "32GB",
+                                "value": 32
+                            },
+                            {
+                                "label": "64GB",
+                                "value": 64
+                            },
+                            {
+                                "label": "128GB",
+                                "value": 128
+                            },
+                            {
+                                "label": "256GB",
+                                "value": 256
+                            },
+                            {
+                                "label": "512GB",
+                                "value": 512
+                            },
+                            {
+                                "label": "1TB",
+                                "value": 1024
+                            },
+                            {
+                                "label": "2TB",
+                                "value": 2048
+                            }
+                        ]
+                    }
+                }, {
+                    "name": "fsPort",
+                    "type": "Microsoft.Common.TextBox",
+                    "label": "Fileshare Port",
+                    "toolTip": "The port on which the Fileshare will accept requests.",
+                    "defaultValue": "3000",
+                    "constraints": {
+                        "regex": "^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$",
+                        "validationMessage": "Must be 0-65535.",
+                        "required": true
+                    }
+                }, {
+                    "name": "fsviewPassword",
+                    "type": "Microsoft.Common.PasswordBox",
+                    "label": {
+                        "password": "FSView User Password",
+                        "confirmPassword": "Confirm password"
+                    },
+                    "toolTip": "Provide fileshare administrator password.",
+                    "constraints": {
+                        "regex": "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)[A-Za-z\\d]{8,32}$",
+                        "validationMessage": "Must contain 8 to 32 characters, at least one numeric character, one uppercase character and one lowercase character.",
+                        "required": "[equals(steps('demoSettings').deployFsDemo, 'Yes')]"
+                    },
+                    "options": {
+                        "hideConfirmation": false
+                    },
+                    "visible": true
+                }]
+            }, {
+                "name": "deployPacDemo",
+                "type": "Microsoft.Common.OptionsGroup",
+                "label": "Deploy PAC Demo",
+                "defaultValue": "Yes",
+                "toolTip": "Specify whether or not the PAC demo should be deployed.",
+                "constraints": {
+                  "allowedValues": [
+                    {
+                      "label": "Yes",
+                      "value": "Yes"
+                    },
+                    {
+                      "label": "No",
+                      "value": "No"
+                    }
+                  ],
+                  "required": true
+                },
+                "visible": true
+            }, {
+                "name": "deployDbDemo",
+                "type": "Microsoft.Common.OptionsGroup",
+                "label": "Deploy Database Demo",
+                "defaultValue": "Yes",
+                "toolTip": "Specify whether or not the database demo should be deployed.",
+                "constraints": {
+                  "allowedValues": [
+                    {
+                      "label": "Yes",
+                      "value": "Yes"
+                    },
+                    {
+                      "label": "No",
+                      "value": "No"
+                    }
+                  ],
+                  "required": true
+                },
+                "visible": true
+            }, {
+				"name": "dbSettings",
+				"type": "Microsoft.Common.Section",
+                "label": "Database Settings",
+                "visible": "[or(equals(steps('demoSettings').deployDbDemo, 'Yes'), equals(steps('demoSettings').deployPacDemo, 'Yes'))]",
+                "elements": [{
+                    "name": "sqlWitnessInstanceSize",
+                    "type": "Microsoft.Compute.SizeSelector",
+                    "label": "SQL Witness VM size",
+                    "toolTip": "The size of the virtual machine to be deployed for the SQL alwaysOn Witness.",
+                    "recommendedSizes": [
+                        "Standard_E2s_v3",
+                        "Standard_D4s_v3",
+                        "Standard_D8s_v3",
+                        "Standard_D16s_v3",
+                        "Standard_D32s_v3"
+                    ],
+                    "constraints": {
+                        "allowedSizes": [
+                            "Standard_E2s_v3",
+                            "Standard_D4s_v3",
+                            "Standard_D8s_v3",
+                            "Standard_D16s_v3",
+                            "Standard_D32s_v3",
+                            "Standard_E8s_v3",
+                            "Standard_E16s_v3",
+                            "Standard_E32s_v3",
+                            "Standard_L8s",
+                            "Standard_L16s",
+                            "Standard_L32s",
+                            "Standard_DS13_v2",
+                            "Standard_DS14_v2",
+                            "Standard_DS15_v2"
+                        ]
+                    },
+                    "osPlatform": "Windows",
+                    "count": 1
+                }, {
+                    "name": "sqlSlaveInstanceSize",
+                    "type": "Microsoft.Compute.SizeSelector",
+                    "label": "SQL Node VM size",
+                    "toolTip": "The size of the virtual machine to be deployed for the SQL server nodes.",
+                    "recommendedSizes": [
+                        "Standard_E2s_v3",
+                        "Standard_D4s_v3",
+                        "Standard_D8s_v3",
+                        "Standard_D16s_v3",
+                        "Standard_D32s_v3"
+                    ],
+                    "constraints": {
+                        "allowedSizes": [
+                            "Standard_E2s_v3",
+                            "Standard_D4s_v3",
+                            "Standard_D8s_v3",
+                            "Standard_D16s_v3",
+                            "Standard_D32s_v3",
+                            "Standard_E8s_v3",
+                            "Standard_E16s_v3",
+                            "Standard_E32s_v3",
+                            "Standard_L8s",
+                            "Standard_L16s",
+                            "Standard_L32s",
+                            "Standard_DS13_v2",
+                            "Standard_DS14_v2",
+                            "Standard_DS15_v2"
+                        ]
+                    },
+                    "osPlatform": "Windows",
+                    "count": 1
+                }]
+            }]
+        }],
+		"outputs": {
+            "location": "[location()]",
+            "clusterPrefix": "[basics('clusterPrefix')]",
+            "deployLinux": "[equals(basics('osPlatform'), 'Linux')]",
+            "esLicense": "[basics('esLicense')]",
+            "administratorUserName": "[steps('vnetSettings').domainSettings.administratorUserName]",
+            "administratorPassword": "[steps('vnetSettings').domainSettings.administratorPassword]",
+            "domainDNSName": "[steps('vnetSettings').domainSettings.domainDNSName]",
+            "esInstanceSize": "[steps('vmSettings').esMachineSettings.esInstanceSize]",
+            "esDataDiskSize": "[steps('vmSettings').esMachineSettings.esDataDiskSize]",
+            "applicationUsername": "[steps('vmSettings').esMachineSettings.applicationUsername]",
+            "applicationUserPassword": "[steps('vmSettings').esMachineSettings.applicationUserPassword]",
+            "sshKey": "[steps('vmSettings').generalMachineSettings.sshKey.sshPublicKey]",
+            "rdgInstanceCount": "[steps('vmSettings').generalMachineSettings.rdgInstanceCount]",
+            "rdgInstanceSize": "[steps('vmSettings').generalMachineSettings.rdgInstanceSize]",
+            "bastionInstanceCount": "[steps('vmSettings').generalMachineSettings.bastionInstanceCount]",
+            "bastionInstanceSize": "[steps('vmSettings').generalMachineSettings.bastionInstanceSize]",
+            "adInstanceSize": "[steps('vmSettings').generalMachineSettings.adInstanceSize]",
+            "deployDbDemo": "[equals(steps('demoSettings').deployDbDemo, 'Yes')]",
+            "deployPacDemo": "[equals(steps('demoSettings').deployPacDemo, 'Yes')]",
+            "deployFsDemo": "[equals(steps('demoSettings').deployFsDemo, 'Yes')]",
+            "fsviewPassword": "[steps('demoSettings').fsSettings.fsviewPassword]",
+            "fsInstanceSize": "[steps('demoSettings').fsSettings.fsInstanceSize]",
+            "fsDataDiskSize": "[steps('demoSettings').fsSettings.fsDataDiskSize]",
+            "fsPort": "[steps('demoSettings').fsSettings.fsPort]",
+            "sqlWitnessInstanceSize": "[steps('demoSettings').dbSettings.sqlWitnessInstanceSize]",
+            "sqlSlaveInstanceSize": "[steps('demoSettings').dbSettings.sqlSlaveInstanceSize]"
+		}
+	}
+}

@@ -18,16 +18,16 @@
                 "description": "Region in which the resource group and components will be deployed"
             }
         },
-        "artifactsLocation": {
+        "_artifactsLocation": {
             "type": "string",
             "metadata": {
                 "description": "The base URI where artifacts required by this template are located including a trailing '/'"
             }
         },
-        "artifactsLocationSasToken": {
+        "_artifactsLocationSasToken": {
             "type": "securestring",
             "metadata": {
-                "description": "The sasToken required to access artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
+                "description": "The sasToken required to access _artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
             }
         },
         "hostName": {
@@ -45,14 +45,14 @@
                 "description": "The fully qualified domain name (FQDN), e.g., example.com. Must be 2-255 characters."
             }
         },
-        "serviceAccountUserName": {
+        "applicationUsername": {
             "type": "string",
             "minLength": 1,
             "metadata": {
                 "description": "Administrator username for MF service account user."
             }
         },
-        "serviceAccountPassword": {
+        "applicationUserPassword": {
             "type": "securestring",
             "minLength": 5,
             "metadata": {
@@ -73,13 +73,39 @@
             "metadata": {
                 "description": "Number of Enterprise Sever hosting nodes"
             }
+        },
+        "deployFsDemo": {
+            "type": "bool",
+            "metadata": {
+                "description": "Flag to determine whether fileshare demo is deployed"
+            }
+        },
+        "deployPacDemo": {
+            "type": "bool",
+            "metadata": {
+                "description": "Flag to determine whether PAC demo is deployed"
+            }
+        },
+        "deployLinux": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Flag to determine whether linux VMs are deployed for ES."
+            }
+        },
+        "redisIp": {
+            "type": "string",
+            "defaultValue": "10.0.64.10"
         }
     },
     "variables": {
         "osDiskType": "StandardSSD_LRS",
-        "scriptFileUri1": "[uri(parameters('artifactsLocation'), concat('scripts/Configure-ESCWA-Node.ps1', parameters('artifactsLocationSasToken')))]",
-        "scriptFileUri2": "[uri(parameters('artifactsLocation'), concat('scripts/Configure-UserLogonPrivileges.ps1', parameters('artifactsLocationSasToken')))]",
-        "credentialsArg": "[concat(' -ServiceUser ', parameters('serviceAccountUserName'), ' -ServicePassword ', parameters('serviceAccountPassword'))]"
+        "scriptFileUri1": "[uri(parameters('_artifactsLocation'), concat('scripts/Configure-ESCWA-Node.ps1', parameters('_artifactsLocationSasToken')))]",
+        "scriptFileUri2": "[uri(parameters('_artifactsLocation'), concat('scripts/Configure-UserLogonPrivileges.ps1', parameters('_artifactsLocationSasToken')))]",
+        "credentialsArg": "[concat(' -ServiceUser ', parameters('applicationUser'), ' -ServicePassword ', parameters('applicationUserPassword'))]",
+        "deployPacFlag": "[if(parameters('deployPacDemo'), ' -DeployPacDemo Y', '')]",
+        "deployFsFlag": "[if(parameters('deployFsDemo'), ' -DeployFsDemo Y', '')]",
+        "redisArg": "[if(parameters('deployPacDemo'), concat(' -RedisIp ', parameters('redisIp')), '')]"
     },
     "resources": [
         {
@@ -100,7 +126,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('powershell ./scripts/Configure-ESCWA-Node.ps1 -DomainDNSName ', parameters('domainDNSName'), ' -ESCount ', parameters('esInstanceCount'), ' -clusterPrefix ', parameters('clusterPrefix'), variables('credentialsArg'))]"
+                    "commandToExecute": "[concat('powershell .\\scripts\\Configure-ESCWA-Node.ps1 -DomainDNSName ', parameters('domainDNSName'), ' -ESCount ', parameters('esInstanceCount'), ' -clusterPrefix ', parameters('clusterPrefix'), variables('credentialsArg'), variables('redisArg'), variables('deployPacFlag'), variables('deployFsFlag'))]"
                 }
             }
         }

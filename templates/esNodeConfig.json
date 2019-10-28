@@ -18,16 +18,16 @@
                 "description": "Region in which the resource group and components will be deployed"
             }
         },
-        "artifactsLocation": {
+        "_artifactsLocation": {
             "type": "string",
             "metadata": {
                 "description": "The base URI where artifacts required by this template are located including a trailing '/'"
             }
         },
-        "artifactsLocationSasToken": {
+        "_artifactsLocationSasToken": {
             "type": "securestring",
             "metadata": {
-                "description": "The sasToken required to access artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
+                "description": "The sasToken required to access _artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
             }
         },
         "hostName": {
@@ -45,28 +45,14 @@
                 "description": "The fully qualified domain name (FQDN), e.g., example.com. Must be 2-255 characters."
             }
         },
-        "serviceAccountUserName": {
+        "applicationUsername": {
             "type": "string",
             "minLength": 1,
             "metadata": {
                 "description": "Administrator username for MF service account user."
             }
         },
-        "serviceAccountPassword": {
-            "type": "securestring",
-            "minLength": 5,
-            "metadata": {
-                "description": "Password for MF service account user."
-            }
-        },
-        "demoAccountUserName": {
-            "type": "string",
-            "minLength": 1,
-            "metadata": {
-                "description": "Administrator username for MF service account user."
-            }
-        },
-        "demoAccountPassword": {
+        "applicationUserPassword": {
             "type": "securestring",
             "minLength": 5,
             "metadata": {
@@ -84,15 +70,51 @@
             "metadata": {
                 "description": "Flag to determine whether PAC demo is deployed"
             }
+        },
+        "deployFsDemo": {
+            "type": "bool",
+            "metadata": {
+                "description": "Flag to determine whether fileshare demo is deployed"
+            }
+        },
+        "clusterPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Prefix for machine name."
+            }
+        },
+        "index": {
+            "type": "int",
+            "metadata": {
+                "description": "Index of machine in copy loop."
+            }
+        },
+        "deployLinux": {
+            "type": "bool",
+            "metadata": {
+                "description": "Flag to determine whether linux VMs are deployed for ES."
+            }
+        },
+        "redisIp": {
+            "type": "string",
+            "metadata": {
+                "description": "Ip address of Redis cache."
+            }
+        },
+        "redisPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password address of Redis cache."
+            }
         }
     },
     "variables": {
         "osDiskType": "StandardSSD_LRS",
-        "scriptFileUri1": "[uri(parameters('artifactsLocation'), concat('scripts/Configure-ES-Node.exe', parameters('artifactsLocationSasToken')))]",
-        "scriptFileUri2": "[uri(parameters('artifactsLocation'), concat('scripts/Configure-UserLogonPrivileges.ps1', parameters('artifactsLocationSasToken')))]",
-        "credentialsArg": "[concat(' -ServiceUser ', parameters('serviceAccountUserName'), ' -ServicePassword ', parameters('serviceAccountPassword'), ' -DemoUser ', parameters('demoAccountUserName'), ' -DemoPassword ', parameters('demoAccountPassword'))]",
-        "deployDbFlag": "[if(deployDbDemo, '-DeployDbDemo Y', '')]",
-        "deployPacFlag": "[if(deployPacDemo, '-DeployPacDemo Y', '')]"
+        "credentialsArg": "[concat(' -ServiceUser ', parameters('applicationUser'), ' -ServicePassword ', parameters('applicationUserPassword'))]",
+        "deployDbFlag": "[if(parameters('deployDbDemo'), ' -DeployDbDemo Y', '')]",
+        "deployPacFlag": "[if(parameters('deployPacDemo'), ' -DeployPacDemo Y', '')]",
+        "deployFsFlag": "[if(parameters('deployFsDemo'), ' -DeployFsDemo Y', '')]",
+        "redisArg": "[if(parameters('deployPacDemo'), concat(' -RedisIp ', parameters('redisIp'), ' -RedisPassword ', parameters('redisPassword')), '')]"
     },
     "resources": [
         {
@@ -108,12 +130,13 @@
                 "forceUpdateTag": "v.2.0",
                 "settings": {
                     "fileUris": [
-                        "[variables('scriptFileUri1')]",
-                        "[variables('scriptFileUri2')]"
+                        "[uri(parameters('_artifactsLocation'), concat('scripts/Configure-ES-Node.exe', parameters('_artifactsLocationSasToken')))]",
+                        "[uri(parameters('_artifactsLocation'), concat('scripts/Configure-UserLogonPrivileges.ps1', parameters('_artifactsLocationSasToken')))]",
+                        "[uri(parameters('_artifactsLocation'), concat('scripts/Deploy-Start-ES.bat', parameters('_artifactsLocationSasToken')))]"
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('./scripts/Configure-ES-Node.exe -DomainDNSName ', parameters('domainDNSName'), variables('credentialsArg'), variables('deployDbFlag'), variables('deployPacFlag'))]"
+                    "commandToExecute": "[concat('.\\scripts\\Configure-ES-Node.exe -DomainDNSName ', parameters('domainDNSName'), ' -ClusterPrefix ', parameters('clusterPrefix'), ' -Index ', parameters('index'), variables('credentialsArg'), variables('redisArg'), variables('deployDbFlag'), variables('deployPacFlag'), variables('deployFsFlag'))]"
                 }
             }
         }

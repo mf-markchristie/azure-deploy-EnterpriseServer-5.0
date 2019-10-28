@@ -18,16 +18,16 @@
                 "description": "Region in which the resource group and components will be deployed"
             }
         },
-        "artifactsLocation": {
+        "_artifactsLocation": {
             "type": "string",
             "metadata": {
                 "description": "The base URI where artifacts required by this template are located including a trailing '/'"
             }
         },
-        "artifactsLocationSasToken": {
+        "_artifactsLocationSasToken": {
             "type": "securestring",
             "metadata": {
-                "description": "The sasToken required to access artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
+                "description": "The sasToken required to access _artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
             }
         },
         "hostName": {
@@ -86,11 +86,18 @@
                 "description": "Reference for availability set"
             }
         },
-        "esLicenseKey": {
+        "esLicense": {
             "type": "string",
             "defaultValue": "",
             "metadata": {
-                "description": "License key for Enterprise Server."
+                "description": "Location of license key file for Enterprise Server."
+            }
+        },
+        "deployLinux": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Flag to determine whether linux VMs are deployed for ES."
             }
         }
     },
@@ -202,12 +209,12 @@
                 "forceUpdateTag": "v.1.0",
                 "settings": {
                     "fileUris": [
-                        "[uri(parameters('artifactsLocation'), concat('scripts/Install-ES.exe', parameters('artifactsLocationSasToken')))]",
-                        "[uri(parameters('artifactsLocation'), concat('scripts/azcopy.exe', parameters('artifactsLocationSasToken')))]"
+                        "[uri(parameters('_artifactsLocation'), concat('scripts/Install-ES.exe', parameters('_artifactsLocationSasToken')))]",
+                        "[uri(parameters('_artifactsLocation'), concat('scripts/azcopy.exe', parameters('_artifactsLocationSasToken')))]"
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('scripts\\Install-ES.exe', if(equals(parameters('esLicenseKey'), ''), '', concat(' -licenseKey ', parameters('esLicenseKey'))), if(equals(parameters('dataDiskSize'), 0), ' -mountDrive N', ''))]"
+                    "commandToExecute": "[concat('scripts\\Install-ES.exe', ' -license ', parameters('esLicense'), if(equals(parameters('dataDiskSize'), 0), ' -mountDrive N', ''))]"
                 }
             }
         }
