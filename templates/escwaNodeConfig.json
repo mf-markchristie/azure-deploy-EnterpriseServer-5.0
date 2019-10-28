@@ -102,7 +102,7 @@
         "osDiskType": "StandardSSD_LRS",
         "scriptFileUri1": "[uri(parameters('_artifactsLocation'), concat('scripts/Configure-ESCWA-Node.ps1', parameters('_artifactsLocationSasToken')))]",
         "scriptFileUri2": "[uri(parameters('_artifactsLocation'), concat('scripts/Configure-UserLogonPrivileges.ps1', parameters('_artifactsLocationSasToken')))]",
-        "credentialsArg": "[concat(' -ServiceUser ', parameters('applicationUser'), ' -ServicePassword ', parameters('applicationUserPassword'))]",
+        "credentialsArg": "[concat(' -ServiceUser ', parameters('applicationUsername'), ' -ServicePassword ', parameters('applicationUserPassword'))]",
         "deployPacFlag": "[if(parameters('deployPacDemo'), ' -DeployPacDemo Y', '')]",
         "deployFsFlag": "[if(parameters('deployFsDemo'), ' -DeployFsDemo Y', '')]",
         "redisArg": "[if(parameters('deployPacDemo'), concat(' -RedisIp ', parameters('redisIp')), '')]"

@@ -292,7 +292,7 @@
                             "password": "[parameters('adminPassword')]"
                         },
                         "serviceCreds": {
-                            "userName": "[parameters('applicationUser')]",
+                            "userName": "[parameters('applicationUsername')]",
                             "password": "[parameters('applicationUserPassword')]"
                         },
                         "lBName": "[parameters('loadBalancerName')]",

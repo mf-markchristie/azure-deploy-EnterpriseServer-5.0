@@ -97,7 +97,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('scripts\\Configure-FS-Node.exe -FSViewPassword ', parameters('fsviewPassword'), ' -FSPort ', parameters('fsPort'), ' -DomainDNSName ', parameters('domainDNSName'), ' -ServiceUser ', parameters('applicationUser'))]"
+                    "commandToExecute": "[concat('scripts\\Configure-FS-Node.exe -FSViewPassword ', parameters('fsviewPassword'), ' -FSPort ', parameters('fsPort'), ' -DomainDNSName ', parameters('domainDNSName'), ' -ServiceUser ', parameters('applicationUsername'))]"
                 }
             }
         }

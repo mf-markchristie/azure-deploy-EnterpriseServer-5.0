@@ -269,7 +269,7 @@
                             "password": "privateSettingsRef:AdminPassword"
                         },
                         "sqlServiceCreds": {
-                            "userName": "[parameters('applicationUser')]",
+                            "userName": "[parameters('applicationUsername')]",
                             "password": "privateSettingsRef:SqlServerServiceAccountPassword"
                         },
                         "NumberOfDisks": "2",
@@ -325,7 +325,7 @@
                             "password": "privateSettingsRef:adminPassword"
                         },
                         "sqlServiceCreds": {
-                            "userName": "[parameters('applicationUser')]",
+                            "userName": "[parameters('applicationUsername')]",
                             "password": "privateSettingsRef:sqlServerServiceAccountPassword"
                         },
                         "SQLAuthCreds": {

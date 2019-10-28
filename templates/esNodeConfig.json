@@ -110,7 +110,7 @@
     },
     "variables": {
         "osDiskType": "StandardSSD_LRS",
-        "credentialsArg": "[concat(' -ServiceUser ', parameters('applicationUser'), ' -ServicePassword ', parameters('applicationUserPassword'))]",
+        "credentialsArg": "[concat(' -ServiceUser ', parameters('applicationUsername'), ' -ServicePassword ', parameters('applicationUserPassword'))]",
         "deployDbFlag": "[if(parameters('deployDbDemo'), ' -DeployDbDemo Y', '')]",
         "deployPacFlag": "[if(parameters('deployPacDemo'), ' -DeployPacDemo Y', '')]",
         "deployFsFlag": "[if(parameters('deployFsDemo'), ' -DeployFsDemo Y', '')]",
