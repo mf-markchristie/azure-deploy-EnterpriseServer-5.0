@@ -124,7 +124,30 @@
         "availabilitySetRef": {
             "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySetName'))]"
         },
-        "sshKeyPath": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]"
+        "sshKeyPath": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
+        "osProfileWin": {
+            "computerName": "[parameters('hostName')]",
+            "adminUsername": "[parameters('adminUsername')]",
+            "adminPassword": "[parameters('adminPassword')]",
+            "windowsConfiguration": {
+                "enableAutomaticUpdates": true,
+                "provisionVmAgent": true
+            }
+        },
+        "osProfileLinux": {
+            "computerName": "[parameters('hostName')]",
+            "adminUsername": "[parameters('adminUsername')]",
+            "adminPassword": "[parameters('adminPassword')]",
+            "linuxConfiguration": {
+                "disablePasswordAuthentication": true,
+                "ssh": {
+                    "publicKeys": [{
+                        "path": "[variables('sshKeyPath')]",
+                        "keyData": "[parameters('sshKey')]"
+                    }]
+                }
+            }
+        }
     },
     "resources": [
         {
@@ -189,24 +212,7 @@
                         "storageUri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', parameters('diagStorageAccount')), parameters('apiVersionStorage')).primaryEndpoints['blob']))]"
                     }
                 },
-                "osProfile": {
-                    "computerName": "[parameters('hostName')]",
-                    "adminUsername": "[parameters('adminUsername')]",
-                    "adminPassword": "[parameters('adminPassword')]",
-                    "windowsConfiguration": {
-                        "enableAutomaticUpdates": true,
-                        "provisionVmAgent": true
-                    },
-                    "linuxConfiguration": {
-                        "disablePasswordAuthentication": true,
-                        "ssh": {
-                            "publicKeys": [{
-                                "path": "[variables('sshKeyPath')]",
-                                "keyData": "[parameters('sshKey')]"
-                            }]
-                        }
-                    }
-                }
+                "osProfile": "[if(parameters('deployLinux'), variables('osProfileLinux'), variables('osProfileWin'))]"
             }
         },
         {
