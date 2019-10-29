@@ -173,7 +173,6 @@
                     "toolTip": "The size of the virtual machine to be deployed for the remote desktop gateway machines.",
                     "visible": "[greater(steps('vmSettings').generalMachineSettings.rdgInstanceCount, 0)]",
                     "recommendedSizes": [
-                        "Standard_D2s_v3",
                         "Standard_E2s_v3",
                         "Standard_D4s_v3",
                         "Standard_D8s_v3",
@@ -182,7 +181,6 @@
                     ],
                     "constraints": {
                         "allowedSizes": [
-                            "Standard_D2s_v3",
                             "Standard_E2s_v3",
                             "Standard_D4s_v3",
                             "Standard_D8s_v3",
@@ -200,71 +198,6 @@
                         ]
                     },
                     "osPlatform": "Windows",
-                    "count": 1
-                }, {
-                    "name": "bastionInstanceCount",
-                    "type": "Microsoft.Common.DropDown",
-                    "label": "Bastion Host Count",
-                    "defaultValue": "1",
-                    "toolTip": "Choose the number of Bastion hosts to be deployed.",
-                    "visible": "[equals(basics('osPlatform'), 'Linux')]",
-                    "constraints": {
-                        "allowedValues": [{
-                                "label": "0",
-                                "value": 0
-                            },
-                            {
-                                "label": "1",
-                                "value": 1
-                            },
-                            {
-                                "label": "2",
-                                "value": 2
-                            },
-                            {
-                                "label": "3",
-                                "value": 3
-                            },
-                            {
-                                "label": "4",
-                                "value": 4
-                            }
-                        ]
-                    }
-                }, {
-                    "name": "bastionInstanceSize",
-                    "type": "Microsoft.Compute.SizeSelector",
-                    "label": "Bastion VM size",
-                    "toolTip": "The size of the virtual machine to be deployed for the Bastion machines.",
-                    "visible": "[and(equals(basics('osPlatform'), 'Linux'), greater(steps('vmSettings').generalMachineSettings.bastionInstanceCount, 0))]",
-                    "recommendedSizes": [
-                        "Standard_D2s_v3",
-                        "Standard_E2s_v3",
-                        "Standard_D4s_v3",
-                        "Standard_D8s_v3",
-                        "Standard_D16s_v3",
-                        "Standard_D32s_v3"
-                    ],
-                    "constraints": {
-                        "allowedSizes": [
-                            "Standard_D2s_v3",
-                            "Standard_E2s_v3",
-                            "Standard_D4s_v3",
-                            "Standard_D8s_v3",
-                            "Standard_D16s_v3",
-                            "Standard_D32s_v3",
-                            "Standard_E8s_v3",
-                            "Standard_E16s_v3",
-                            "Standard_E32s_v3",
-                            "Standard_L8s",
-                            "Standard_L16s",
-                            "Standard_L32s",
-                            "Standard_DS13_v2",
-                            "Standard_DS14_v2",
-                            "Standard_DS15_v2"
-                        ]
-                    },
-                    "osPlatform": "Linux",
                     "count": 1
                 }, {
                     "name": "adInstanceSize",
@@ -659,8 +592,6 @@
             "sshKey": "[steps('vmSettings').generalMachineSettings.sshKey.sshPublicKey]",
             "rdgInstanceCount": "[steps('vmSettings').generalMachineSettings.rdgInstanceCount]",
             "rdgInstanceSize": "[steps('vmSettings').generalMachineSettings.rdgInstanceSize]",
-            "bastionInstanceCount": "[steps('vmSettings').generalMachineSettings.bastionInstanceCount]",
-            "bastionInstanceSize": "[steps('vmSettings').generalMachineSettings.bastionInstanceSize]",
             "adInstanceSize": "[steps('vmSettings').generalMachineSettings.adInstanceSize]",
             "deployDbDemo": "[equals(steps('demoSettings').deployDbDemo, 'Yes')]",
             "deployPacDemo": "[equals(steps('demoSettings').deployPacDemo, 'Yes')]",

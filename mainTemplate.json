@@ -138,21 +138,6 @@
                 "description": "VM size for RDG nodes"
             }
         },
-        "bastionInstanceCount": {
-            "type": "int",
-            "defaultValue": 1,
-            "maxValue": 4,
-            "metadata": {
-                "description": "Number of Bastion nodes"
-            }
-        },
-        "bastionInstanceSize": {
-            "type": "string",
-            "defaultValue": "Standard_DS2_v2",
-            "metadata": {
-                "description": "VM size for Bastion nodes"
-            }
-        },
         "esLicense": {
             "type": "string",
             "defaultValue": "",
@@ -562,6 +547,34 @@
                         }
                     },
                     {
+                        "name": "SSH_Gateway",
+                        "properties": {
+                            "description": "Allow SSH traffic from management subnet",
+                            "priority": 330,
+                            "protocol": "Tcp",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('managementSubnetPrefix')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "22"
+                        }
+                    },
+                    {
+                        "name": "SSH_NonGateway",
+                        "properties": {
+                            "description": "Deny SSH traffic from anywhere outside management subnet",
+                            "priority": 340,
+                            "protocol": "Tcp",
+                            "access": "Deny",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "22"
+                        }
+                    },
+                    {
                         "name": "tn3270_inbound",
                         "properties": {
                             "description": "Allow 3270 traffic inbound",
@@ -786,6 +799,34 @@
                             "sourcePortRange": "*",
                             "destinationAddressPrefix": "*",
                             "destinationPortRange": "*"
+                        }
+                    },
+                    {
+                        "name": "SSH_Gateway",
+                        "properties": {
+                            "description": "Allow SSH traffic from management subnet",
+                            "priority": 330,
+                            "protocol": "Tcp",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('managementSubnetPrefix')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "22"
+                        }
+                    },
+                    {
+                        "name": "SSH_NonGateway",
+                        "properties": {
+                            "description": "Deny SSH traffic from anywhere outside management subnet",
+                            "priority": 340,
+                            "protocol": "Tcp",
+                            "access": "Deny",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "22"
                         }
                     },
                     {
