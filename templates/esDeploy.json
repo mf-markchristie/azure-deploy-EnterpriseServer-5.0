@@ -237,7 +237,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('Install-ES.exe', ' -license \"', parameters('esLicense'), '\"' if(equals(parameters('dataDiskSize'), 0), ' -mountDrive N', ''))]"
+                    "commandToExecute": "[concat('Install-ES.exe', ' -license \"', parameters('esLicense'), '\"', if(equals(parameters('dataDiskSize'), 0), ' -mountDrive N', ''))]"
                 }
             }
         }
