@@ -109,7 +109,6 @@
         }
     },
     "variables": {
-        "osDiskType": "StandardSSD_LRS",
         "credentialsArg": "[concat(' -ServiceUser ', parameters('applicationUsername'), ' -ServicePassword ', parameters('applicationUserPassword'))]",
         "deployDbFlag": "[if(parameters('deployDbDemo'), ' -DeployDbDemo Y', '')]",
         "deployPacFlag": "[if(parameters('deployPacDemo'), ' -DeployPacDemo Y', '')]",
@@ -122,6 +121,7 @@
             "name": "[concat(parameters('hostName'), '/Setup')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "location": "[parameters('location')]",
+            "condition": "[not(parameters('deployLinux'))]",
             "properties": {
                 "publisher": "Microsoft.Compute",
                 "type": "CustomScriptExtension",

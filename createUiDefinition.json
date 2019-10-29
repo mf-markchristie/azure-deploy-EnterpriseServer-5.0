@@ -668,7 +668,7 @@
             "fsviewPassword": "[steps('demoSettings').fsSettings.fsviewPassword]",
             "fsInstanceSize": "[steps('demoSettings').fsSettings.fsInstanceSize]",
             "fsDataDiskSize": "[steps('demoSettings').fsSettings.fsDataDiskSize]",
-            "fsPort": "[steps('demoSettings').fsSettings.fsPort]",
+            "fsPort": "[int(steps('demoSettings').fsSettings.fsPort)]",
             "sqlWitnessInstanceSize": "[steps('demoSettings').dbSettings.sqlWitnessInstanceSize]",
             "sqlSlaveInstanceSize": "[steps('demoSettings').dbSettings.sqlSlaveInstanceSize]"
         }

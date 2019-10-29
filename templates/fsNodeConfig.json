@@ -76,8 +76,6 @@
         }
     },
     "variables": {
-        "osDiskType": "StandardSSD_LRS",
-        "scriptFileUri": "[uri(parameters('_artifactsLocation'), concat('scripts_win/Configure-FS-Node.exe', parameters('_artifactsLocationSasToken')))]"
     },
     "resources": [
         {
@@ -85,6 +83,7 @@
             "name": "[concat(parameters('hostName'), '/Setup')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "location": "[parameters('location')]",
+            "condition": "[not(parameters('deployLinux'))]",
             "properties": {
                 "publisher": "Microsoft.Compute",
                 "type": "CustomScriptExtension",
@@ -93,7 +92,7 @@
                 "forceUpdateTag": "v.2.0",
                 "settings": {
                     "fileUris": [
-                        "[variables('scriptFileUri')]"
+                        "[uri(parameters('_artifactsLocation'), concat('scripts_win/Configure-FS-Node.exe', parameters('_artifactsLocationSasToken')))]"
                     ]
                 },
                 "protectedSettings": {

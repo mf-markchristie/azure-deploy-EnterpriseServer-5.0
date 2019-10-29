@@ -99,6 +99,12 @@
             "metadata": {
                 "description": "Flag to determine whether linux VMs are deployed for ES."
             }
+        },
+        "sshKey": {
+            "type": "string",
+            "metadata": {
+                "description": "SSH Public Key"
+            }
         }
     },
     "variables": {
@@ -117,7 +123,8 @@
         "dataDisksEmpty": [],
         "availabilitySetRef": {
             "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySetName'))]"
-        }
+        },
+        "sshKeyPath": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]"
     },
     "resources": [
         {
@@ -162,9 +169,9 @@
                         }
                     },
                     "imageReference": {
-                        "publisher": "MicrosoftWindowsServer",
-                        "offer": "WindowsServer",
-                        "sku": "2019-Datacenter",
+                        "publisher": "[if(parameters('deployLinux'), 'RedHat', 'MicrosoftWindowsServer')]",
+                        "offer": "[if(parameters('deployLinux'), 'RHEL', 'WindowsServer')]",
+                        "sku": "[if(parameters('deployLinux'), '7.5', '2019-Datacenter')]",
                         "version": "latest"
                     },
                     "dataDisks": "[if(equals(parameters('dataDiskSize'), 0), variables('dataDisksEmpty'), variables('dataDisks'))]"
@@ -189,6 +196,15 @@
                     "windowsConfiguration": {
                         "enableAutomaticUpdates": true,
                         "provisionVmAgent": true
+                    },
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": true,
+                        "ssh": {
+                            "publicKeys": [{
+                                "path": "[variables('sshKeyPath')]",
+                                "keyData": "[parameters('sshKey')]"
+                            }]
+                        }
                     }
                 }
             }
@@ -198,6 +214,7 @@
             "name": "[concat(parameters('hostName'), '/Setup')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "location": "[parameters('location')]",
+            "condition": "[not(parameters('deployLinux'))]",
             "dependsOn": [
                 "[resourceId('Microsoft.Compute/virtualMachines', parameters('hostName'))]"
             ],

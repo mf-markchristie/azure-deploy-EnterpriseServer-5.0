@@ -1222,6 +1222,9 @@
                     },
                     "deployLinux": {
                         "value": "[parameters('deployLinux')]"
+                    },
+                    "sshKey": {
+                        "value": "[parameters('sshKey')]"
                     }
                 }
             }
@@ -1350,6 +1353,9 @@
                     },
                     "deployLinux": {
                         "value": "[parameters('deployLinux')]"
+                    },
+                    "sshKey": {
+                        "value": "[parameters('sshKey')]"
                     }
                 }
             }
@@ -1414,6 +1420,9 @@
                     },
                     "deployLinux": {
                         "value": "[parameters('deployLinux')]"
+                    },
+                    "sshKey": {
+                        "value": "[parameters('sshKey')]"
                     }
                 }
             }
