@@ -83,18 +83,9 @@
             "metadata": {
                 "description": "Name of escwa hosting machine"
             }
-        },
-        "deployLinux": {
-            "type": "bool",
-            "defaultValue": true,
-            "metadata": {
-                "description": "Flag to determine whether linux VMs are deployed for ES."
-            }
         }
     },
     "variables": {
-        "osDiskType": "StandardSSD_LRS",
-        "scriptFileUri": "[uri(parameters('_artifactsLocation'), concat('scripts_win/Configure-RDG-Node.exe', parameters('_artifactsLocationSasToken')))]"
     },
     "resources": [
         {
@@ -205,7 +196,8 @@
                 "forceUpdateTag": "v.2.0",
                 "settings": {
                     "fileUris": [
-                        "[variables('scriptFileUri')]"
+                        "[uri(parameters('_artifactsLocation'), concat('scripts_win/Configure-RDG-Node.exe', parameters('_artifactsLocationSasToken')))]",
+                        "[uri(parameters('_artifactsLocation'), concat('scripts_win/putty-installer.msi', parameters('_artifactsLocationSasToken')))]"
                     ]
                 },
                 "protectedSettings": {

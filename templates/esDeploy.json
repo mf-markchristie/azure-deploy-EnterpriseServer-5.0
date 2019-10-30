@@ -240,6 +240,32 @@
                     "commandToExecute": "[concat('Install-ES.exe', ' -license \"', parameters('esLicense'), '\"', if(equals(parameters('dataDiskSize'), 0), ' -mountDrive N', ''))]"
                 }
             }
-        }
+        },
+        {
+            "apiVersion": "[parameters('apiVersionCompute')]",
+            "name": "[concat(parameters('hostName'), '/Setup')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "location": "[parameters('location')]",
+            "condition": "[parameters('deployLinux')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines', parameters('hostName'))]"
+            ],
+            "properties": {
+              "publisher": "Microsoft.Azure.Extensions",
+              "type": "CustomScript",
+              "typeHandlerVersion": "2.0",
+              "autoUpgradeMinorVersion": true,
+              "settings": {
+                "skipDos2Unix": true,
+                "fileUris": [
+                    "[uri(parameters('_artifactsLocation'), concat('scripts_unix/Install-ES', parameters('_artifactsLocationSasToken')))]",
+                    "[uri(parameters('_artifactsLocation'), concat('scripts_unix/azcopy.tar.gz', parameters('_artifactsLocationSasToken')))]"
+                ]
+              },
+              "protectedSettings": {
+                 "commandToExecute": "bash ./Install-ES.sh"
+              }
+            }
+          }
     ]
 }
