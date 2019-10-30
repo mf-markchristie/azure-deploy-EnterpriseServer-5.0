@@ -86,6 +86,7 @@
         }
     },
     "variables": {
+        "osDiskType": "StandardSSD_LRS"
     },
     "resources": [
         {
