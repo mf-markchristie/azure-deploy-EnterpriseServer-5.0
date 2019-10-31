@@ -14,12 +14,17 @@ export TERM="xterm"
 shift
 
 basedir=$(dirname "$0")
+echo "user is " `whoami`
+echo "dir is $basedir"
+
 
 mkdir ~/utils
-cp ./azcopy.tar.gz ~/utils
+sudo cp $basedir/azcopy.tar.gz ~/utils
 cd ~/utils
 tar -xf azcopy.tar.gz
-rm azcopy.tar.gz
+rm -f azcopy.tar.gz
+cp azcopy_linux*/azcopy .
+rm -rf azcopy_linux*
 chmod +x ./azcopy
 export PATH=`pwd`:$PATH
 cd -
