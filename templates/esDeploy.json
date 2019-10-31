@@ -264,7 +264,7 @@
                 ]
               },
               "protectedSettings": {
-                 "commandToExecute": "[concat('bash ./Install-ES.sh', ' \"', parameters('esLicense'), '\"', if(equals(parameters('dataDiskSize'), 0), ' N', ' Y'))]"
+                 "commandToExecute": "[concat('bash ./Install-ES.sh', ' \"', parameters('esLicense'), '\"', parameters('adminUsername'), if(equals(parameters('dataDiskSize'), 0), ' N', ' Y'))]"
               }
             }
           }
