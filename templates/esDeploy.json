@@ -259,7 +259,7 @@
               "settings": {
                 "fileUris": [
                     "[uri(parameters('_artifactsLocation'), concat('scripts_unix/Install-ES.sh', parameters('_artifactsLocationSasToken')))]",
-                    "[uri(parameters('_artifactsLocation'), concat('scripts_unix/Prepare-Installer.sh', parameters('_artifactsLocationSasToken')))]",
+                    "[uri(parameters('_artifactsLocation'), concat('scripts_unix/Prepare-Installer', parameters('_artifactsLocationSasToken')))]",
                     "[uri(parameters('_artifactsLocation'), concat('scripts_unix/azcopy.tar.gz', parameters('_artifactsLocationSasToken')))]"
                 ]
               },
