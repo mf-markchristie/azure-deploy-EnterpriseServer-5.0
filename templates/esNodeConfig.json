@@ -130,13 +130,14 @@
                 "forceUpdateTag": "v.2.0",
                 "settings": {
                     "fileUris": [
-                        "[uri(parameters('_artifactsLocation'), concat('scripts_win/Configure-ES-Node.exe', parameters('_artifactsLocationSasToken')))]",
+                        "[uri(parameters('_artifactsLocation'), concat('scripts_win/Configure-ES-Node.ps1', parameters('_artifactsLocationSasToken')))]",
+                        "[uri(parameters('_artifactsLocation'), concat('scripts_win/Prepare-Demo.exe', parameters('_artifactsLocationSasToken')))]",
                         "[uri(parameters('_artifactsLocation'), concat('scripts_win/Configure-UserLogonPrivileges.ps1', parameters('_artifactsLocationSasToken')))]",
                         "[uri(parameters('_artifactsLocation'), concat('scripts_win/Deploy-Start-ES.bat', parameters('_artifactsLocationSasToken')))]"
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('Configure-ES-Node.exe -DomainDNSName ', parameters('domainDNSName'), ' -ClusterPrefix ', parameters('clusterPrefix'), ' -Index ', parameters('index'), variables('credentialsArg'), variables('redisArg'), variables('deployDbFlag'), variables('deployPacFlag'), variables('deployFsFlag'))]"
+                    "commandToExecute": "[concat('powershell .\\Configure-ES-Node.ps1 -DomainDNSName ', parameters('domainDNSName'), ' -ClusterPrefix ', parameters('clusterPrefix'), ' -Index ', parameters('index'), variables('credentialsArg'), variables('redisArg'), variables('deployDbFlag'), variables('deployPacFlag'), variables('deployFsFlag'))]"
                 }
             }
         }
