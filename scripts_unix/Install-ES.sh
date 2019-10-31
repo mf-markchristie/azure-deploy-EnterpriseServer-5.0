@@ -11,13 +11,9 @@ user=$2
 mountDrive=$3
 installerExeName="setup_ent_server_redhat_x86_64"
 updateExeName="setup_ent_server_update_redhat_x86_64"
+basedir=`pwd`
 export TERM="xterm"
 shift
-
-basedir=`pwd`
-echo "user is " `whoami`
-echo "dir is $basedir"
-
 
 mkdir ~/utils
 sudo cp $basedir/azcopy.tar.gz ~/utils
