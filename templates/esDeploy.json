@@ -257,9 +257,9 @@
               "typeHandlerVersion": "2.0",
               "autoUpgradeMinorVersion": true,
               "settings": {
-                "skipDos2Unix": true,
                 "fileUris": [
                     "[uri(parameters('_artifactsLocation'), concat('scripts_unix/Install-ES.sh', parameters('_artifactsLocationSasToken')))]",
+                    "[uri(parameters('_artifactsLocation'), concat('scripts_unix/Prepare-Installer.sh', parameters('_artifactsLocationSasToken')))]",
                     "[uri(parameters('_artifactsLocation'), concat('scripts_unix/azcopy.tar.gz', parameters('_artifactsLocationSasToken')))]"
                 ]
               },

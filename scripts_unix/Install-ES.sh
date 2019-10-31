@@ -8,27 +8,27 @@ then
 fi
 license=$1
 mountDrive=$2
+installerExeName="ent_server_redhat_x86_64.rpm"
+updateExeName="ent_server_update_redhat_x86_64.rpm"
 export TERM="xterm"
 shift
+
+basedir=$(dirname "$0")
 
 mkdir ~/utils
 cp ./azcopy.tar.gz ~/utils
 cd ~/utils
 tar -xf azcopy.tar.gz
 rm azcopy.tar.gz
+chmod +x ./azcopy
 export PATH=`pwd`:$PATH
 cd -
 mkdir ~/tmp
 cd ~/tmp
 
-installerExeName="ent_server_redhat_x86_64.rpm"
-updateExeName="ent_server_update_redhat_x86_64.rpm"
-installerLocation="https://mfenterprisestorage.blob.core.windows.net/enterpriseserverdeploy"
-
-echo "Downloading Installer"
-azcopy copy "${installerLocation}/${installerExeName}" "."
+. "$basedir/Prepare-Installer"
 if [ "$?" -ne "0" ]; then
-    echo "Failed to download installer."
+    echo "Failed to prepare installer."
     exit 1
 fi
 

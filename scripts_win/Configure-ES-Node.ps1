@@ -132,7 +132,7 @@ Start-Process -Wait -FilePath "$PSScriptRoot\Prepare-Demo.exe" -ArgumentList "-D
 
 if ($DeployDbDemo -eq "Y" -or $DeployPacDemo -eq "Y") {
     Write-Host "Setting up ODBC Drivers"
-    Start-Process -Wait -FilePath "$PSScriptRoot\Prepare-Demo.exe" -ArgumentList "-DeployODBC 'Y'"
+    Start-Process -Wait -FilePath "$PSScriptRoot\Prepare-Demo.exe" -ArgumentList "-DeployODBC Y"
     $env:Path += "c:\Program Files\Microsoft SQL Server\Client SDK\ODBC\130\Tools\Binn"
 }
 if ($DeployDbDemo -eq "Y") {

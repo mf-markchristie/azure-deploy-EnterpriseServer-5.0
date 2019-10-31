@@ -140,6 +140,28 @@
                     "commandToExecute": "[concat('powershell .\\Configure-ES-Node.ps1 -DomainDNSName ', parameters('domainDNSName'), ' -ClusterPrefix ', parameters('clusterPrefix'), ' -Index ', parameters('index'), variables('credentialsArg'), variables('redisArg'), variables('deployDbFlag'), variables('deployPacFlag'), variables('deployFsFlag'))]"
                 }
             }
-        }
+        },
+        {
+            "apiVersion": "[parameters('apiVersionCompute')]",
+            "name": "[concat(parameters('hostName'), '/SetupLinux')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "location": "[parameters('location')]",
+            "condition": "[parameters('deployLinux')]",
+            "properties": {
+              "publisher": "Microsoft.Azure.Extensions",
+              "type": "CustomScript",
+              "typeHandlerVersion": "2.0",
+              "autoUpgradeMinorVersion": true,
+              "settings": {
+                "fileUris": [
+                    "[uri(parameters('_artifactsLocation'), concat('scripts_unix/Configure-ES-Node.sh', parameters('_artifactsLocationSasToken')))]",
+                    "[uri(parameters('_artifactsLocation'), concat('scripts_unix/Prepare-Demo.sh', parameters('_artifactsLocationSasToken')))]"
+                ]
+              },
+              "protectedSettings": {
+                 "commandToExecute": "[concat('bash ./Configure-ES-Node.sh')]"
+              }
+            }
+          }
     ]
 }

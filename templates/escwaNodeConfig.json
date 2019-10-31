@@ -127,6 +127,27 @@
                     "commandToExecute": "[concat('powershell .\\Configure-ESCWA-Node.ps1 -DomainDNSName ', parameters('domainDNSName'), ' -ESCount ', parameters('esInstanceCount'), ' -clusterPrefix ', parameters('clusterPrefix'), variables('credentialsArg'), variables('redisArg'), variables('deployPacFlag'), variables('deployFsFlag'))]"
                 }
             }
-        }
+        },
+        {
+            "apiVersion": "[parameters('apiVersionCompute')]",
+            "name": "[concat(parameters('hostName'), '/SetupLinux')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "location": "[parameters('location')]",
+            "condition": "[parameters('deployLinux')]",
+            "properties": {
+              "publisher": "Microsoft.Azure.Extensions",
+              "type": "CustomScript",
+              "typeHandlerVersion": "2.0",
+              "autoUpgradeMinorVersion": true,
+              "settings": {
+                "fileUris": [
+                    "[uri(parameters('_artifactsLocation'), concat('scripts_unix/Configure-ESCWA-Node.sh', parameters('_artifactsLocationSasToken')))]"
+                ]
+              },
+              "protectedSettings": {
+                 "commandToExecute": "[concat('bash ./Configure-ESCWA-Node.sh')]"
+              }
+            }
+          }
     ]
 }
