@@ -28,7 +28,7 @@ cd -
 mkdir ~/tmp
 cd ~/tmp
 
-. "$basedir/Prepare-Installer"
+"$basedir/Prepare-Installer"
 if [ "$?" -ne "0" ]; then
     echo "Failed to prepare installer."
     exit 1
@@ -36,6 +36,7 @@ fi
 
 yum install gcc glibc.i686 libgcc.i686 libstdc++.i686 pax java-1.7.0-openjdk-devel -y
 
+chmod +x $installerExeName
 ./$installerExeName -ESadminID=$user -IAcceptEULA
 saveError=$?
 if [ "$saveError" -ne "0" ]; then
@@ -43,6 +44,7 @@ if [ "$saveError" -ne "0" ]; then
     exit 1
 fi
 
+chmod +x $updateExeName
 ./$updateExeName -ESadminID=$user -IAcceptEULA
 saveError=$?
 if [ "$saveError" -ne "0" ]; then
@@ -78,5 +80,7 @@ EOF
     mkdir /datadrive
     mount /dev/sdc1
 fi
+
+rm -rf ~/tmp
 
 exit 0
