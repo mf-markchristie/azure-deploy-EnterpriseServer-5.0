@@ -32,6 +32,7 @@ if [ "$saveError" -ne "0" ]; then
     echo "Failed to provide login permissions. Error $saveError"
     exit 1
 fi
+su - $usernameFull -c "exit" # To ensure wd is created
 
 . /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv
 mfds --listen-all
