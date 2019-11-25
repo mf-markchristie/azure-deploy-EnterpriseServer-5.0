@@ -1744,6 +1744,7 @@
             }
         },
         {
+            "condition": "[not(parameters('deployLinux'))]",
             "apiVersion": "[variables('apiVersionCompute')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(esdeploy.getLoopName(variables('esHostname'), copyIndex()), '/joindomain')]",
@@ -1800,6 +1801,7 @@
             }
         },
         {
+            "condition": "[not(parameters('deployLinux'))]",
             "apiVersion": "[variables('apiVersionCompute')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('escwaHostname'), '/joindomain')]",
@@ -1853,7 +1855,7 @@
             }
         },
         {
-            "condition": "[parameters('deployFsDemo')]",
+            "condition": "[and(parameters('deployFsDemo'), not(parameters('deployLinux')))]",
             "apiVersion": "[variables('apiVersionCompute')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('fsHostname'), '/joindomain')]",

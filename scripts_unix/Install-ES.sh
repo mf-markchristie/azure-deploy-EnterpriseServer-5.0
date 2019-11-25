@@ -61,8 +61,6 @@ licenseFileName=`ls` #This will be the only file in this directory
 /var/microfocuslicensing/bin/cesadmintool.sh -install `pwd`/$licenseFileName << block
 
 block
-. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv
-mfds --listen-all
 
 if [ "$mountDrive" = "Y" ]; then
     fdisk /dev/sdc << EOF

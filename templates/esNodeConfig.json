@@ -155,7 +155,8 @@
               "settings": {
                 "fileUris": [
                     "[uri(parameters('_artifactsLocation'), concat('scripts_unix/Configure-ES-Node.sh', parameters('_artifactsLocationSasToken')))]",
-                    "[uri(parameters('_artifactsLocation'), concat('scripts_unix/Prepare-Demo.sh', parameters('_artifactsLocationSasToken')))]"
+                    "[uri(parameters('_artifactsLocation'), concat('scripts_unix/Join-Domain.sh', parameters('_artifactsLocationSasToken')))]",
+                    "[uri(parameters('_artifactsLocation'), concat('scripts_unix/Prepare-Demo', parameters('_artifactsLocationSasToken')))]"
                 ]
               },
               "protectedSettings": {
