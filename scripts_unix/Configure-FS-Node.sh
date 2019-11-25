@@ -1,6 +1,5 @@
 #! /bin/bash -e
-
-if [ "$#" -ne 4 ]
+if [ "$#" -ne 3 ]
 then
   echo "Not Enough Arguments supplied."
   echo "Usage Configure-FS-Node FSVIEWUserPassword FSPort DomainDNSName"
@@ -9,12 +8,27 @@ fi
 FSVIEWUserPassword=$1
 FSPort=$2
 DomainDNSName=$3
+basedir=`pwd`
 export TERM="xterm"
 shift
 source /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv
 
-cp -r /home/ec2-user/BankDemo_FS/System/catalog/data/* /FSdata
-cp /tmp/fs.conf /FSdata
-chmod 777 /FSdata/*
+"$basedir/Prepare-Demo" Y N N
 fs -pf /FSdata/pass.dat -u SYSAD -pw SYSAD
 fs -pf /FSdata/pass.dat -u FSVIEW -pw $FSVIEWUserPassword
+
+echo "/s FS1,MFPORT:${FSPort}" > /FSdata/fs.conf
+echo "/pf /FSdata/pass.dat" >> /FSdata/fs.conf
+echo "/wd /FSdata" >> /FSdata/fs.conf
+echo "/cm CCITCP">> /FSdata/fs.conf
+
+unzip ./BankDemo_FS -D BankDemo_FS
+cp -r ./BankDemo_FS/System/catalog/data/* /FSdata
+chmod 777 /FSdata/*
+
+fs -cf /FSdata/fs.conf &
+
+
+# Todo:
+#  - Network share
+#  - Convert demo files if needed
