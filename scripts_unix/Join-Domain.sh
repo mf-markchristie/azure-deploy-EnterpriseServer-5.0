@@ -19,11 +19,6 @@ echo $Password | realm join -v -U $Join_account $Domain --install=/
 sed -i '/PasswordAuthentication/s/no.*/yes/' /etc/ssh/sshd_config
 systemctl restart sshd.service
 
-realm permit Admin@$Domain
-
-#Give domain admins sudo privledges
-echo "%AWS\ Delegated\ Administrators@$Domain ALL=(ALL:ALL) ALL" | EDITOR='tee -a' visudo
-
 if [ $? -eq 0 ]; then
     echo "JoinTo-Domain-Linux has passed"
     exit 0

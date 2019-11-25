@@ -106,6 +106,18 @@
             "metadata": {
                 "description": "Password address of Redis cache."
             }
+        },
+        "domainAdminUserName": {
+            "type": "string",
+            "metadata": {
+                "description": "Domain administrator username."
+            }
+        },
+        "domainAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The password for the domain Admin account."
+            }
         }
     },
     "variables": {
@@ -160,7 +172,7 @@
                 ]
               },
               "protectedSettings": {
-                 "commandToExecute": "[concat('bash ./Configure-ES-Node.sh')]"
+                 "commandToExecute": "[concat('bash ./Configure-ES-Node.sh ', parameters('domainDNSName'), ' ', parameters('domainAdminUserName'), ' ', parameters('domainAdminPassword'), ' ', parameters('applicationUsername'), ' ', parameters('clusterPrefix'), ' ', parameters('redisIp'), ' ', parameters('redisPassword'), ' ', if(parameters('deployDbDemo'), 'Y', 'N'), ' ', if(parameters('deployPacDemo'), 'Y', 'N'), ' ', if(parameters('deployFsDemo'), 'Y', 'N'))]"
               }
             }
           }

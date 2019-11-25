@@ -1927,6 +1927,12 @@
                     },
                     "redisIp": {
                         "value": "[parameters('redisIp')]"
+                    },
+                    "domainAdminUserName": {
+                        "value": "[parameters('administratorUserName')]"
+                    },
+                    "domainAdminPassword": {
+                        "value": "[parameters('administratorPassword')]"
                     }
                 }
             }
@@ -1981,6 +1987,12 @@
                     },
                     "deployLinux": {
                         "value": "[parameters('deployLinux')]"
+                    },
+                    "domainAdminUserName": {
+                        "value": "[parameters('administratorUserName')]"
+                    },
+                    "domainAdminPassword": {
+                        "value": "[parameters('administratorPassword')]"
                     }
                 }
             }
@@ -2135,6 +2147,12 @@
                     },
                     "redisPassword": {
                         "value": "[if(parameters('deployPacDemo'), listkeys(resourceId('Microsoft.Cache/redis', variables('redisCacheName')), providers('Microsoft.Cache', 'redis').apiVersions[0]).primaryKey, '')]"
+                    },
+                    "domainAdminUserName": {
+                        "value": "[parameters('administratorUserName')]"
+                    },
+                    "domainAdminPassword": {
+                        "value": "[parameters('administratorPassword')]"
                     }
                 }
             }

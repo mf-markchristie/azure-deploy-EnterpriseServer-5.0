@@ -96,6 +96,18 @@
         "redisIp": {
             "type": "string",
             "defaultValue": "10.0.64.10"
+        },
+        "domainAdminUserName": {
+            "type": "string",
+            "metadata": {
+                "description": "Domain administrator username."
+            }
+        },
+        "domainAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The password for the domain Admin account."
+            }
         }
     },
     "variables": {
@@ -146,7 +158,7 @@
                 ]
               },
               "protectedSettings": {
-                 "commandToExecute": "[concat('bash ./Configure-ESCWA-Node.sh')]"
+                 "commandToExecute": "[concat('bash ./Configure-ESCWA-Node.sh ',  parameters('domainDNSName'), ' ', parameters('domainAdminUserName'), ' ', parameters('domainAdminPassword'), ' ', parameters('applicationUsername'), ' ', parameters('esInstanceCount'), ' ', parameters('clusterPrefix'), ' ', parameters('RedisIp'), ' ', if(parameters('deployFsDemo'), 'Y', 'N'), ' ', if(parameters('deployPacDemo'), 'Y', 'N'))]"
               }
             }
           }

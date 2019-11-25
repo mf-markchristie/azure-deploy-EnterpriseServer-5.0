@@ -1,14 +1,20 @@
 #! /bin/bash -e
-if [ "$#" -ne 4 ]
+if [ "$#" -ne 10 ]
 then
   echo "Not Enough Arguments supplied."
-  echo "Usage Configure-ES-Node DomainDNSName DomainAdminUser DomainAdminPassword ServiceUser"
+  echo "Usage Configure-ES-Node DomainDNSName DomainAdminUser DomainAdminPassword ServiceUser ClusterPrefix RedisIp RedisPassword DeployDbDemo DeployPacDemo DeployFsDemo"
   exit 1
 fi
 DomainDNSName=$1
 DomainAdminUser=$2
 DomainAdminPassword=$3
 ServiceUser=$4
+ClusterPrefix=$5
+RedisIp=$6
+RedisPassword=$7
+DeployDbDemo=$8
+DeployPacDemo=$9
+DeployFsDemo=${10}
 basedir=`pwd`
 export TERM="xterm"
 shift

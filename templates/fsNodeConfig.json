@@ -73,6 +73,18 @@
             "metadata": {
                 "description": "Flag to determine whether linux VMs are deployed for ES."
             }
+        },
+        "domainAdminUserName": {
+            "type": "string",
+            "metadata": {
+                "description": "Domain administrator username."
+            }
+        },
+        "domainAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The password for the domain Admin account."
+            }
         }
     },
     "variables": {
@@ -120,7 +132,7 @@
                 ]
               },
               "protectedSettings": {
-                 "commandToExecute": "[concat('bash ./Configure-FS-Node.sh')]"
+                 "commandToExecute": "[concat('bash ./Configure-FS-Node.sh ', parameters('fsviewPassword'), ' ', parameters('fsPort'), ' ', parameters('domainDNSName'), ' ', parameters('domainAdminUserName'), ' ', parameters('domainAdminPassword'), ' ', parameters('applicationUsername'))]"
               }
             }
           }

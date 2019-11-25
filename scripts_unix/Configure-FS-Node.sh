@@ -1,8 +1,8 @@
 #! /bin/bash -e
-if [ "$#" -ne 5 ]
+if [ "$#" -ne 6 ]
 then
   echo "Not Enough Arguments supplied."
-  echo "Usage Configure-FS-Node FSVIEWUserPassword FSPort DomainDNSName DomainAdminUser DomainAdminPassword"
+  echo "Usage Configure-FS-Node FSVIEWUserPassword FSPort DomainDNSName DomainAdminUser DomainAdminPassword ServiceUser"
   exit 1
 fi
 FSVIEWUserPassword=$1
@@ -10,6 +10,7 @@ FSPort=$2
 DomainDNSName=$3
 DomainAdminUser=$4
 DomainAdminPassword=$5
+ServiceUser=$6
 basedir=`pwd`
 export TERM="xterm"
 shift
