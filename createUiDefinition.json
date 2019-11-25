@@ -6,7 +6,7 @@
         "basics": [{
                 "name": "clusterPrefix",
                 "type": "Microsoft.Common.TextBox",
-                "label": "Cluster Prefix",
+                "label": "Cluster prefix",
                 "toolTip": "The string by which resources in the deployment will be prefixed.",
                 "defaultValue": "mfes",
                 "constraints": {
@@ -18,7 +18,7 @@
             {
                 "name": "osPlatform",
                 "type": "Microsoft.Common.DropDown",
-                "label": "Operating System",
+                "label": "Operating system",
                 "defaultValue": "Windows",
                 "toolTip": "Choose the operating system to be used for the Enterprise Server hosting machines.",
                 "constraints": {
@@ -36,7 +36,7 @@
             {
                 "name": "esLicense",
                 "type": "Microsoft.Common.FileUpload",
-                "label": "Licence File",
+                "label": "Licence file",
                 "toolTip": "Licence file for Enterprise Server",
                 "constraints": {
                     "required": true,
@@ -59,11 +59,11 @@
             "elements": [{
                 "name": "domainSettings",
                 "type": "Microsoft.Common.Section",
-                "label": "Domain Settings",
+                "label": "Domain settings",
                 "elements": [{
                         "name": "domainDNSName",
                         "type": "Microsoft.Common.TextBox",
-                        "label": "Domain DNS Name",
+                        "label": "Domain DNS name",
                         "defaultValue": "",
                         "constraints": {
                             "regex": "^(?=^.{4,253}$)(^((?!-)[a-zA-Z0-9-]{0,62}[a-zA-Z0-9]\\.)+[a-zA-Z]{2,63}$)",
@@ -74,7 +74,7 @@
                     }, {
                         "name": "administratorUserName",
                         "type": "Microsoft.Compute.UserNameTextBox",
-                        "label": "Administrator User Name",
+                        "label": "Administrator user name",
                         "defaultValue": "",
                         "osPlatform": "Windows",
                         "constraints": {
@@ -86,7 +86,7 @@
                         "name": "administratorPassword",
                         "type": "Microsoft.Common.PasswordBox",
                         "label": {
-                            "password": "Administrator User Password",
+                            "password": "Administrator user password",
                             "confirmPassword": "Confirm password"
                         },
                         "toolTip": "Provide domain administrator user password. On Windows this will also be the password for the VM administrator account.",
@@ -113,7 +113,7 @@
             "elements": [{
                 "name": "generalMachineSettings",
                 "type": "Microsoft.Common.Section",
-                "label": "General Machine Settings",
+                "label": "General machine settings",
                 "elements": [{
                     "name": "sshKey",
                     "type": "Microsoft.Compute.CredentialsCombo",
@@ -121,12 +121,12 @@
                         "authenticationType": "Authentication Type",
                         "password": "Password",
                         "confirmPassword": "Confirm password",
-                        "sshPublicKey": "SSH Public Key for VM Admin User"
+                        "sshPublicKey": "SSH public key for VM admin user"
                     },
                     "toolTip": {
                         "authenticationType": "Authentication type",
                         "password": "Password",
-                        "sshPublicKey": "SSH Public Key for the VM Admin User. Corresponds to the Private Key in the Key Vault that was configured as part of the pre-work."
+                        "sshPublicKey": "SSH public key for the VM admin user. Corresponds to the private key in the key vault that was configured as part of the pre-work."
                     },
                     "constraints": {
                         "required": "[equals(basics('osPlatform'), 'Linux')]"
@@ -140,9 +140,9 @@
                 }, {
                     "name": "rdgInstanceCount",
                     "type": "Microsoft.Common.DropDown",
-                    "label": "Remote Desktop Gateway Host Count",
+                    "label": "Remote desktop gateway host count",
                     "defaultValue": "1",
-                    "toolTip": "Choose the number of remote desktop gatewayhosts to be deployed.",
+                    "toolTip": "Choose the number of remote desktop gateway hosts to be deployed.",
                     "constraints": {
                         "allowedValues": [{
                                 "label": "0",
@@ -169,7 +169,7 @@
                 }, {
                     "name": "rdgInstanceSize",
                     "type": "Microsoft.Compute.SizeSelector",
-                    "label": "Remote Desktop Gateway VM size",
+                    "label": "Remote desktop gateway VM size",
                     "toolTip": "The size of the virtual machine to be deployed for the remote desktop gateway machines.",
                     "visible": "[greater(steps('vmSettings').generalMachineSettings.rdgInstanceCount, 0)]",
                     "recommendedSizes": [
@@ -235,7 +235,7 @@
             }, {
                 "name": "esMachineSettings",
                 "type": "Microsoft.Common.Section",
-                "label": "Enterprise Server Machines",
+                "label": "Enterprise Server machines",
                 "elements": [{
                         "name": "esInstanceSize",
                         "type": "Microsoft.Compute.SizeSelector",
@@ -271,9 +271,9 @@
                     }, {
                         "name": "esDataDiskSize",
                         "type": "Microsoft.Common.DropDown",
-                        "label": "Data disk size for VM",
+                        "label": "Data disk size for VMs",
                         "defaultValue": "32GB",
-                        "toolTip": "Choose the size of the data disk to be allocated to the VM.",
+                        "toolTip": "Choose the size of the data disk to be allocated to the VMs.",
                         "constraints": {
                             "allowedValues": [{
                                     "label": "32GB",
@@ -309,7 +309,7 @@
                     {
                         "name": "applicationUsername",
                         "type": "Microsoft.Compute.UserNameTextBox",
-                        "label": "Application User Name",
+                        "label": "Application user name",
                         "defaultValue": "mfuser",
                         "osPlatform": "Windows",
                         "constraints": {
@@ -321,7 +321,7 @@
                         "name": "applicationUserPassword",
                         "type": "Microsoft.Common.PasswordBox",
                         "label": {
-                            "password": "Application User Password",
+                            "password": "Application user password",
                             "confirmPassword": "Confirm password"
                         },
                         "toolTip": "Provide application user password.",
@@ -341,16 +341,54 @@
             "name": "demoSettings",
             "label": "Demo Settings",
             "subLabel": {
-                "preValidation": "Specify the Demo machine configuration",
+                "preValidation": "Specify the demo machine configuration",
                 "postValidation": "Done"
             },
             "bladeTitle": "demoSettings",
             "elements": [{
                 "name": "deployFsDemo",
                 "type": "Microsoft.Common.OptionsGroup",
-                "label": "Deploy Fileshare Demo",
+                "label": "Deploy Fileshare demo",
                 "defaultValue": "Yes",
                 "toolTip": "Specify whether or not the Fileshare demo should be deployed.",
+                "constraints": {
+                    "allowedValues": [{
+                            "label": "Yes",
+                            "value": "Yes"
+                        },
+                        {
+                            "label": "No",
+                            "value": "No"
+                        }
+                    ],
+                    "required": true
+                },
+                "visible": true
+            },  {
+                "name": "deployPacDemo",
+                "type": "Microsoft.Common.OptionsGroup",
+                "label": "Deploy PAC demo",
+                "defaultValue": "Yes",
+                "toolTip": "Specify whether or not the PAC demo should be deployed.",
+                "constraints": {
+                    "allowedValues": [{
+                            "label": "Yes",
+                            "value": "Yes"
+                        },
+                        {
+                            "label": "No",
+                            "value": "No"
+                        }
+                    ],
+                    "required": true
+                },
+                "visible": true
+            }, {
+                "name": "deployDbDemo",
+                "type": "Microsoft.Common.OptionsGroup",
+                "label": "Deploy database demo",
+                "defaultValue": "Yes",
+                "toolTip": "Specify whether or not the database demo should be deployed.",
                 "constraints": {
                     "allowedValues": [{
                             "label": "Yes",
@@ -441,7 +479,7 @@
                 }, {
                     "name": "fsPort",
                     "type": "Microsoft.Common.TextBox",
-                    "label": "Fileshare Port",
+                    "label": "Fileshare port",
                     "toolTip": "The port on which the Fileshare will accept requests.",
                     "defaultValue": "3000",
                     "constraints": {
@@ -453,8 +491,8 @@
                     "name": "fsviewPassword",
                     "type": "Microsoft.Common.PasswordBox",
                     "label": {
-                        "password": "FSView User Password",
-                        "confirmPassword": "Confirm password"
+                        "password": "FSView user password",
+                        "confirmPassword": "Confirm Password"
                     },
                     "toolTip": "Provide fileshare administrator password.",
                     "constraints": {
@@ -468,52 +506,14 @@
                     "visible": true
                 }]
             }, {
-                "name": "deployPacDemo",
-                "type": "Microsoft.Common.OptionsGroup",
-                "label": "Deploy PAC Demo",
-                "defaultValue": "Yes",
-                "toolTip": "Specify whether or not the PAC demo should be deployed.",
-                "constraints": {
-                    "allowedValues": [{
-                            "label": "Yes",
-                            "value": "Yes"
-                        },
-                        {
-                            "label": "No",
-                            "value": "No"
-                        }
-                    ],
-                    "required": true
-                },
-                "visible": true
-            }, {
-                "name": "deployDbDemo",
-                "type": "Microsoft.Common.OptionsGroup",
-                "label": "Deploy Database Demo",
-                "defaultValue": "Yes",
-                "toolTip": "Specify whether or not the database demo should be deployed.",
-                "constraints": {
-                    "allowedValues": [{
-                            "label": "Yes",
-                            "value": "Yes"
-                        },
-                        {
-                            "label": "No",
-                            "value": "No"
-                        }
-                    ],
-                    "required": true
-                },
-                "visible": true
-            }, {
                 "name": "dbSettings",
                 "type": "Microsoft.Common.Section",
-                "label": "Database Settings",
+                "label": "Database settings",
                 "visible": "[or(equals(steps('demoSettings').deployDbDemo, 'Yes'), equals(steps('demoSettings').deployPacDemo, 'Yes'))]",
                 "elements": [{
                     "name": "sqlWitnessInstanceSize",
                     "type": "Microsoft.Compute.SizeSelector",
-                    "label": "SQL Witness VM size",
+                    "label": "SQL witness VM size",
                     "toolTip": "The size of the virtual machine to be deployed for the SQL alwaysOn Witness.",
                     "recommendedSizes": [
                         "Standard_E2s_v3",
@@ -545,8 +545,8 @@
                 }, {
                     "name": "sqlSlaveInstanceSize",
                     "type": "Microsoft.Compute.SizeSelector",
-                    "label": "SQL Node VM size",
-                    "toolTip": "The size of the virtual machine to be deployed for the SQL server nodes.",
+                    "label": "SQL node VM size",
+                    "toolTip": "The size of the virtual machine to be deployed for the SQL Server nodes.",
                     "recommendedSizes": [
                         "Standard_E2s_v3",
                         "Standard_D4s_v3",

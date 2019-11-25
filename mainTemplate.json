@@ -109,6 +109,15 @@
                 "description": "CIDR used for the Redis subnet - needs to be a subset of the addressPrefix"
             }
         },
+        "esInstanceCount": {
+            "type": "int",
+            "defaultValue": 2,
+            "minValue": 2,
+            "maxValue": 9,
+            "metadata": {
+                "description": "The number of enterprise server hosting nodes to deploy."
+            }
+        },
         "esInstanceSize": {
             "type": "string",
             "defaultValue": "Standard_DS2_v2",
@@ -330,7 +339,6 @@
         "apiVersionStorage": "2018-07-01",
         "apiVersionRedis": "2018-03-01",
         "apiVersionLinkTemplate": "2015-01-01",
-        "esInstanceCount": 2,
         "clusterPrefixLower": "[toLower(parameters('clusterPrefix'))]",
         "managementNsgName": "[concat(variables('clusterPrefixLower'), '-mNsg')]",
         "applicationNsgName": "[concat(variables('clusterPrefixLower'), '-aNsg')]",
@@ -1207,7 +1215,7 @@
             ],
             "copy": {
                 "name": "createEsNodeLoop",
-                "count": "[variables('esInstanceCount')]"
+                "count": "[parameters('esInstanceCount')]"
             },
             "properties": {
                 "mode": "Incremental",
@@ -1696,7 +1704,7 @@
             ],
             "copy": {
                 "name": "resetEsNodeNicLoop",
-                "count": "[variables('esInstanceCount')]"
+                "count": "[parameters('esInstanceCount')]"
             },
             "properties": {
                 "mode": "Incremental",
@@ -1745,7 +1753,7 @@
             ],
             "copy": {
                 "name": "joinDomainEsNodeLoop",
-                "count": "[variables('esInstanceCount')]"
+                "count": "[parameters('esInstanceCount')]"
             },
             "properties": "[variables('domainJoinProperties')]"
         },
@@ -1904,7 +1912,7 @@
                         "value": "[variables('clusterPrefixLower')]"
                     },
                     "esInstanceCount": {
-                        "value": "[variables('esInstanceCount')]"
+                        "value": "[parameters('esInstanceCount')]"
                     },
                     "deployFsDemo": {
                         "value": "[parameters('deployFsDemo')]"
@@ -2063,7 +2071,7 @@
             ],
             "copy": {
                 "name": "configureEsNodeLoop",
-                "count": "[variables('esInstanceCount')]"
+                "count": "[parameters('esInstanceCount')]"
             },
             "properties": {
                 "mode": "Incremental",
