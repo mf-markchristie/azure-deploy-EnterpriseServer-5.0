@@ -912,7 +912,7 @@
                         "name": "networkdrive_inbound2",
                         "properties": {
                             "description": "Allow access to network drive from application subnet",
-                            "priority": 550,
+                            "priority": 541,
                             "protocol": "*",
                             "access": "Allow",
                             "direction": "Inbound",
@@ -920,6 +920,34 @@
                             "sourcePortRange": "*",
                             "destinationAddressPrefix": "*",
                             "destinationPortRange": "445"
+                        }
+                    },
+                    {
+                        "name": "networkdrive_inbound3",
+                        "properties": {
+                            "description": "Allow access to network drive from application subnet",
+                            "priority": 542,
+                            "protocol": "*",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('applicationSubnetPrefix')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "2049"
+                        }
+                    },
+                    {
+                        "name": "networkdrive_inbound4",
+                        "properties": {
+                            "description": "Allow access to network drive from application subnet",
+                            "priority": 543,
+                            "protocol": "*",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "[parameters('applicationSubnetPrefix')]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "111"
                         }
                     },
                     {

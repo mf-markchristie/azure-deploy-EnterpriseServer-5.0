@@ -36,4 +36,11 @@ mkhomedir_helper $usernameFull
 
 runuser -l $usernameFull -c '. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds --listen-all; mfds &'
 
+if [ "$deployFsDemo" = "Y" ]; then
+    yum install nfs-utils rpcbind -y
+    echo "$ClusterPrefix-fs:/FSdata /DATA nfs rw 0 0" >> /etc/fstab
+    mkdir /DATA
+    mount -a
+fi
+
 service firewalld stop

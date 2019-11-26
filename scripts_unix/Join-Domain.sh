@@ -24,12 +24,12 @@ if [ $? -ne 0 ]; then
 fi
 
 # Allow domain users to logon via passwords
-sed -i '/PasswordAuthentication/s/no.*/yes/' /etc/ssh/sshd_config
-systemctl restart sshd.service
-if [ $? -ne 0 ]; then
-    echo "JoinTo-Domain-Linux has FAILED"
-    exit 1
-fi
+#sed -i '/PasswordAuthentication/s/no.*/yes/' /etc/ssh/sshd_config
+#systemctl restart sshd.service
+#if [ $? -ne 0 ]; then
+#    echo "JoinTo-Domain-Linux has FAILED"
+#    exit 1
+#fi
 
 cat /etc/resolv.conf | sed -e 's/reddog.microsoft.com/contoso.local/' > tmp.txt
 mv --force ./tmp.txt /etc/resolv.conf

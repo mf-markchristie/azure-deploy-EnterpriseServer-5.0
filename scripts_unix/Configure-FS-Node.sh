@@ -14,9 +14,13 @@ ServiceUser=$6
 basedir=`pwd`
 export TERM="xterm"
 shift
+
+yum install nfs-utils -y
+
 "$basedir/Join-Domain.sh" $DomainAdminUser $DomainDNSName $DomainAdminPassword
 
-export CCITCP2_PORT=1086
+usernameFull="$ServiceUser@$DomainDNSName"
+
 runuser -l $usernameFull -c '. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds --listen-all; mfds &'
 
 mkdir ~/tmp
@@ -51,5 +55,6 @@ service firewalld stop
 
 cd ~
 rm -rf ~/tmp
+
 # Todo:
 #  - Convert demo files if needed
