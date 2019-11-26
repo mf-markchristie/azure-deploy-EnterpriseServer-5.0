@@ -34,6 +34,8 @@ chmod 777 /FSdata/*
 
 runuser -l $usernameFull -c '. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; fs -cf /FSdata/fs.conf &'
 
+
+service firewalld stop
 # Todo:
 #  - Network share
 #  - Convert demo files if needed

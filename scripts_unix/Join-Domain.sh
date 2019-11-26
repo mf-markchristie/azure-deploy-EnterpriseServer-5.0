@@ -12,6 +12,10 @@ Password=$3
 
 yum install realmd oddjob oddjob-mkhomedir sssd samba-common samba-common-tools -y
 
+
+localIp=`ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'`
+hostName=`hostname`
+echo "$localIp $hostName.$Domain $hostName" >> /etc/hosts # To ensure DNS record is generated
 # Join the domain
 echo $Password | realm join -v -U $Join_account $Domain --install=/
 if [ $? -eq 0 ]; then

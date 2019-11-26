@@ -37,6 +37,7 @@ if [ "$saveError" -ne "0" ]; then
 fi
 mkhomedir_helper $usernameFull
 chown $usernameFull /opt/microfocus/EnterpriseDeveloper/etc/commonwebadmin.json
+find /opt/microfocus/EnterpriseDeveloper/etc -type d -exec chmod 777 {} \; # So escwa can write to the logfile
 
 runuser -l $usernameFull -c '. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; escwa &'
 saveError=$?
@@ -79,8 +80,15 @@ JMessage="{ \"mfUser\": \"\", \"mfPassword\": \"\" }"
 RequestURL='http://localhost:10004/logon'
 Origin='Origin: http://localhost:10004'
 
-curl -sX POST $RequestURL -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H "$Origin" -d "$JMessage" --cookie-jar cookie.txt
-
+i="0"
+while [ ! -f ./cookie.txt ]; do
+    sleep 5 # Give ESCWA some time to start up
+    curl -sX POST $RequestURL -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H "$Origin" -d "$JMessage" --cookie-jar cookie.txt
+    i=$[$i+1]
+    if [ $i -ge 5 ]; then
+        break
+    fi
+done
 
 RequestURL='http://localhost:10004/server/v1/config/mfds'
 Uid=`curl -sX GET "$RequestURL" -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H "$Origin" --cookie cookie.txt | jsonValue Uid 1`
@@ -114,3 +122,5 @@ if [ "$DeployPacDemo" = "Y" ]; then
     RequestURL="http://localhost:10004/server/v1/config/groups/pacs"
     curl -sX POST "$RequestURL" -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H "$Origin" -d "$JMessage" --cookie-jar cookie.txt
 fi
+
+service firewalld stop

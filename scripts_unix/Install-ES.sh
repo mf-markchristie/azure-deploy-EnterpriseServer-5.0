@@ -81,6 +81,5 @@ fi
 
 rm -rf ~/tmp
 cd ~
-service firewalld stop
 
 exit 0

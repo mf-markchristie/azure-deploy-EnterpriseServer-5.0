@@ -380,6 +380,7 @@
         "redisCacheSKU": "Premium",
         "redisCacheFamily": "P",
         "redisCacheCapacity": 1,
+        "mfdsPort": "[if(parameters('deployLinux'), '1086', '86')]",
         "addressSpace": {
             "addressPrefixes": [
                 "[parameters('addressPrefixes')]"
@@ -607,7 +608,7 @@
                             "sourceAddressPrefix": "[parameters('escwaNodeIp')]",
                             "sourcePortRange": "*",
                             "destinationAddressPrefix": "*",
-                            "destinationPortRange": "86"
+                            "destinationPortRange": "[variables('mfdsPort')]"
                         }
                     },
                     {
@@ -848,7 +849,7 @@
                             "sourceAddressPrefix": "[parameters('escwaNodeIp')]",
                             "sourcePortRange": "*",
                             "destinationAddressPrefix": "*",
-                            "destinationPortRange": "86"
+                            "destinationPortRange": "[variables('mfdsPort')]"
                         }
                     },
                     {
@@ -932,7 +933,7 @@
                             "sourceAddressPrefix": "[parameters('applicationSubnetPrefix')]",
                             "sourcePortRange": "*",
                             "destinationAddressPrefix": "*",
-                            "destinationPortRange": "86"
+                            "destinationPortRange": "[variables('mfdsPort')]"
                         }
                     },
                     {
