@@ -18,10 +18,7 @@ hostName=`hostname`
 echo "$localIp $hostName.$Domain $hostName" >> /etc/hosts # To ensure DNS record is generated
 # Join the domain
 echo $Password | realm join -v -U $Join_account $Domain --install=/
-if [ $? -eq 0 ]; then
-    echo "JoinTo-Domain-Linux has passed"
-    exit 0
-else
+if [ $? -ne 0 ]; then
     echo "JoinTo-Domain-Linux has FAILED"
     exit 1
 fi
@@ -29,11 +26,17 @@ fi
 # Allow domain users to logon via passwords
 sed -i '/PasswordAuthentication/s/no.*/yes/' /etc/ssh/sshd_config
 systemctl restart sshd.service
-
-if [ $? -eq 0 ]; then
-    echo "JoinTo-Domain-Linux has passed"
-    exit 0
-else
+if [ $? -ne 0 ]; then
     echo "JoinTo-Domain-Linux has FAILED"
     exit 1
 fi
+
+cat /etc/resolv.conf | sed -e 's/reddog.microsoft.com/contoso.local/' > tmp.txt
+mv --force ./tmp.txt /etc/resolv.conf
+
+if [ $? -ne 0 ]; then
+    echo "JoinTo-Domain-Linux has FAILED"
+    exit 1
+fi
+
+echo "JoinTo-Domain-Linux has PASSED"

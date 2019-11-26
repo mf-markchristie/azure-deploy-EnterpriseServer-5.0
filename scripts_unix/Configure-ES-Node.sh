@@ -35,3 +35,5 @@ fi
 mkhomedir_helper $usernameFull
 
 runuser -l $usernameFull -c '. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds --listen-all; mfds &'
+
+service firewalld stop
