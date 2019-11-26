@@ -21,18 +21,16 @@ shift
 yum install curl -y
 
 "$basedir/Join-Domain.sh" $DomainAdminUser $DomainDNSName $DomainAdminPassword
-saveError=$?
-if [ "$saveError" -ne "0" ]; then
-    echo "Failed to join domain. Error $saveError"
+if [ $? -ne 0 ]; then
+    echo "JoinTo-Domain-Linux has FAILED"
     exit 1
 fi
 
 usernameFull="$ServiceUser@$DomainDNSName"
 
 realm permit $usernameFull
-saveError=$?
-if [ "$saveError" -ne "0" ]; then
-    echo "Failed to provide login permissions. Error $saveError"
+if [ $? -ne 0 ]; then
+    echo "Failed to provide login permissions"
     exit 1
 fi
 mkhomedir_helper $usernameFull
@@ -40,9 +38,8 @@ chown $usernameFull /opt/microfocus/EnterpriseDeveloper/etc/commonwebadmin.json
 find /opt/microfocus/EnterpriseDeveloper/etc -type d -exec chmod 777 {} \; # So escwa can write to the logfile
 
 runuser -l $usernameFull -c '. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; escwa &'
-saveError=$?
-if [ "$saveError" -ne "0" ]; then
-    echo "Failed to start escwa. Error $saveError"
+if [ $? -ne 0 ]; then
+    echo "Failed to start escwa"
     exit 1
 fi
 
@@ -86,7 +83,8 @@ while [ ! -f ./cookie.txt ]; do
     curl -sX POST $RequestURL -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H "$Origin" -d "$JMessage" --cookie-jar cookie.txt
     i=$[$i+1]
     if [ $i -ge 5 ]; then
-        break
+        echo "Failed to login to ESCWA."
+        exit 1
     fi
 done
 
