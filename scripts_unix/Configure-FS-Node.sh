@@ -19,9 +19,22 @@ shift
 export CCITCP2_PORT=1086
 runuser -l $usernameFull -c '. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds --listen-all; mfds &'
 
+mkdir ~/tmp
+cd ~/tmp
+mkdir /FSdata/
+chown -R $usernameFull /FSdata/
+
+systemctl enable nfs-server
+systemctl enable rpcbind
+systemctl start rpcbind
+systemctl start nfs-server
+echo '/FSdata *(rw,sync)' >> /etc/exports
+exportfs -r
+systemctl restart nfs-server
+
 "$basedir/Prepare-Demo" Y N N
-fs -pf /FSdata/pass.dat -u SYSAD -pw SYSAD
-fs -pf /FSdata/pass.dat -u FSVIEW -pw $FSVIEWUserPassword
+runuser -l $usernameFull -c '. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; fs -pf /FSdata/pass.dat -u SYSAD -pw SYSAD'
+runuser -l $usernameFull -c '. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; fs -pf /FSdata/pass.dat -u FSVIEW -pw $FSVIEWUserPassword'
 
 echo "/s FS1,MFPORT:$FSPort" > /FSdata/fs.conf
 echo "/pf /FSdata/pass.dat" >> /FSdata/fs.conf
@@ -30,12 +43,13 @@ echo "/cm CCITCP">> /FSdata/fs.conf
 
 unzip ./BankDemo_FS -D BankDemo_FS
 cp -r ./BankDemo_FS/System/catalog/data/* /FSdata
-chmod 777 /FSdata/*
+chown -R $usernameFull /FSdata
 
 runuser -l $usernameFull -c '. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; fs -cf /FSdata/fs.conf &'
 
-
 service firewalld stop
+
+cd ~
+rm -rf ~/tmp
 # Todo:
-#  - Network share
 #  - Convert demo files if needed
