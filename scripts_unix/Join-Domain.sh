@@ -14,6 +14,13 @@ yum install realmd oddjob oddjob-mkhomedir sssd samba-common samba-common-tools 
 
 # Join the domain
 echo $Password | realm join -v -U $Join_account $Domain --install=/
+if [ $? -eq 0 ]; then
+    echo "JoinTo-Domain-Linux has passed"
+    exit 0
+else
+    echo "JoinTo-Domain-Linux has FAILED"
+    exit 1
+fi
 
 # Allow domain users to logon via passwords
 sed -i '/PasswordAuthentication/s/no.*/yes/' /etc/ssh/sshd_config

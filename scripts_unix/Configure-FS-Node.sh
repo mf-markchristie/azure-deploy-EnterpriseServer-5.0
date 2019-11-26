@@ -16,11 +16,8 @@ export TERM="xterm"
 shift
 "$basedir/Join-Domain.sh" $DomainAdminUser $DomainDNSName $DomainAdminPassword
 
-. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv
-mfds --listen-all
-
 export CCITCP2_PORT=1086
-mfds &
+runuser -l $usernameFull -c '. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds --listen-all; mfds &'
 
 "$basedir/Prepare-Demo" Y N N
 fs -pf /FSdata/pass.dat -u SYSAD -pw SYSAD
@@ -35,8 +32,7 @@ unzip ./BankDemo_FS -D BankDemo_FS
 cp -r ./BankDemo_FS/System/catalog/data/* /FSdata
 chmod 777 /FSdata/*
 
-fs -cf /FSdata/fs.conf &
-
+runuser -l $usernameFull -c '. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; fs -cf /FSdata/fs.conf &'
 
 # Todo:
 #  - Network share

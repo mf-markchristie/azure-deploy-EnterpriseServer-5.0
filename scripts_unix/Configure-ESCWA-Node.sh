@@ -35,7 +35,7 @@ if [ "$saveError" -ne "0" ]; then
     echo "Failed to provide login permissions. Error $saveError"
     exit 1
 fi
-su - $usernameFull -c "exit" # To ensure wd is created
+mkhomedir_helper $usernameFull
 chown $usernameFull /opt/microfocus/EnterpriseDeveloper/etc/commonwebadmin.json
 
 runuser -l $usernameFull -c '. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; escwa &'

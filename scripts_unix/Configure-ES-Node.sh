@@ -32,9 +32,6 @@ if [ "$saveError" -ne "0" ]; then
     echo "Failed to provide login permissions. Error $saveError"
     exit 1
 fi
-su - $usernameFull -c "exit" # To ensure wd is created
+mkhomedir_helper $usernameFull
 
-. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv
-mfds --listen-all
-
-runuser -l $usernameFull -c '. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds &'
+runuser -l $usernameFull -c '. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds --listen-all; mfds &'
