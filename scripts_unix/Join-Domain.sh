@@ -31,8 +31,7 @@ fi
 #    exit 1
 #fi
 
-cat /etc/resolv.conf | sed -e 's/reddog.microsoft.com/contoso.local/' > tmp.txt
-mv --force ./tmp.txt /etc/resolv.conf
+sed -i 's/reddog.microsoft.com/contoso.local/' /etc/resolv.conf
 
 if [ $? -ne 0 ]; then
     echo "JoinTo-Domain-Linux has FAILED"

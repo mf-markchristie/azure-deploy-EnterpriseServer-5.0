@@ -18,23 +18,25 @@ shift
 yum install nfs-utils -y
 
 "$basedir/Join-Domain.sh" $DomainAdminUser $DomainDNSName $DomainAdminPassword
-saveError=$?
-if [ "$saveError" -ne "0" ]; then
-    echo "Failed to join domain. Error $saveError"
+if [ $? -ne 0 ]; then
+    echo "Failed to provide join domain"
     exit 1
 fi
 
 usernameFull="$ServiceUser@$DomainDNSName"
 
 realm permit $usernameFull
-saveError=$?
-if [ "$saveError" -ne "0" ]; then
-    echo "Failed to provide login permissions. Error $saveError"
+if [ $? -ne 0 ]; then
+    echo "Failed to provide login permissions"
     exit 1
 fi
 mkhomedir_helper $usernameFull
 
 runuser -l $usernameFull -c '. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds --listen-all; mfds &'
+if [ $? -ne 0 ]; then
+    echo "Failed to start MFDS"
+    exit 1
+fi
 
 mkdir ~/tmp
 cd ~/tmp
@@ -63,6 +65,10 @@ cp -r ./BankDemo_FS/System/catalog/data/* /FSdata
 chown -R $usernameFull /FSdata
 
 runuser -l $usernameFull -c '. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; fs -cf /FSdata/fs.conf &'
+if [ $? -ne 0 ]; then
+    echo "Failed to start Fileshare"
+    exit 1
+fi
 
 service firewalld stop
 
