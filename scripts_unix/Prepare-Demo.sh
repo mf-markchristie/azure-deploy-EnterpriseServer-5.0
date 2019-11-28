@@ -9,21 +9,21 @@ fi
 deployFsDemo=$1
 deployDbDemo=$2
 deployPacDemo=$3
-export PATH=~/utils:$PATH
+export PATH=/utils:$PATH
 
-downloadBase="https://mfenterprisestorage.blob.core.windows.net/enterpriseserverdeploy"
+downloadBase="https://mfenterprisestorage.blob.core.windows.net/enterpriseserverdeploy/unix"
 
-if [ "$deployFsDemo" -eq "Y" ]; then
+if [ "$deployFsDemo" = "Y" ]; then
     echo "Downloading FS Demo"
     azcopy copy "$downloadBase/BankDemo_FS.zip" "."
 fi
 
-if [ "$deployDbDemo" -eq "Y" ]; then
+if [ "$deployDbDemo" = "Y" ]; then
     echo "Downloading DB Demo"
     azcopy copy "$downloadBase/BankDemo_SQL.zip" "."
 fi
 
-if [ "$deployPacDemo" -eq "Y" ]; then
+if [ "$deployPacDemo" = "Y" ]; then
     echo "Downloading PAC Demo"
     azcopy copy "$downloadBase/BankDemo_PAC.zip" "."
 fi
