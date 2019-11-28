@@ -199,6 +199,7 @@
                     "fileUris": [
                         "[uri(parameters('_artifactsLocation'), concat('scripts_win/Configure-RDG-Node.exe', parameters('_artifactsLocationSasToken')))]",
                         "[uri(parameters('_artifactsLocation'), concat('scripts_win/putty-installer.msi', parameters('_artifactsLocationSasToken')))]",
+                        "[uri(parameters('_artifactsLocation'), concat('scripts_win/azcopy.exe', parameters('_artifactsLocationSasToken')))]",
                         "[uri(parameters('_artifactsLocation'), concat('scripts_win/Prepare-Demo.exe', parameters('_artifactsLocationSasToken')))]"
                     ]
                 },
