@@ -23,14 +23,6 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Allow domain users to logon via passwords
-#sed -i '/PasswordAuthentication/s/no.*/yes/' /etc/ssh/sshd_config
-#systemctl restart sshd.service
-#if [ $? -ne 0 ]; then
-#    echo "JoinTo-Domain-Linux has FAILED"
-#    exit 1
-#fi
-
 sed -i 's/reddog.microsoft.com/contoso.local/' /etc/resolv.conf
 
 if [ $? -ne 0 ]; then

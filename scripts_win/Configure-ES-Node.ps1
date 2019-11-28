@@ -11,9 +11,6 @@ param(
     [Parameter(Mandatory = $True)]
     [string]$ClusterPrefix,
 
-    [Parameter(Mandatory = $True)]
-    [Int32]$Index,
-
     [string]$RedisIp = "",
 
     [string]$RedisPassword = "",
@@ -173,12 +170,7 @@ if ($DeployDbDemo -eq "Y") {
 if ($DeployPacDemo -eq "Y") {
     Write-Host "Setting up PAC Demo"
     Expand-Archive -Path "BankDemo_PAC.zip" -DestinationPath "."
-    if ($Index -eq 0) {
-        $Region = "BNKDM"
-    } else {
-        $Region = "BNKDM2"
-    }
-    Start-Process -FilePath $mfdscmd -ArgumentList "/g 5 C:\BankDemo_PAC\Repo\$Region.xml D" -Wait
+    Start-Process -FilePath $mfdscmd -ArgumentList "/g 5 C:\BankDemo_PAC\Repo\BNKDM.xml D" -Wait
     Add-DirectoryPermissions -Directory "C:\BankDemo_PAC" -Account $Account
 
     $JMessage = '{ \"mfUser\": \"\", \"mfPassword\": \"\" }'
@@ -190,8 +182,8 @@ if ($DeployPacDemo -eq "Y") {
             \"mfCASSOR\": \":ES_SCALE_OUT_REPOS_1=DemoPSOR=redis,' + $RedisIp + ':6379##TMP\",
             \"mfCASPAC\": \"DemoPAC\"
         }'
-    $HostName = $ClusterPrefix + '-es0' + [string]($Index + 1)
-    $RequestURL = "http://$clusterPrefix-esadmin:10004/native/v1/regions/$HostName/86/$Region"
+    $HostName = $env:COMPUTERNAME
+    $RequestURL = "http://$clusterPrefix-esadmin:10004/native/v1/regions/$HostName/86/BNKDM"
     curl.exe -sX PUT $RequestURL -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H $Origin -d $Jmessage --cookie-jar cookie.txt | Out-Null
 
     if ($RedisPassword -ne "") {
@@ -200,5 +192,5 @@ if ($DeployPacDemo -eq "Y") {
         Start-Process -FilePath "$installBase\mfsecretsadmin.exe" -ArgumentList "write microfocus/CAS/SOR-DemoPSOR-Pass $RedisPassword" -Wait
     }
 
-    Schedule-Cmd -TaskName "startBNKDMPAC" -Task $deployDbScript -TaskArguments "$Region" -UserName $Account -Password $ServicePassword
+    Schedule-Cmd -TaskName "startBNKDMPAC" -Task $deployDbScript -TaskArguments "BNKDM" -UserName $Account -Password $ServicePassword
 }

@@ -83,12 +83,6 @@
                 "description": "Prefix for machine name."
             }
         },
-        "index": {
-            "type": "int",
-            "metadata": {
-                "description": "Index of machine in copy loop."
-            }
-        },
         "deployLinux": {
             "type": "bool",
             "metadata": {
@@ -149,7 +143,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('powershell .\\Configure-ES-Node.ps1 -DomainDNSName ', parameters('domainDNSName'), ' -ClusterPrefix ', parameters('clusterPrefix'), ' -Index ', parameters('index'), variables('credentialsArg'), variables('redisArg'), variables('deployDbFlag'), variables('deployPacFlag'), variables('deployFsFlag'))]"
+                    "commandToExecute": "[concat('powershell .\\Configure-ES-Node.ps1 -DomainDNSName ', parameters('domainDNSName'), ' -ClusterPrefix ', parameters('clusterPrefix'), variables('credentialsArg'), variables('redisArg'), variables('deployDbFlag'), variables('deployPacFlag'), variables('deployFsFlag'))]"
                 }
             }
         },

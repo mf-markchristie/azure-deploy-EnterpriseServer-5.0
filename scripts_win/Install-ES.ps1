@@ -11,6 +11,7 @@ Write-Host "Creating temporary working directory."
 mkdir -path "c:\tmp"
 mkdir -path "C:\Utils"
 Copy-Item "$PSScriptRoot\AzCopy.exe" "c:\Utils"
+Copy-Item "$PSScriptRoot\MFESDIAGS.cmd" "c:\Utils"
 Set-Location "c:\tmp"
 
 $installerExeName = "es.exe"

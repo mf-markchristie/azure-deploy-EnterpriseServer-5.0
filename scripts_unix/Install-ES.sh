@@ -15,14 +15,15 @@ basedir=`pwd`
 export TERM="xterm"
 shift
 
-mkdir ~/utils
-sudo cp $basedir/azcopy.tar.gz ~/utils
-cd ~/utils
+mkdir /utils
+sudo cp $basedir/azcopy.tar.gz /utils
+sudo cp $basedir/mfesdiags.sh /utils
+cd /utils
 tar -xf azcopy.tar.gz
 rm -f azcopy.tar.gz
 cp azcopy_linux*/azcopy .
 rm -rf azcopy_linux*
-chmod +x ./azcopy
+chmod +x *
 export PATH=`pwd`:$PATH
 cd -
 mkdir ~/tmp

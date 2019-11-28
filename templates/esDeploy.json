@@ -234,7 +234,8 @@
                     "fileUris": [
                         "[uri(parameters('_artifactsLocation'), concat('scripts_win/Install-ES.ps1', parameters('_artifactsLocationSasToken')))]",
                         "[uri(parameters('_artifactsLocation'), concat('scripts_win/Prepare-Installer.exe', parameters('_artifactsLocationSasToken')))]",
-                        "[uri(parameters('_artifactsLocation'), concat('scripts_win/azcopy.exe', parameters('_artifactsLocationSasToken')))]"
+                        "[uri(parameters('_artifactsLocation'), concat('scripts_win/azcopy.exe', parameters('_artifactsLocationSasToken')))]",
+                        "[uri(parameters('_artifactsLocation'), concat('scripts_win/MFESDIAGS.cmd', parameters('_artifactsLocationSasToken')))]"
                     ]
                 },
                 "protectedSettings": {
@@ -260,7 +261,8 @@
                 "fileUris": [
                     "[uri(parameters('_artifactsLocation'), concat('scripts_unix/Install-ES.sh', parameters('_artifactsLocationSasToken')))]",
                     "[uri(parameters('_artifactsLocation'), concat('scripts_unix/Prepare-Installer', parameters('_artifactsLocationSasToken')))]",
-                    "[uri(parameters('_artifactsLocation'), concat('scripts_unix/azcopy.tar.gz', parameters('_artifactsLocationSasToken')))]"
+                    "[uri(parameters('_artifactsLocation'), concat('scripts_unix/azcopy.tar.gz', parameters('_artifactsLocationSasToken')))]",
+                    "[uri(parameters('_artifactsLocation'), concat('scripts_unix/mfesdiags.sh', parameters('_artifactsLocationSasToken')))]"
                 ]
               },
               "protectedSettings": {

@@ -2165,9 +2165,6 @@
                     "clusterPrefix": {
                         "value": "[variables('clusterPrefixLower')]"
                     },
-                    "index": {
-                        "value": "[copyIndex()]"
-                    },
                     "deployLinux": {
                         "value": "[parameters('deployLinux')]"
                     },

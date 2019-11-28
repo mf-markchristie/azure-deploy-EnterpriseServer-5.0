@@ -40,11 +40,58 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-if [ "$deployFsDemo" = "Y" ]; then
+cd ~mfservice@contoso.local
+"$basedir/Prepare-Demo" $DeployFsDemo $DeployDbDemo $DeployPacDemo
+
+if [ "$DeployFsDemo" = "Y" ]; then
     yum install nfs-utils rpcbind -y
     echo "$ClusterPrefix-fs:/FSdata /DATA nfs rw 0 0" >> /etc/fstab
     mkdir /DATA
     mount -a
+    unzip ./BankDemo_FS.zip
+    chown -R $usernameFull ./BankDemo_FS
+    runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds /g 5 `pwd`/BankDemo_FS/Repo/BNKDMFS.xml D"
+    sleep 5
+    runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; export FSHOST=$ClusterPrefix-fs; casstart -rBNKDMFS"
+fi
+
+if [ "$DeployDbDemo" = "Y" ]; then
+    unzip ./BankDemo_SQL.zip
+    chown -R $usernameFull ./BankDemo_SQL
+    runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds /g 5 `pwd`/BankDemo_SQL/Repo/BNKDMSQL.xml D"
+    sleep 5
+    runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; casstart -rBNKDMSQL"
+fi
+
+if [ "$DeployPacDemo" = "Y" ]; then
+    yum install curl -y
+    unzip ./BankDemo_PAC.zip
+    chown -R $usernameFull ./BankDemo_PAC
+    runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds /g 5 `pwd`/BankDemo_SQL/Repo/BNKDM.xml D"
+    sleep 5
+
+    JMessage="{ \"mfUser\": \"\", \"mfPassword\": \"\" }"
+    RequestURL="http://$ClusterPrefix-esadmin:10004/logon"
+    Origin="Origin: http://$ClusterPrefix-esadmin:10004"
+    curl -sX POST $RequestURL -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H "$Origin" -d "$JMessage" --cookie-jar cookie.txt
+
+    JMessage="{ \
+        \"mfCASSOR\": \":ES_SCALE_OUT_REPOS_1=DemoPSOR=redis,$RedisIp:6379##TMP\", \
+        \"mfCASPAC\": \"DemoPAC\" \
+    }"
+    HostName=`hostname`
+    $RequestURL = "http://$ClusterPrefix-esadmin:10004/native/v1/regions/$HostName/1086/BNKDM"
+    curl -sX PUT $RequestURL -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H "$Origin" -d "$JMessage" --cookie-jar cookie.txt
+
+    # Todo: MFSecrets here
+
+    runuser -l $usernameFull -c "$basedir/Deploy-Start-ES.sh BNKDM"
 fi
 
 service firewalld stop
+
+# Todo:
+# - ODBC installation
+# - ODBC data sources
+# - PAC demo steps
+# - Unix demo files
