@@ -73,6 +73,3 @@ service firewalld stop
 
 cd ~
 rm -rf ~/tmp
-
-# Todo:
-#  - Convert demo files if needed

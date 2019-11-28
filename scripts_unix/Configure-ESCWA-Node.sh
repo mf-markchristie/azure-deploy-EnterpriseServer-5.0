@@ -93,10 +93,10 @@ Uid=`curl -sX GET "$RequestURL" -H 'accept: application/json' -H 'X-Requested-Wi
 RequestURL="http://localhost:10004/server/v1/config/mfds/$Uid"
 curl -sX DELETE "$RequestURL" -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H "$Origin" --cookie cookie.txt
 
-addDS "$clusterPrefix-es01" 1086 "$clusterPrefix-es01"
-if [ "$ESCount" -eq 2 ]; then
-    addDS "$clusterPrefix-es02" 1086 "$clusterPrefix-es02"
-fi
+for (( i=1; i<=$ESCount; i++ )); do
+    addDS "$clusterPrefix-es0$i" 1086 "$clusterPrefix-es0$i"
+done
+
 if [ "$DeployFsDemo" = "Y" ]; then
     addDS "$clusterPrefix-fs" 1086 "$clusterPrefix-fs"
 fi

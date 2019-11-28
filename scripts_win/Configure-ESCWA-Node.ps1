@@ -130,10 +130,11 @@ $Uid=$mfdsObj[0].Uid
 $RequestURL = "http://localhost:10004/server/v1/config/mfds/$Uid"
 curl.exe -sX DELETE $RequestURL -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H $Origin --cookie cookie.txt | Out-Null
 
-addDS -HostName "$clusterPrefix-es01" -Name "$clusterPrefix-es01" -Port "86"
-if ($ESCount -eq 2) {
-    addDS -HostName "$clusterPrefix-es02" -Name "$clusterPrefix-es02" -Port "86"
+
+for($i = 1; $i -le $ESCount; $i++) {
+    addDS -HostName "$clusterPrefix-es0$i" -Name "$clusterPrefix-es0$i" -Port "86"
 }
+
 if ($DeployFsDemo -eq "Y") {
     addDs -HostName "$clusterPrefix-fs" -Name "$clusterPrefix-fs" -Port "86"
 }

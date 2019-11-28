@@ -43,6 +43,49 @@ fi
 cd ~mfservice@contoso.local
 "$basedir/Prepare-Demo" $DeployFsDemo $DeployDbDemo $DeployPacDemo
 
+if [ "$DeployDbDemo" = "Y" ] || [ "$DeployPacDemo" = "Y" ]; then
+    curl "https://packages.microsoft.com/config/rhel/7/prod.repo" > /etc/yum.repos.d/mssql-release.repo
+    ACCEPT_EULA=Y yum install -y msodbcsql17
+    ACCEPT_EULA=Y yum install -y mssql-tools
+
+    Server="$ClusterPrefix-sqlLB"
+
+    if [ "$DeployDbDemo" = "Y" ]; then
+        cat <<EOT >> /tmp/odbc.ini
+[DBNASEDB]
+Driver = ODBC Driver 17 for SQL Server
+Server = $Server
+port = 1433
+Database = BANKDEMO
+EOT
+    fi
+    if [ "$DeployPacDemo" = "Y" ]; then
+        cat <<EOT >> /tmp/odbc.ini
+[SS.VSAM]
+Driver = ODBC Driver 17 for SQL Server
+Server = $Server
+port = 1433
+Database = MicroFocus\$SEE\$Files\$VSAM
+[SS.MASTER]
+Driver = ODBC Driver 17 for SQL Server
+Server = $Server
+port = 1433
+Database = master
+[SS.REGION]
+Driver = ODBC Driver 17 for SQL Server
+Server = $Server
+port = 1433
+Database = MicroFocus\$CAS\$Region\$DEMOPAC
+[SS.CROSSREGION]
+Driver = ODBC Driver 17 for SQL Server
+Server = $Server
+port = 1433
+Database = MicroFocus\$CAS\$CrossRegion
+EOT
+    fi
+    odbcinst -i -s -l -f /tmp/odbc.ini
+fi
+
 if [ "$DeployFsDemo" = "Y" ]; then
     yum install nfs-utils rpcbind -y
     echo "$ClusterPrefix-fs:/FSdata /DATA nfs rw 0 0" >> /etc/fstab
@@ -56,6 +99,7 @@ if [ "$DeployFsDemo" = "Y" ]; then
 fi
 
 if [ "$DeployDbDemo" = "Y" ]; then
+
     unzip ./BankDemo_SQL.zip
     chown -R $usernameFull ./BankDemo_SQL
     runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds /g 5 `pwd`/BankDemo_SQL/Repo/BNKDMSQL.xml D"
@@ -83,7 +127,7 @@ if [ "$DeployPacDemo" = "Y" ]; then
     $RequestURL = "http://$ClusterPrefix-esadmin:10004/native/v1/regions/$HostName/1086/BNKDM"
     curl -sX PUT $RequestURL -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H "$Origin" -d "$JMessage" --cookie-jar cookie.txt
 
-    # Todo: MFSecrets here
+    runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; mfsecretsadmin write microfocus/CAS/SOR-DemoPSOR-Pass $RedisPassword"
 
     runuser -l $usernameFull -c "$basedir/Deploy-Start-ES.sh BNKDM"
 fi
@@ -91,7 +135,4 @@ fi
 service firewalld stop
 
 # Todo:
-# - ODBC installation
-# - ODBC data sources
-# - PAC demo steps
 # - Unix demo files
