@@ -1,5 +1,5 @@
 #! /bin/bash -e
-if [ "$#" -ne 10 ]
+if [ "$#" -ne 9 ]
 then
   echo "Not Enough Arguments supplied."
   echo "Usage Configure-ES-Node DomainDNSName DomainAdminUser DomainAdminPassword ServiceUser ClusterPrefix RedisPassword DeployDbDemo DeployPacDemo DeployFsDemo"
@@ -58,6 +58,7 @@ Driver = ODBC Driver 17 for SQL Server
 Server = $Server
 port = 1433
 Database = BANKDEMO
+Trusted_Connection = yes
 EOT
     fi
 
@@ -68,21 +69,25 @@ Driver = ODBC Driver 17 for SQL Server
 Server = $Server
 port = 1433
 Database = MicroFocus\$SEE\$Files\$VSAM
+Trusted_Connection = yes
 [SS.MASTER]
 Driver = ODBC Driver 17 for SQL Server
 Server = $Server
 port = 1433
 Database = master
+Trusted_Connection = yes
 [SS.REGION]
 Driver = ODBC Driver 17 for SQL Server
 Server = $Server
 port = 1433
 Database = MicroFocus\$CAS\$Region\$DEMOPAC
+Trusted_Connection = yes
 [SS.CROSSREGION]
 Driver = ODBC Driver 17 for SQL Server
 Server = $Server
 port = 1433
 Database = MicroFocus\$CAS\$CrossRegion
+Trusted_Connection = yes
 EOT
     fi
     odbcinst -i -s -l -f /tmp/odbc.ini
