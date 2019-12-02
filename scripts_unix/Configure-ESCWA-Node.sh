@@ -1,5 +1,5 @@
 #! /bin/bash -e
-if [ "$#" -ne 9 ]
+if [ "$#" -ne 8 ]
 then
   echo "Not Enough Arguments supplied."
   echo "Usage Configure-ES-Node DomainDNSName DomainAdminUser DomainAdminPassword ServiceUser ESCount clusterPrefix DeployFsDemo DeployPacDemo"
