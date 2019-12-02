@@ -237,9 +237,54 @@
                 "type": "Microsoft.Common.Section",
                 "label": "Enterprise Server machines",
                 "elements": [{
+                    "name": "esInstanceCount",
+                    "type": "Microsoft.Common.DropDown",
+                    "label": "Enterprise Server host count",
+                    "defaultValue": "2",
+                    "toolTip": "Choose the number of Enterprise Server hosting machines to be deployed.",
+                    "constraints": {
+                        "allowedValues": [{
+                                "label": "1",
+                                "value": 1
+                            },
+                            {
+                                "label": "2",
+                                "value": 2
+                            },
+                            {
+                                "label": "3",
+                                "value": 3
+                            },
+                            {
+                                "label": "4",
+                                "value": 4
+                            },
+                            {
+                                "label": "5",
+                                "value": 5
+                            },
+                            {
+                                "label": "6",
+                                "value": 6
+                            },
+                            {
+                                "label": "7",
+                                "value": 7
+                            },
+                            {
+                                "label": "8",
+                                "value": 8
+                            },
+                            {
+                                "label": "9",
+                                "value": 9
+                            }
+                        ]
+                    }
+                }, {
                         "name": "esInstanceSize",
                         "type": "Microsoft.Compute.SizeSelector",
-                        "label": "Enterprise Server Hosting VM size",
+                        "label": "Enterprise Server hosting VM size",
                         "toolTip": "The size of the virtual machine to be deployed for the Enterprise Server hosting machines.",
                         "recommendedSizes": [
                             "Standard_E2s_v3",
@@ -585,6 +630,7 @@
             "administratorUserName": "[steps('vnetSettings').domainSettings.administratorUserName]",
             "administratorPassword": "[steps('vnetSettings').domainSettings.administratorPassword]",
             "domainDNSName": "[steps('vnetSettings').domainSettings.domainDNSName]",
+            "esInstanceCount": "[steps('vmSettings').esMachineSettings.esInstanceCount]",
             "esInstanceSize": "[steps('vmSettings').esMachineSettings.esInstanceSize]",
             "esDataDiskSize": "[steps('vmSettings').esMachineSettings.esDataDiskSize]",
             "applicationUsername": "[steps('vmSettings').esMachineSettings.applicationUsername]",
