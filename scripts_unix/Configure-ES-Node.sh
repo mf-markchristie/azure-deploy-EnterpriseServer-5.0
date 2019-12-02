@@ -1,19 +1,20 @@
 #! /bin/bash -e
-if [ "$#" -ne 9 ]
+if [ "$#" -ne 10 ]
 then
   echo "Not Enough Arguments supplied."
-  echo "Usage Configure-ES-Node DomainDNSName DomainAdminUser DomainAdminPassword ServiceUser ClusterPrefix RedisPassword DeployDbDemo DeployPacDemo DeployFsDemo"
+  echo "Usage Configure-ES-Node DomainDNSName DomainAdminUser DomainAdminPassword ServiceUser ServicePassword ClusterPrefix RedisPassword DeployDbDemo DeployPacDemo DeployFsDemo"
   exit 1
 fi
 DomainDNSName=$1
 DomainAdminUser=$2
 DomainAdminPassword=$3
 ServiceUser=$4
-ClusterPrefix=$5
-RedisPassword=$6
-DeployDbDemo=$7
-DeployPacDemo=$8
-DeployFsDemo=$9
+ServicePassword=$5
+ClusterPrefix=$6
+RedisPassword=$7
+DeployDbDemo=$8
+DeployPacDemo=$9
+DeployFsDemo=${10}
 basedir=`pwd`
 export TERM="xterm"
 shift
@@ -47,9 +48,11 @@ cd ~mfservice@contoso.local
 if [ "$DeployDbDemo" = "Y" ] || [ "$DeployPacDemo" = "Y" ]; then
     curl "https://packages.microsoft.com/config/rhel/7/prod.repo" > /etc/yum.repos.d/mssql-release.repo
     ACCEPT_EULA=Y yum install -y msodbcsql17
-    ACCEPT_EULA=Y yum install -y mssql-tools
+    ACCEPT_EULA=Y yum install -y mssql-tools krb5-workstation
 
     Server="$ClusterPrefix-sqlLB"
+
+    echo $ServicePassword | kinit mfservice@`printf '%s\n' "$DomainDNSName" | awk '{ print toupper($0) }'`
 
     if [ "$DeployDbDemo" = "Y" ]; then
         cat <<EOT >> /tmp/odbc.ini

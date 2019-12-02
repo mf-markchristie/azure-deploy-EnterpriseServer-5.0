@@ -160,7 +160,7 @@
                 ]
               },
               "protectedSettings": {
-                 "commandToExecute": "[concat('bash ./Configure-ES-Node.sh ', parameters('domainDNSName'), ' ', parameters('domainAdminUserName'), ' ', parameters('domainAdminPassword'), ' ', parameters('applicationUsername'), ' ', parameters('clusterPrefix'), ' ', parameters('redisPassword'), ' ', if(parameters('deployDbDemo'), 'Y', 'N'), ' ', if(parameters('deployPacDemo'), 'Y', 'N'), ' ', if(parameters('deployFsDemo'), 'Y', 'N'))]"
+                 "commandToExecute": "[concat('bash ./Configure-ES-Node.sh ', parameters('domainDNSName'), ' ', parameters('domainAdminUserName'), ' ', parameters('domainAdminPassword'), ' ', parameters('applicationUsername'), ' ', parameters('applicationUserPassword'), ' ', parameters('clusterPrefix'), ' ', parameters('redisPassword'), ' ', if(parameters('deployDbDemo'), 'Y', 'N'), ' ', if(parameters('deployPacDemo'), 'Y', 'N'), ' ', if(parameters('deployFsDemo'), 'Y', 'N'))]"
               }
             }
           }
