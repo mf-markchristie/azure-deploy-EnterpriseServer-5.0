@@ -68,10 +68,11 @@
         },
         "esInstanceCount": {
             "type": "int",
-            "defaultValue": 1,
-            "allowedValues": [1, 2],
+            "defaultValue": 2,
+            "minValue": 2,
+            "maxValue": 9,
             "metadata": {
-                "description": "Number of Enterprise Sever hosting nodes"
+                "description": "The number of enterprise server hosting nodes to deploy."
             }
         },
         "deployFsDemo": {
