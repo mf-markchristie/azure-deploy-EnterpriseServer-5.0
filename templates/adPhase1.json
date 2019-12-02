@@ -139,6 +139,18 @@
             "metadata": {
                 "description": "Ip address for SQL Load Balancer"
             }
+        },
+        "redisCacheName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name for redis cache"
+            }
+        },
+        "redisIp": {
+            "type": "string",
+            "metadata": {
+                "description": "Ip address for Redis"
+            }
         }
     },
     "variables": {
@@ -296,7 +308,9 @@
                             "password": "[parameters('applicationUserPassword')]"
                         },
                         "lBName": "[parameters('loadBalancerName')]",
-                        "lBIp": "[parameters('loadBalancerIp')]"
+                        "lBIp": "[parameters('loadBalancerIp')]",
+                        "redisCacheName": "[parameters('redisCacheName')]",
+                        "redisIp": "[parameters('redisIp')]"
                     }
                 }
             }

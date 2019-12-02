@@ -11,8 +11,6 @@ param(
     [Parameter(Mandatory = $True)]
     [string]$ClusterPrefix,
 
-    [string]$RedisIp = "",
-
     [string]$RedisPassword = "",
 
     [string]$DeployDbDemo = "N",
@@ -179,7 +177,7 @@ if ($DeployPacDemo -eq "Y") {
     curl.exe -sX POST  $RequestURL -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H $Origin -d $Jmessage --cookie-jar cookie.txt | Out-Null
     $JMessage = '
         {
-            \"mfCASSOR\": \":ES_SCALE_OUT_REPOS_1=DemoPSOR=redis,' + $RedisIp + ':6379##TMP\",
+            \"mfCASSOR\": \":ES_SCALE_OUT_REPOS_1=DemoPSOR=redis,' + $clusterPrefix + '-redis:6379##TMP\",
             \"mfCASPAC\": \"DemoPAC\"
         }'
     $HostName = $env:COMPUTERNAME

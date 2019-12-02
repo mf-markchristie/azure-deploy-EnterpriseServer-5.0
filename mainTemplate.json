@@ -376,7 +376,8 @@
         "esLbName": "[concat(parameters('clusterPrefix'), '-eslb')]",
         "esLBBERef": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('esLbName')), '/backendAddressPools/esLBBE')]",
         "domainJoinOptions": 3,
-        "redisCacheName": "[concat(variables('clusterPrefixLower'), '-redis', uniqueString(concat(resourceGroup().id, 'redis')))]",
+        "redisCacheNameShort": "[concat(variables('clusterPrefixLower'), '-redis')]",
+        "redisCacheName": "[concat(variables('redisCacheNameShort'), uniqueString(concat(resourceGroup().id, 'redis')))]",
         "redisCacheSKU": "Premium",
         "redisCacheFamily": "P",
         "redisCacheCapacity": 1,
@@ -1653,6 +1654,12 @@
                     },
                     "loadBalancerIp": {
                         "value": "[parameters('sqlLBIPAddress')]"
+                    },
+                    "redisCacheName": {
+                        "value": "[variables('redisCacheNameShort')]"
+                    },
+                    "redisIp": {
+                        "value": "[parameters('redisIp')]"
                     }
                 }
             }
@@ -1954,9 +1961,6 @@
                     "deployLinux": {
                         "value": "[parameters('deployLinux')]"
                     },
-                    "redisIp": {
-                        "value": "[parameters('redisIp')]"
-                    },
                     "domainAdminUserName": {
                         "value": "[parameters('administratorUserName')]"
                     },
@@ -2167,9 +2171,6 @@
                     },
                     "deployLinux": {
                         "value": "[parameters('deployLinux')]"
-                    },
-                    "redisIp": {
-                        "value": "[parameters('redisIp')]"
                     },
                     "redisPassword": {
                         "value": "[if(parameters('deployPacDemo'), listkeys(resourceId('Microsoft.Cache/redis', variables('redisCacheName')), providers('Microsoft.Cache', 'redis').apiVersions[0]).primaryKey, 'dummyPass')]"

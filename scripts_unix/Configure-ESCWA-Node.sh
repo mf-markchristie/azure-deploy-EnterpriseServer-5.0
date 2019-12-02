@@ -2,7 +2,7 @@
 if [ "$#" -ne 9 ]
 then
   echo "Not Enough Arguments supplied."
-  echo "Usage Configure-ES-Node DomainDNSName DomainAdminUser DomainAdminPassword ServiceUser ESCount clusterPrefix RedisIp DeployFsDemo DeployPacDemo"
+  echo "Usage Configure-ES-Node DomainDNSName DomainAdminUser DomainAdminPassword ServiceUser ESCount clusterPrefix DeployFsDemo DeployPacDemo"
   exit 1
 fi
 DomainDNSName=$1
@@ -11,9 +11,8 @@ DomainAdminPassword=$3
 ServiceUser=$4
 ESCount=$5
 clusterPrefix=$6
-RedisIp=$7
-DeployFsDemo=$8
-DeployPacDemo=$9
+DeployFsDemo=$7
+DeployPacDemo=$8
 basedir=`pwd`
 export TERM="xterm"
 shift
@@ -106,7 +105,7 @@ if [ "$DeployPacDemo" = "Y" ]; then
             \"SorName\": \"DemoPSOR\", \
             \"SorDescription\": \"Demo Redis\", \
             \"SorType\": \"redis\", \
-            \"SorConnectPath\": \"$RedisIp:6379\" \
+            \"SorConnectPath\": \"$clusterPrefix-redis:6379\" \
         }"
 
     RequestURL="http://localhost:10004/server/v1/config/groups/sors"

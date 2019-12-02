@@ -2,7 +2,7 @@
 if [ "$#" -ne 10 ]
 then
   echo "Not Enough Arguments supplied."
-  echo "Usage Configure-ES-Node DomainDNSName DomainAdminUser DomainAdminPassword ServiceUser ClusterPrefix RedisIp RedisPassword DeployDbDemo DeployPacDemo DeployFsDemo"
+  echo "Usage Configure-ES-Node DomainDNSName DomainAdminUser DomainAdminPassword ServiceUser ClusterPrefix RedisPassword DeployDbDemo DeployPacDemo DeployFsDemo"
   exit 1
 fi
 DomainDNSName=$1
@@ -10,14 +10,15 @@ DomainAdminUser=$2
 DomainAdminPassword=$3
 ServiceUser=$4
 ClusterPrefix=$5
-RedisIp=$6
-RedisPassword=$7
-DeployDbDemo=$8
-DeployPacDemo=$9
-DeployFsDemo=${10}
+RedisPassword=$6
+DeployDbDemo=$7
+DeployPacDemo=$8
+DeployFsDemo=$9
 basedir=`pwd`
 export TERM="xterm"
 shift
+
+service firewalld stop
 
 "$basedir/Join-Domain.sh" $DomainAdminUser $DomainDNSName $DomainAdminPassword
 if [ $? -ne 0 ]; then
@@ -59,6 +60,7 @@ port = 1433
 Database = BANKDEMO
 EOT
     fi
+
     if [ "$DeployPacDemo" = "Y" ]; then
         cat <<EOT >> /tmp/odbc.ini
 [SS.VSAM]
@@ -99,7 +101,6 @@ if [ "$DeployFsDemo" = "Y" ]; then
 fi
 
 if [ "$DeployDbDemo" = "Y" ]; then
-
     unzip ./BankDemo_SQL.zip
     chown -R $usernameFull ./BankDemo_SQL
     runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds /g 5 `pwd`/BankDemo_SQL/Repo/BNKDMSQL.xml D"
@@ -120,7 +121,7 @@ if [ "$DeployPacDemo" = "Y" ]; then
     curl -sX POST $RequestURL -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H "$Origin" -d "$JMessage" --cookie-jar cookie.txt
 
     JMessage="{ \
-        \"mfCASSOR\": \":ES_SCALE_OUT_REPOS_1=DemoPSOR=redis,$RedisIp:6379##TMP\", \
+        \"mfCASSOR\": \":ES_SCALE_OUT_REPOS_1=DemoPSOR=redis,$ClusterPrefix-redis:6379##TMP\", \
         \"mfCASPAC\": \"DemoPAC\" \
     }"
     HostName=`hostname`
@@ -131,8 +132,3 @@ if [ "$DeployPacDemo" = "Y" ]; then
 
     runuser -l $usernameFull -c "$basedir/Deploy-Start-ES.sh BNKDM"
 fi
-
-service firewalld stop
-
-# Todo:
-# - Unix demo files

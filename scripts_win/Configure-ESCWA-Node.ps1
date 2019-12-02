@@ -14,8 +14,6 @@ param(
     [Parameter(Mandatory = $True)]
     [string]$clusterPrefix,
 
-    [string]$RedisIp = "",
-
     [string]$DeployFsDemo = "N",
 
     [string]$DeployPacDemo = "N"
@@ -145,7 +143,7 @@ if ($DeployPacDemo -eq "Y") {
             \"SorName\": \"DemoPSOR\",
             \"SorDescription\": \"Demo Redis\",
             \"SorType\": \"redis\",
-            \"SorConnectPath\": \"' + $RedisIp + ':6379\"
+            \"SorConnectPath\": \"' + $clusterPrefix + '-redis:6379\"
         }'
 
     $RequestURL = "http://localhost:10004/server/v1/config/groups/sors"

@@ -89,12 +89,6 @@
                 "description": "Flag to determine whether linux VMs are deployed for ES."
             }
         },
-        "redisIp": {
-            "type": "string",
-            "metadata": {
-                "description": "Ip address of Redis cache."
-            }
-        },
         "redisPassword": {
             "type": "securestring",
             "metadata": {
@@ -119,7 +113,7 @@
         "deployDbFlag": "[if(parameters('deployDbDemo'), ' -DeployDbDemo Y', '')]",
         "deployPacFlag": "[if(parameters('deployPacDemo'), ' -DeployPacDemo Y', '')]",
         "deployFsFlag": "[if(parameters('deployFsDemo'), ' -DeployFsDemo Y', '')]",
-        "redisArg": "[if(parameters('deployPacDemo'), concat(' -RedisIp ', parameters('redisIp'), ' -RedisPassword ', parameters('redisPassword')), '')]"
+        "redisArg": "[if(parameters('deployPacDemo'), concat(' -RedisPassword ', parameters('redisPassword')), '')]"
     },
     "resources": [
         {
@@ -166,7 +160,7 @@
                 ]
               },
               "protectedSettings": {
-                 "commandToExecute": "[concat('bash ./Configure-ES-Node.sh ', parameters('domainDNSName'), ' ', parameters('domainAdminUserName'), ' ', parameters('domainAdminPassword'), ' ', parameters('applicationUsername'), ' ', parameters('clusterPrefix'), ' ', parameters('redisIp'), ' ', parameters('redisPassword'), ' ', if(parameters('deployDbDemo'), 'Y', 'N'), ' ', if(parameters('deployPacDemo'), 'Y', 'N'), ' ', if(parameters('deployFsDemo'), 'Y', 'N'))]"
+                 "commandToExecute": "[concat('bash ./Configure-ES-Node.sh ', parameters('domainDNSName'), ' ', parameters('domainAdminUserName'), ' ', parameters('domainAdminPassword'), ' ', parameters('applicationUsername'), ' ', parameters('clusterPrefix'), ' ', parameters('redisPassword'), ' ', if(parameters('deployDbDemo'), 'Y', 'N'), ' ', if(parameters('deployPacDemo'), 'Y', 'N'), ' ', if(parameters('deployFsDemo'), 'Y', 'N'))]"
               }
             }
           }
