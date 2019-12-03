@@ -122,7 +122,7 @@ Write-Host "Deleting ESCWA Service"
 $Service=gwmi win32_service -filter "Name='ESCWA'"
 $Service.delete()
 
-
+Set-Location -Path "c:\"
 Start-Process -Wait -FilePath "$PSScriptRoot\Prepare-Demo.exe" -ArgumentList "-DeployDbDemo $DeployDbDemo -DeployPACDemo $DeployPacDemo -DeployFsDemo $DeployFsDemo"
 
 if ($DeployDbDemo -eq "Y" -or $DeployPacDemo -eq "Y") {
@@ -145,7 +145,7 @@ $Account="${DomainNetBIOSName}\${ServiceUser}"
 $installBase = "C:\Program Files (x86)\Micro Focus\Enterprise Server\bin"
 $mfdscmd = "$installBase\mfds.exe"
 $casstartcmd = "$installBase\casstart.exe"
-$deployDbScript = "$pwd\Deploy-Start-ES.bat"
+$deployDbScript = "$PSScriptRoot\Deploy-Start-ES.bat"
 Set-Location -Path "c:\"
 
 if ($DeployFsDemo -eq "Y") {

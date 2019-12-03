@@ -52,6 +52,7 @@ $Config = "/s FS1,MFPORT:${FSPort}
 Add-Content $WorkDir\fs.conf $Config
 Start-Process -FilePath "cmd" -ArgumentList "/c `"C:\Program Files (x86)\Micro Focus\Enterprise Server\CreateEnv.bat`" & fsservice -i FS1 /cf $WorkDir\fs.conf"
 
+Set-Location -Path "c:\"
 Start-Process -Wait -FilePath "$PSScriptRoot\Prepare-Demo.exe" -ArgumentList "-DeployFsDemo Y"
 Expand-Archive -Path "c:\BankDemo_FS.zip" -DestinationPath "c:\"
 Copy-Item -Recurse "C:\BankDemo_FS\System\catalog\data\*" "$WorkDir"

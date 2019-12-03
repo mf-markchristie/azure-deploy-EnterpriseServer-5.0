@@ -11,7 +11,6 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-Start-Transcript -Path c:\cfn\log\$($MyInvocation.MyCommand.Name).txt -Append -IncludeInvocationHeader;
 
 # Get SID of requested user
 $objUser = New-Object System.Security.Principal.NTAccount($Username)
