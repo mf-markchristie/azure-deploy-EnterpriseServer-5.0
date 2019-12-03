@@ -60,6 +60,7 @@ echo "-pf /FSdata/pass.dat" >> /FSdata/fs.conf
 echo "-cm CCITCP">> /FSdata/fs.conf
 
 unzip ./BankDemo_FS.zip
+rm ./BankDemo_FS.zip
 cp -r ./BankDemo_FS/System/catalog/data/* /FSdata
 chown -R $usernameFull /FSdata
 

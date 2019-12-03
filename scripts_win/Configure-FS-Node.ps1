@@ -55,6 +55,7 @@ Start-Process -FilePath "cmd" -ArgumentList "/c `"C:\Program Files (x86)\Micro F
 Set-Location -Path "c:\"
 Start-Process -Wait -FilePath "$PSScriptRoot\Prepare-Demo.exe" -ArgumentList "-DeployFsDemo Y"
 Expand-Archive -Path "c:\BankDemo_FS.zip" -DestinationPath "c:\"
+Remove-Item -Path "BankDemo_FS.zip"
 Copy-Item -Recurse "C:\BankDemo_FS\System\catalog\data\*" "$WorkDir"
 
 New-SmbShare -Name "FSdir" -Path $WorkDir -FullAccess "$DomainNetBIOSName\$ServiceUser"

@@ -151,6 +151,7 @@ Set-Location -Path "c:\"
 if ($DeployFsDemo -eq "Y") {
     Write-Host "Setting up FS Demo"
     Expand-Archive -Path "BankDemo_FS.zip" -DestinationPath "."
+    Remove-Item -Path "BankDemo_FS.zip"
     Start-Process -FilePath $mfdscmd -ArgumentList "/g 5 C:\BankDemo_FS\Repo\BNKDMFS.xml D" -Wait
     [System.Environment]::SetEnvironmentVariable("FSHOST", "$ClusterPrefix-fs","Machine")
     Add-DirectoryPermissions -Directory "C:\BankDemo_FS" -Account $Account
@@ -160,6 +161,7 @@ if ($DeployFsDemo -eq "Y") {
 if ($DeployDbDemo -eq "Y") {
     Write-Host "Setting up DB Demo"
     Expand-Archive -Path "BankDemo_SQL.zip" -DestinationPath "."
+    Remove-Item -Path "BankDemo_SQL.zip"
     Start-Process -FilePath $mfdscmd -ArgumentList "/g 5 C:\BankDemo_SQL\Repo\BNKDMSQL.xml D" -Wait
     Add-DirectoryPermissions -Directory "C:\BankDemo_SQL" -Account $Account
     Schedule-Cmd -TaskName "startBNKDMSQL" -Task $casstartcmd -TaskArguments "-rBNKDMSQL" -UserName $Account -Password $ServicePassword
@@ -168,6 +170,7 @@ if ($DeployDbDemo -eq "Y") {
 if ($DeployPacDemo -eq "Y") {
     Write-Host "Setting up PAC Demo"
     Expand-Archive -Path "BankDemo_PAC.zip" -DestinationPath "."
+    Remove-Item -Path "BankDemo_PAC.zip"
     Start-Process -FilePath $mfdscmd -ArgumentList "/g 5 C:\BankDemo_PAC\Repo\BNKDM.xml D" -Wait
     Add-DirectoryPermissions -Directory "C:\BankDemo_PAC" -Account $Account
 

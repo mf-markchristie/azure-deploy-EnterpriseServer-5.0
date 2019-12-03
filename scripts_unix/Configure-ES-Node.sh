@@ -102,6 +102,7 @@ if [ "$DeployFsDemo" = "Y" ]; then
     mkdir /DATA
     mount -a
     unzip ./BankDemo_FS.zip
+    rm ./BankDemo_FS.zip
     chown -R $usernameFull ./BankDemo_FS
     runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds /g 5 `pwd`/BankDemo_FS/Repo/BNKDMFS.xml D"
     sleep 5
@@ -110,6 +111,7 @@ fi
 
 if [ "$DeployDbDemo" = "Y" ]; then
     unzip ./BankDemo_SQL.zip
+    rm ./BankDemo_SQL.zip
     chown -R $usernameFull ./BankDemo_SQL
     runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds /g 5 `pwd`/BankDemo_SQL/Repo/BNKDMSQL.xml D"
     sleep 5
@@ -119,6 +121,7 @@ fi
 if [ "$DeployPacDemo" = "Y" ]; then
     yum install curl -y
     unzip ./BankDemo_PAC.zip
+    rm ./BankDemo_PAC.zip
     chown -R $usernameFull ./BankDemo_PAC
     runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds /g 5 `pwd`/BankDemo_SQL/Repo/BNKDM.xml D"
     sleep 5
