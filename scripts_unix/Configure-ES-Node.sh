@@ -105,7 +105,7 @@ if [ "$DeployFsDemo" = "Y" ]; then
     chown -R $usernameFull ./BankDemo_FS
     runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds /g 5 `pwd`/BankDemo_FS/Repo/BNKDMFS.xml D"
     sleep 5
-    runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; export FSHOST=$ClusterPrefix-fs; casstart -rBNKDMFS"
+    runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; export FSHOST=$ClusterPrefix-fs; casstart32 -rBNKDMFS"
 fi
 
 if [ "$DeployDbDemo" = "Y" ]; then
@@ -113,7 +113,7 @@ if [ "$DeployDbDemo" = "Y" ]; then
     chown -R $usernameFull ./BankDemo_SQL
     runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds /g 5 `pwd`/BankDemo_SQL/Repo/BNKDMSQL.xml D"
     sleep 5
-    runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; casstart -rBNKDMSQL"
+    runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; casstart32 -rBNKDMSQL"
 fi
 
 if [ "$DeployPacDemo" = "Y" ]; then

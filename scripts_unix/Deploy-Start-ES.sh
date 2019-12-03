@@ -35,5 +35,5 @@ dbfhdeploy -quiet data add `pwd`/BankDemo_PAC/System/catalog/prc/YBNKSRT1.prc sq
 # deploy CTL cards
 dbfhdeploy -quiet data add `pwd`/BankDemo_PAC/System/catalog/ctlcards/KBNKSRT1.txt sql://ESPACDatabase/VSAM/KBNKSRT1.TXT?folder=/CTLCARDS;type=lseq;reclen=80,80
 
-casstart -r$1 -s:c
+casstart32 -r$1 -s:c
 exit 0
