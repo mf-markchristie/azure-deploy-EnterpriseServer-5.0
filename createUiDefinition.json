@@ -537,7 +537,7 @@
                     "type": "Microsoft.Common.PasswordBox",
                     "label": {
                         "password": "Fileshare administrator password",
-                        "confirmPassword": "Confirm Password"
+                        "confirmPassword": "Confirm password"
                     },
                     "toolTip": "Provide fileshare administrator (FSVIEW) password.",
                     "constraints": {

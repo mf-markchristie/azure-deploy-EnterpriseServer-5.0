@@ -42,8 +42,9 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-cd ~mfservice@contoso.local
+cd ~$usernameFull
 "$basedir/Prepare-Demo" $DeployFsDemo $DeployDbDemo $DeployPacDemo
+ln -s . /home/demouser
 
 if [ "$DeployDbDemo" = "Y" ] || [ "$DeployPacDemo" = "Y" ]; then
     curl "https://packages.microsoft.com/config/rhel/7/prod.repo" > /etc/yum.repos.d/mssql-release.repo
@@ -52,7 +53,8 @@ if [ "$DeployDbDemo" = "Y" ] || [ "$DeployPacDemo" = "Y" ]; then
 
     Server="$ClusterPrefix-sqlLB"
 
-    echo $ServicePassword | kinit mfservice@`printf '%s\n' "$DomainDNSName" | awk '{ print toupper($0) }'`
+    runuser -l $usernameFull -c "echo $ServicePassword | kinit $ServiceUser@`printf '%s\n' "$DomainDNSName" | awk '{ print toupper($0) }'`"
+
 
     if [ "$DeployDbDemo" = "Y" ]; then
         cat <<EOT >> /tmp/odbc.ini
@@ -96,6 +98,13 @@ EOT
     odbcinst -i -s -l -f /tmp/odbc.ini
 fi
 
+. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv
+casperm.sh << EOF
+n
+$usernameFull
+
+EOF
+
 if [ "$DeployFsDemo" = "Y" ]; then
     yum install nfs-utils rpcbind -y
     echo "$ClusterPrefix-fs:/FSdata /DATA nfs rw 0 0" >> /etc/fstab
@@ -104,6 +113,7 @@ if [ "$DeployFsDemo" = "Y" ]; then
     unzip ./BankDemo_FS.zip
     rm ./BankDemo_FS.zip
     chown -R $usernameFull ./BankDemo_FS
+    chmod -R 755 ./BankDemo_FS
     runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds /g 5 `pwd`/BankDemo_FS/Repo/BNKDMFS.xml D"
     sleep 5
     runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; export FSHOST=$ClusterPrefix-fs; casstart32 -rBNKDMFS"
@@ -113,9 +123,10 @@ if [ "$DeployDbDemo" = "Y" ]; then
     unzip ./BankDemo_SQL.zip
     rm ./BankDemo_SQL.zip
     chown -R $usernameFull ./BankDemo_SQL
+    chmod -R 755 ./BankDemo_SQL
     runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds /g 5 `pwd`/BankDemo_SQL/Repo/BNKDMSQL.xml D"
     sleep 5
-    runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; casstart32 -rBNKDMSQL"
+    runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; casstart64 -rBNKDMSQL"
 fi
 
 if [ "$DeployPacDemo" = "Y" ]; then
@@ -123,7 +134,8 @@ if [ "$DeployPacDemo" = "Y" ]; then
     unzip ./BankDemo_PAC.zip
     rm ./BankDemo_PAC.zip
     chown -R $usernameFull ./BankDemo_PAC
-    runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds /g 5 `pwd`/BankDemo_SQL/Repo/BNKDM.xml D"
+    chmod -R 755 ./BankDemo_PAC
+    runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds /g 5 `pwd`/BankDemo_PAC/Repo/BNKDM.xml D"
     sleep 5
 
     JMessage="{ \"mfUser\": \"\", \"mfPassword\": \"\" }"
@@ -136,10 +148,13 @@ if [ "$DeployPacDemo" = "Y" ]; then
         \"mfCASPAC\": \"DemoPAC\" \
     }"
     HostName=`hostname`
-    $RequestURL = "http://$ClusterPrefix-esadmin:10004/native/v1/regions/$HostName/1086/BNKDM"
+    RequestURL="http://$ClusterPrefix-esadmin:10004/native/v1/regions/$HostName/1086/BNKDM"
     curl -sX PUT $RequestURL -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H "$Origin" -d "$JMessage" --cookie-jar cookie.txt
 
-    runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; mfsecretsadmin write microfocus/CAS/SOR-DemoPSOR-Pass $RedisPassword"
+    runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; mfsecretsadmin write microfocus/CAS/SOR-DEMOPSOR-Pass $RedisPassword"
 
-    runuser -l $usernameFull -c "$basedir/Deploy-Start-ES.sh BNKDM"
+    cp $basedir/Deploy-Start-ES.sh .
+    chmod +x ./Deploy-Start-ES.sh
+    runuser -l $usernameFull -c "./Deploy-Start-ES.sh BNKDM"
+    rm ./Deploy-Start-ES.sh
 fi
