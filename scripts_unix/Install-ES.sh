@@ -13,7 +13,6 @@ installerExeName="setup_ent_server_redhat_x86_64"
 updateExeName="setup_ent_server_update_redhat_x86_64"
 basedir=`pwd`
 export TERM="xterm"
-shift
 
 mkdir /utils
 sudo cp $basedir/azcopy.tar.gz /utils

@@ -13,7 +13,6 @@ DomainAdminPassword=$5
 ServiceUser=$6
 basedir=`pwd`
 export TERM="xterm"
-shift
 
 yum install nfs-utils -y
 

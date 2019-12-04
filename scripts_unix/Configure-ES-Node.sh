@@ -17,7 +17,6 @@ DeployPacDemo=$9
 DeployFsDemo=${10}
 basedir=`pwd`
 export TERM="xterm"
-shift
 
 service firewalld stop
 
@@ -42,9 +41,9 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-cd ~$usernameFull
+cd /home/$usernameFull
+ln -s `pwd` /home/demouser
 "$basedir/Prepare-Demo" $DeployFsDemo $DeployDbDemo $DeployPacDemo
-ln -s . /home/demouser
 
 if [ "$DeployDbDemo" = "Y" ] || [ "$DeployPacDemo" = "Y" ]; then
     curl "https://packages.microsoft.com/config/rhel/7/prod.repo" > /etc/yum.repos.d/mssql-release.repo
@@ -98,7 +97,7 @@ EOT
     odbcinst -i -s -l -f /tmp/odbc.ini
 fi
 
-. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv
+. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv ""
 casperm.sh << EOF
 n
 $usernameFull
@@ -111,7 +110,7 @@ if [ "$DeployFsDemo" = "Y" ]; then
     mkdir /DATA
     mount -a
     unzip ./BankDemo_FS.zip
-    rm ./BankDemo_FS.zip
+    rm -f ./BankDemo_FS.zip
     chown -R $usernameFull ./BankDemo_FS
     chmod -R 755 ./BankDemo_FS
     runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds /g 5 `pwd`/BankDemo_FS/Repo/BNKDMFS.xml D"
@@ -121,7 +120,7 @@ fi
 
 if [ "$DeployDbDemo" = "Y" ]; then
     unzip ./BankDemo_SQL.zip
-    rm ./BankDemo_SQL.zip
+    rm -f ./BankDemo_SQL.zip
     chown -R $usernameFull ./BankDemo_SQL
     chmod -R 755 ./BankDemo_SQL
     runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds /g 5 `pwd`/BankDemo_SQL/Repo/BNKDMSQL.xml D"
@@ -132,7 +131,7 @@ fi
 if [ "$DeployPacDemo" = "Y" ]; then
     yum install curl -y
     unzip ./BankDemo_PAC.zip
-    rm ./BankDemo_PAC.zip
+    rm -f ./BankDemo_PAC.zip
     chown -R $usernameFull ./BankDemo_PAC
     chmod -R 755 ./BankDemo_PAC
     runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds /g 5 `pwd`/BankDemo_PAC/Repo/BNKDM.xml D"
@@ -153,8 +152,9 @@ if [ "$DeployPacDemo" = "Y" ]; then
 
     runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; mfsecretsadmin write microfocus/CAS/SOR-DEMOPSOR-Pass $RedisPassword"
 
-    cp $basedir/Deploy-Start-ES.sh .
-    chmod +x ./Deploy-Start-ES.sh
-    runuser -l $usernameFull -c "./Deploy-Start-ES.sh BNKDM"
-    rm ./Deploy-Start-ES.sh
+    cp $basedir/Deploy.sh .
+    chmod +x ./Deploy.sh
+    runuser -l $usernameFull -c "./Deploy.sh"
+    rm ./Deploy.sh
+    runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; casstart64 -rBNKDM -s:c"
 fi

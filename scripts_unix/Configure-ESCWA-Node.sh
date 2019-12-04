@@ -15,7 +15,6 @@ DeployFsDemo=$7
 DeployPacDemo=$8
 basedir=`pwd`
 export TERM="xterm"
-shift
 
 yum install curl -y
 
