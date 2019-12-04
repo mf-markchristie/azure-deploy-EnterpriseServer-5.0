@@ -1,13 +1,6 @@
 #! /bin/bash -e
-if [ "$#" -ne 1 ]
-then
-  echo "Not Enough Arguments supplied."
-  echo "Usage Deploy-Start-ES RegionName"
-  exit 1
-fi
-. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv
+. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv ""
 export MFDBFH_CONFIG=`pwd`/BankDemo_PAC/System/MFDBFH.cfg
-export CCITCP2_PORT=1086
 dbfhdeploy create sql://ESPACDatabase/VSAM
 
 # deploy catalog into the db
@@ -34,6 +27,4 @@ dbfhdeploy -quiet data add `pwd`/BankDemo_PAC/System/catalog/prc/YBNKSRT1.prc sq
 
 # deploy CTL cards
 dbfhdeploy -quiet data add `pwd`/BankDemo_PAC/System/catalog/ctlcards/KBNKSRT1.txt sql://ESPACDatabase/VSAM/KBNKSRT1.TXT?folder=/CTLCARDS\;type=lseq\;reclen=80,80
-
-casstart64 -r$1 -s:c
 exit 0
