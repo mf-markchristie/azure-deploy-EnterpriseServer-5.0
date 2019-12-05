@@ -153,7 +153,7 @@ if [ "$DeployPacDemo" = "Y" ]; then
     runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; mfsecretsadmin write microfocus/CAS/SOR-DEMOPSOR-Pass $RedisPassword"
 
     cp $basedir/Deploy.sh .
-    chmod +x ./Deploy.sh
+    chmod +xr ./Deploy.sh
     runuser -l $usernameFull -c "./Deploy.sh"
     rm ./Deploy.sh
     runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; casstart64 -rBNKDM -s:c"
