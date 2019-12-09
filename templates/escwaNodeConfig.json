@@ -13,7 +13,6 @@
         },
         "location": {
             "type": "string",
-            "defaultValue": "",
             "metadata": {
                 "description": "Region in which the resource group and components will be deployed"
             }
@@ -32,9 +31,6 @@
         },
         "hostName": {
             "type": "string",
-            "defaultValue": "VM-mfed",
-            "minLength": 4,
-            "maxLength": 20,
             "metadata": {
                 "description": "Virtual machine name to be used."
             }
@@ -47,30 +43,24 @@
         },
         "applicationUsername": {
             "type": "string",
-            "minLength": 1,
             "metadata": {
                 "description": "Administrator username for MF service account user."
             }
         },
         "applicationUserPassword": {
             "type": "securestring",
-            "minLength": 5,
             "metadata": {
                 "description": "Password for MF service account user."
             }
         },
         "clusterPrefix": {
             "type": "string",
-            "minLength": 1,
             "metadata": {
                 "description": "Prefix for machine name."
             }
         },
         "esInstanceCount": {
             "type": "int",
-            "defaultValue": 2,
-            "minValue": 2,
-            "maxValue": 9,
             "metadata": {
                 "description": "The number of enterprise server hosting nodes to deploy."
             }
@@ -89,7 +79,6 @@
         },
         "deployLinux": {
             "type": "bool",
-            "defaultValue": true,
             "metadata": {
                 "description": "Flag to determine whether linux VMs are deployed for ES."
             }

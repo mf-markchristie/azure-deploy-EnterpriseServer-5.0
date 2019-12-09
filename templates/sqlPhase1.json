@@ -13,7 +13,6 @@
         },
         "location": {
             "type": "string",
-            "defaultValue": "",
             "metadata": {
                 "description": "Region in which the resource group and components will be deployed"
             }
@@ -32,9 +31,6 @@
         },
         "clusterPrefix": {
             "type": "string",
-            "defaultValue": "mfes",
-            "minLength": 4,
-            "maxLength": 20,
             "metadata": {
                 "description": "Cluster prefix. Used to generate cluster hostnames. Maximum of 20 characters."
             }
@@ -47,28 +43,24 @@
         },
         "adminUsername": {
             "type": "string",
-            "minLength": 1,
             "metadata": {
                 "description": "Administrator username on VM."
             }
         },
         "adminPassword": {
             "type": "securestring",
-            "minLength": 5,
             "metadata": {
                 "description": "Password for administrator user."
             }
         },
         "witnessInstanceSize": {
             "type": "string",
-            "defaultValue": "Standard_DS2_v2",
             "metadata": {
                 "description": "VM size for SQL witness node"
             }
         },
         "slaveInstanceSize": {
             "type": "string",
-            "defaultValue": "Standard_DS2_v2",
             "metadata": {
                 "description": "VM size for SQL slave nodes"
             }

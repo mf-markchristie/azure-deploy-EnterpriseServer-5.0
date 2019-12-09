@@ -13,7 +13,6 @@
         },
         "location": {
             "type": "string",
-            "defaultValue": "",
             "metadata": {
                 "description": "Region in which the resource group and components will be deployed"
             }
@@ -32,9 +31,6 @@
         },
         "clusterPrefix": {
             "type": "string",
-            "defaultValue": "mfes",
-            "minLength": 4,
-            "maxLength": 20,
             "metadata": {
                 "description": "Cluster prefix. Used to generate cluster hostnames. Maximum of 20 characters."
             }
@@ -83,7 +79,6 @@
         },
         "applicationUsername": {
             "type": "string",
-            "minLength": 1,
             "metadata": {
                 "description": "Administrator username for service account user."
             }

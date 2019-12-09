@@ -112,7 +112,7 @@
         "esInstanceCount": {
             "type": "int",
             "defaultValue": 2,
-            "minValue": 2,
+            "minValue": 1,
             "maxValue": 9,
             "metadata": {
                 "description": "The number of enterprise server hosting nodes to deploy."

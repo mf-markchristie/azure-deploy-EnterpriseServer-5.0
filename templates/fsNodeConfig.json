@@ -13,7 +13,6 @@
         },
         "location": {
             "type": "string",
-            "defaultValue": "",
             "metadata": {
                 "description": "Region in which the resource group and components will be deployed"
             }
@@ -32,25 +31,18 @@
         },
         "hostName": {
             "type": "string",
-            "defaultValue": "VM-mfed",
-            "minLength": 4,
-            "maxLength": 20,
             "metadata": {
                 "description": "Virtual machine name to be used."
             }
         },
         "fsviewPassword": {
             "type": "securestring",
-            "minLength": 5,
             "metadata": {
                 "description": "Password for fileshare administrative user."
             }
         },
         "fsPort": {
             "type": "int",
-            "defaultValue": 3000,
-            "minValue": 1,
-            "maxValue": 65535,
             "metadata": {
                 "description": "TCP port for fileshare listener."
             }
@@ -69,7 +61,6 @@
         },
         "deployLinux": {
             "type": "bool",
-            "defaultValue": true,
             "metadata": {
                 "description": "Flag to determine whether linux VMs are deployed for ES."
             }

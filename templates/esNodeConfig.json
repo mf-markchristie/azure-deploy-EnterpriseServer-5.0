@@ -13,7 +13,6 @@
         },
         "location": {
             "type": "string",
-            "defaultValue": "",
             "metadata": {
                 "description": "Region in which the resource group and components will be deployed"
             }
@@ -32,9 +31,6 @@
         },
         "hostName": {
             "type": "string",
-            "defaultValue": "VM-mfed",
-            "minLength": 4,
-            "maxLength": 20,
             "metadata": {
                 "description": "Virtual machine name to be used."
             }
@@ -47,14 +43,12 @@
         },
         "applicationUsername": {
             "type": "string",
-            "minLength": 1,
             "metadata": {
                 "description": "Administrator username for MF service account user."
             }
         },
         "applicationUserPassword": {
             "type": "securestring",
-            "minLength": 5,
             "metadata": {
                 "description": "Password for MF service account user."
             }

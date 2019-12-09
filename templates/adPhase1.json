@@ -13,7 +13,6 @@
         },
         "location": {
             "type": "string",
-            "defaultValue": "",
             "metadata": {
                 "description": "Region in which the resource group and components will be deployed"
             }
@@ -32,16 +31,12 @@
         },
         "hostName": {
             "type": "string",
-            "defaultValue": "VM-mfed",
-            "minLength": 4,
-            "maxLength": 20,
             "metadata": {
                 "description": "Virtual machine name to be used."
             }
         },
         "virtualMachineSize": {
             "type": "string",
-            "defaultValue": "Standard_DS2_v2",
             "metadata": {
                 "description": "Host VM size"
             }
@@ -54,14 +49,12 @@
         },
         "adminUsername": {
             "type": "string",
-            "minLength": 1,
             "metadata": {
                 "description": "Administrator username on VM."
             }
         },
         "adminPassword": {
             "type": "securestring",
-            "minLength": 5,
             "metadata": {
                 "description": "Password for administrator user."
             }
@@ -116,14 +109,12 @@
         },
         "applicationUsername": {
             "type": "string",
-            "minLength": 1,
             "metadata": {
                 "description": "Administrator username for MF service account user."
             }
         },
         "applicationUserPassword": {
             "type": "securestring",
-            "minLength": 5,
             "metadata": {
                 "description": "Password for MF service account user."
             }
