@@ -73,6 +73,7 @@
         },
         "availabilitySetName": {
             "type": "string",
+            "defaultValue": "",
             "metadata": {
                 "description": "Reference for availability set"
             }

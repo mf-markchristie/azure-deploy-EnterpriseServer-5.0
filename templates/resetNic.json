@@ -43,6 +43,7 @@
         },
         "loadBalancerRef": {
             "type": "string",
+            "defaultValue": "",
             "metadata": {
                 "description": "Name of loadBalancer"
             }
