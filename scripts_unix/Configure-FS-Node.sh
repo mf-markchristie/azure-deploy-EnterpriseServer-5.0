@@ -61,6 +61,8 @@ echo "-cm CCITCP">> /FSdata/fs.conf
 unzip ./BankDemo_FS.zip
 rm ./BankDemo_FS.zip
 cp -r ./BankDemo_FS/System/catalog/data/* /FSdata
+cp -r ./BankDemo_FS/System/catalog/PRC /FSdata
+cp -r ./BankDemo_FS/System/catalog/CTLCARDS /FSdata
 chown -R $usernameFull /FSdata
 
 runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; cd /FSdata; fs -cf /FSdata/fs.conf &"
