@@ -109,6 +109,7 @@
     },
     "variables": {
         "osDiskType": "StandardSSD_LRS",
+        "singleQuote": "'",
         "dataDisks": [
             {
                 "name": "[concat(parameters('hostName'), '-data-disk')]",
@@ -239,7 +240,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('powershell .\\Install-ES.ps1', ' -license \"', parameters('esLicense'), '\"', if(equals(parameters('dataDiskSize'), 0), ' -mountDrive N', ''))]"
+                    "commandToExecute": "[concat('powershell .\\Install-ES.ps1 -license ', variables('singleQuote'), '\"', parameters('esLicense'), '\"', variables('singleQuote'), if(equals(parameters('dataDiskSize'), 0), ' -mountDrive N', ''))]"
                 }
             }
         },
@@ -266,7 +267,7 @@
                 ]
               },
               "protectedSettings": {
-                 "commandToExecute": "[concat('bash ./Install-ES.sh', ' \"', parameters('esLicense'), '\"', ' ', parameters('adminUsername'), if(equals(parameters('dataDiskSize'), 0), ' N', ' Y'))]"
+                 "commandToExecute": "[concat('bash ./Install-ES.sh \"', parameters('esLicense'), '\"', ' ', parameters('adminUsername'), if(equals(parameters('dataDiskSize'), 0), ' N', ' Y'))]"
               }
             }
           }
