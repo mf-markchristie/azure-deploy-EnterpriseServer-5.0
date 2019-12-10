@@ -3,6 +3,11 @@ set local
 call "C:\Program Files (x86)\Micro Focus\Enterprise Server\CreateEnv.bat"
 set MFDBFH_CONFIG=C:\BankDemo_PAC\System\MFDBFH.cfg
 dbfhdeploy create sql://ESPACDatabase/VSAM
+:: If this fails it means it might be running somewhere else, so wait for it to complete
+if %ERRORLEVEL% NEQ 0 (
+    PING localhost -n 31 >NUL
+    goto startregion
+)
 
 :: deploy catalog into the db
 dbfhdeploy -quiet data add C:\BankDemo_PAC\System\catalog\CATALOG.DAT sql://ESPACDatabase/VSAM/CATALOG.DAT
@@ -29,5 +34,6 @@ dbfhdeploy -quiet data add C:\BankDemo_PAC\System\catalog\prc\YBNKSRT1.prc sql:/
 :: deploy CTL cards
 dbfhdeploy -quiet data add C:\BankDemo_PAC\System\catalog\ctlcards\KBNKSRT1.txt sql://ESPACDatabase/VSAM/KBNKSRT1.TXT?folder=/CTLCARDS;type=lseq;reclen=80,80
 
+:startregion
 casstart -r%1 -s:c
 exit 0

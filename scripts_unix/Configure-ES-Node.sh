@@ -155,6 +155,9 @@ if [ "$DeployPacDemo" = "Y" ]; then
     cp $basedir/Deploy.sh .
     chmod +xr ./Deploy.sh
     runuser -l $usernameFull -c "./Deploy.sh"
+    if [ $? -ne 0 ]; then # If this fails it means it might be running somewhere else, so wait for it to complete
+        sleep 30
+    fi
     rm ./Deploy.sh
     runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; casstart64 -rBNKDM -s:c"
 fi
