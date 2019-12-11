@@ -43,6 +43,8 @@ fi
 
 cd /home/$usernameFull
 ln -s `pwd` /home/demouser
+echo "export CCITCP2_PORT=1086" >> .bash_profile
+echo "export CCITCP2_PORT=1086" >> .bashrc
 "$basedir/Prepare-Demo" $DeployFsDemo $DeployDbDemo $DeployPacDemo
 
 if [ "$DeployDbDemo" = "Y" ] || [ "$DeployPacDemo" = "Y" ]; then

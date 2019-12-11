@@ -37,6 +37,9 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+echo "export CCITCP2_PORT=1086" >> /home/$usernameFull/.bash_profile
+echo "export CCITCP2_PORT=1086" >> /home/$usernameFull/.bashrc
+
 mkdir ~/tmp
 cd ~/tmp
 mkdir /FSdata/
