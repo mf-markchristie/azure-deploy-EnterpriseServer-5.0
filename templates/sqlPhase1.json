@@ -298,7 +298,7 @@
                     },
                     "imageReference": {
                         "publisher": "MicrosoftSQLServer",
-                        "offer": "SQL2019-WS2019",
+                        "offer": "SQL2016SP1-WS2016",
                         "sku": "Standard",
                         "version": "latest"
                     },
