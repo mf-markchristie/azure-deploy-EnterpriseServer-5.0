@@ -298,8 +298,8 @@
                     },
                     "imageReference": {
                         "publisher": "MicrosoftSQLServer",
-                        "offer": "SQL2016SP1-WS2016",
-                        "sku": "Enterprise",
+                        "offer": "SQL2019-WS2019",
+                        "sku": "Standard",
                         "version": "latest"
                     },
                     "dataDisks": [

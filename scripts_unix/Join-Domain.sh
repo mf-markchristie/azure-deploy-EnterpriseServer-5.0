@@ -23,7 +23,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-sed -i 's/reddog.microsoft.com/contoso.local/' /etc/resolv.conf
+sed -i "s/reddog.microsoft.com/$Domain/" /etc/resolv.conf
 
 if [ $? -ne 0 ]; then
     echo "JoinTo-Domain-Linux has FAILED"
