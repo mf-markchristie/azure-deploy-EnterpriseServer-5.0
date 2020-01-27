@@ -1,16 +1,7 @@
 {
-    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "apiVersionCompute": {
-            "type": "string"
-        },
-        "apiVersionStorage": {
-            "type": "string"
-        },
-        "apiVersionNetwork": {
-            "type": "string"
-        },
         "location": {
             "type": "string",
             "metadata": {
@@ -142,7 +133,7 @@
     },
     "resources": [
         {
-            "apiVersion": "[parameters('apiVersionNetwork')]",
+            "apiVersion": "2018-06-01",
             "type": "Microsoft.Network/networkInterfaces",
             "name": "[concat(parameters('hostName'), '-nic')]",
             "location": "[parameters('location')]",
@@ -155,15 +146,11 @@
                             "id": "[parameters('subnetRef')]"
                         }
                     }
-                }],
-                "dnsSettings": {
-                    "dnsServers": [],
-                    "appliedDnsServers": []
-                }
+                }]
             }
         },
         {
-            "apiVersion": "[parameters('apiVersionCompute')]",
+            "apiVersion": "2018-06-01",
             "name": "[parameters('hostName')]",
             "type": "Microsoft.Compute/virtualMachines",
             "location": "[parameters('location')]",
@@ -200,14 +187,14 @@
                 "diagnosticsProfile": {
                     "bootDiagnostics": {
                         "enabled": true,
-                        "storageUri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', parameters('diagStorageAccount')), parameters('apiVersionStorage')).primaryEndpoints['blob']))]"
+                        "storageUri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', parameters('diagStorageAccount')), '2018-07-01').primaryEndpoints['blob']))]"
                     }
                 },
                 "osProfile": "[if(parameters('deployLinux'), variables('osProfileLinux'), variables('osProfileWin'))]"
             }
         },
         {
-            "apiVersion": "[parameters('apiVersionCompute')]",
+            "apiVersion": "2018-06-01",
             "name": "[concat(parameters('hostName'), '/Setup')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "location": "[parameters('location')]",
@@ -235,7 +222,7 @@
             }
         },
         {
-            "apiVersion": "[parameters('apiVersionCompute')]",
+            "apiVersion": "2018-06-01",
             "name": "[concat(parameters('hostName'), '/SetupLinux')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "location": "[parameters('location')]",

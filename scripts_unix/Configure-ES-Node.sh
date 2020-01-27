@@ -151,7 +151,10 @@ if [ "$DeployPacDemo" = "Y" ]; then
     HostName=`hostname`
     RequestURL="http://$ClusterPrefix-esadmin:10004/native/v1/regions/$HostName/1086/BNKDM"
     curl -sX PUT $RequestURL -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H "$Origin" -d "$JMessage" --cookie-jar cookie.txt
-
+    if [ $? -ne 0 ]; then
+        sleep 30
+        curl -sX PUT $RequestURL -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H "$Origin" -d "$JMessage" --cookie-jar cookie.txt
+    fi
     runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; mfsecretsadmin write microfocus/CAS/SOR-DEMOPSOR-Pass $RedisPassword"
 
     cp $basedir/Deploy.sh .

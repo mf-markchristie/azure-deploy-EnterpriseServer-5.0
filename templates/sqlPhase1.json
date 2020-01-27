@@ -1,32 +1,11 @@
 {
-    "$schema": "http: //schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "apiVersionCompute": {
-            "type": "string"
-        },
-        "apiVersionStorage": {
-            "type": "string"
-        },
-        "apiVersionNetwork": {
-            "type": "string"
-        },
         "location": {
             "type": "string",
             "metadata": {
                 "description": "Region in which the resource group and components will be deployed"
-            }
-        },
-        "_artifactsLocation": {
-            "type": "string",
-            "metadata": {
-                "description": "The base URI where artifacts required by this template are located including a trailing '/'"
-            }
-        },
-        "_artifactsLocationSasToken": {
-            "type": "securestring",
-            "metadata": {
-                "description": "The sasToken required to access _artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
             }
         },
         "clusterPrefix": {
@@ -92,7 +71,7 @@
     },
     "resources": [
         {
-            "apiVersion": "[parameters('apiVersionCompute')]",
+            "apiVersion": "2018-06-01",
             "type": "Microsoft.Compute/availabilitySets",
             "name": "[variables('availabilitySetName')]",
             "location": "[parameters('location')]",
@@ -105,7 +84,7 @@
             }
         },
         {
-            "apiVersion": "[parameters('apiVersionNetwork')]",
+            "apiVersion": "2018-06-01",
             "type": "Microsoft.Network/networkInterfaces",
             "name": "[concat(variables('witnessVMName'), '-nic')]",
             "location": "[parameters('location')]",
@@ -118,15 +97,11 @@
                             "id": "[parameters('subnetRef')]"
                         }
                     }
-                }],
-                "dnsSettings": {
-                    "dnsServers": [],
-                    "appliedDnsServers": []
-                }
+                }]
             }
         },
         {
-            "apiVersion": "[parameters('apiVersionNetwork')]",
+            "apiVersion": "2018-06-01",
             "type": "Microsoft.Network/networkInterfaces",
             "name": "[concat(variables('slaveVmName'), copyIndex(), '-nic')]",
             "location": "[parameters('location')]",
@@ -143,15 +118,11 @@
                             "id": "[parameters('subnetRef')]"
                         }
                     }
-                }],
-                "dnsSettings": {
-                    "dnsServers": [],
-                    "appliedDnsServers": []
-                }
+                }]
             }
         },
         {
-            "apiVersion": "[parameters('apiVersionNetwork')]",
+            "apiVersion": "2018-06-01",
             "name": "[parameters('sqlLBName')]",
             "type": "Microsoft.Network/loadBalancers",
             "location": "[parameters('location')]",
@@ -175,19 +146,19 @@
                     {
                         "name": "SQLAlwaysOnEndPointListener",
                         "properties": {
-                        "backendAddressPool": {
-                            "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('sqlLBName')), '/backendAddressPools/sqlLBBE')]"
-                        },
-                        "frontendIPConfiguration": {
-                            "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('sqlLBName')), '/frontendIPConfigurations/sqlLBFE')]"
-                        },
-                        "probe": {
-                            "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('sqlLBName')), '/probes/SQLAlwaysOnEndPointProbe')]"
-                        },
-                        "protocol": "Tcp",
-                        "frontendPort": 1433,
-                        "backendPort": 1433,
-                        "enableFloatingIP": true
+                            "backendAddressPool": {
+                                "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', parameters('sqlLBName'), 'sqlLBBE')]"
+                            },
+                            "frontendIPConfiguration": {
+                                "id": "[resourceId('Microsoft.Network/loadBalancers/frontendIPConfigurations', parameters('sqlLBName'), 'sqlLBFE')]"
+                            },
+                            "probe": {
+                                "id": "[resourceId('Microsoft.Network/loadBalancers/probes', parameters('sqlLBName'), 'SQLAlwaysOnEndPointProbe')]"
+                            },
+                            "protocol": "Tcp",
+                            "frontendPort": 1433,
+                            "backendPort": 1433,
+                            "enableFloatingIP": true
                         }
                     }
                 ],
@@ -205,7 +176,7 @@
             }
         },
         {
-            "apiVersion": "[parameters('apiVersionCompute')]",
+            "apiVersion": "2018-06-01",
             "name": "[variables('witnessVMName')]",
             "type": "Microsoft.Compute/virtualMachines",
             "location": "[parameters('location')]",
@@ -255,7 +226,7 @@
                 "diagnosticsProfile": {
                     "bootDiagnostics": {
                         "enabled": true,
-                        "storageUri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', parameters('diagStorageAccount')), parameters('apiVersionStorage')).primaryEndpoints['blob']))]"
+                        "storageUri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', parameters('diagStorageAccount')), '2018-07-01').primaryEndpoints['blob']))]"
                     }
                 },
                 "osProfile": {
@@ -270,7 +241,7 @@
             }
         },
         {
-            "apiVersion": "[parameters('apiVersionCompute')]",
+            "apiVersion": "2018-06-01",
             "name": "[concat(variables('slaveVmName'), copyIndex())]",
             "type": "Microsoft.Compute/virtualMachines",
             "location": "[parameters('location')]",
@@ -333,7 +304,7 @@
                 "diagnosticsProfile": {
                     "bootDiagnostics": {
                         "enabled": true,
-                        "storageUri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', parameters('diagStorageAccount')), parameters('apiVersionStorage')).primaryEndpoints['blob']))]"
+                        "storageUri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', parameters('diagStorageAccount')), '2018-07-01').primaryEndpoints['blob']))]"
                     }
                 },
                 "osProfile": {

@@ -1,16 +1,7 @@
 {
-    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "apiVersionCompute": {
-            "type": "string"
-        },
-        "apiVersionStorage": {
-            "type": "string"
-        },
-        "apiVersionNetwork": {
-            "type": "string"
-        },
         "location": {
             "type": "string",
             "metadata": {
@@ -50,14 +41,13 @@
         }
     },
     "variables": {
-        "domainJoinOptions": 3,
         "loadBalancerArr": [{
             "id": "[parameters('loadBalancerRef')]"
         }]
     },
     "resources": [
         {
-            "apiVersion": "[parameters('apiVersionNetwork')]",
+            "apiVersion": "2018-06-01",
             "type": "Microsoft.Network/networkInterfaces",
             "name": "[concat(parameters('hostName'), '-nic')]",
             "location": "[parameters('location')]",

@@ -1,5 +1,5 @@
 {
-    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
         "location": {
@@ -135,6 +135,7 @@
         "rdgInstanceCount": {
             "type": "int",
             "defaultValue": 1,
+            "minValue": 0,
             "maxValue": 4,
             "metadata": {
                 "description": "Number of Remote Desktop Gateway nodes"
@@ -341,11 +342,6 @@
         }
     },
     "variables": {
-        "apiVersionCompute": "2018-06-01",
-        "apiVersionNetwork": "2018-06-01",
-        "apiVersionStorage": "2018-07-01",
-        "apiVersionRedis": "2018-03-01",
-        "apiVersionLinkTemplate": "2015-01-01",
         "clusterPrefixLower": "[toLower(parameters('clusterPrefix'))]",
         "managementNsgName": "[concat(variables('clusterPrefixLower'), '-mNsg')]",
         "applicationNsgName": "[concat(variables('clusterPrefixLower'), '-aNsg')]",
@@ -381,7 +377,8 @@
         "deployDatabase": "[or(parameters('deployDbDemo'), parameters('deployPacDemo'))]",
         "deployEsLb": "[or(parameters('deployDbDemo'), parameters('deployPacDemo'), parameters('deployFsDemo'))]",
         "esLbName": "[concat(parameters('clusterPrefix'), '-eslb')]",
-        "esLBBERef": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('esLbName')), '/backendAddressPools/esLBBE')]",
+        "esLBBERef": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', variables('esLbName'), 'esLBBE')]",
+        "esLBFERef": "[resourceId('Microsoft.Network/loadBalancers/frontendIPConfigurations', variables('esLbName'), 'esLBFE')]",
         "domainJoinOptions": 3,
         "redisCacheNameShort": "[concat(variables('clusterPrefixLower'), '-redis')]",
         "redisCacheName": "[concat(variables('redisCacheNameShort'), uniqueString(concat(resourceGroup().id, 'redis')))]",
@@ -451,7 +448,6 @@
             "autoUpgradeMinorVersion": true,
             "settings": {
                 "Name": "[parameters('domainDNSName')]",
-                "OUPath": "",
                 "User": "[concat(parameters('domainDNSName'), '\\', parameters('administratorUserName'))]",
                 "Restart": "true",
                 "Options": "[variables('domainJoinOptions')]"
@@ -469,14 +465,14 @@
             "properties": {
                 "mode": "Incremental",
                 "template": {
-                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
                     "contentVersion": "1.0.0.0",
                     "resources": []
                 }
             }
         },
         {
-            "apiVersion": "[variables('apiVersionCompute')]",
+            "apiVersion": "2018-06-01",
             "type": "Microsoft.Compute/availabilitySets",
             "name": "[variables('esAvailabilitySetName')]",
             "location": "[parameters('location')]",
@@ -489,7 +485,7 @@
             }
         },
         {
-            "apiVersion": "[variables('apiVersionCompute')]",
+            "apiVersion": "2018-06-01",
             "type": "Microsoft.Compute/availabilitySets",
             "name": "[variables('rdgAvailabilitySetName')]",
             "location": "[parameters('location')]",
@@ -502,7 +498,7 @@
             }
         },
         {
-            "apiVersion": "[variables('apiVersionCompute')]",
+            "apiVersion": "2018-06-01",
             "type": "Microsoft.Compute/availabilitySets",
             "name": "[variables('adAvailabilitySetName')]",
             "location": "[parameters('location')]",
@@ -515,7 +511,7 @@
             }
         },
         {
-            "apiVersion": "[variables('apiVersionNetwork')]",
+            "apiVersion": "2018-06-01",
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('applicationNsgName')]",
             "location": "[parameters('location')]",
@@ -665,7 +661,7 @@
             }
         },
         {
-            "apiVersion": "[variables('apiVersionNetwork')]",
+            "apiVersion": "2018-06-01",
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('managementNsgName')]",
             "location": "[parameters('location')]",
@@ -731,7 +727,7 @@
             }
         },
         {
-            "apiVersion": "[variables('apiVersionNetwork')]",
+            "apiVersion": "2018-06-01",
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('adNsgName')]",
             "location": "[parameters('location')]",
@@ -769,7 +765,7 @@
             }
         },
         {
-            "apiVersion": "[variables('apiVersionNetwork')]",
+            "apiVersion": "2018-06-01",
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('dataNsgName')]",
             "location": "[parameters('location')]",
@@ -1004,7 +1000,7 @@
             }
         },
         {
-            "apiVersion": "[variables('apiVersionNetwork')]",
+            "apiVersion": "2018-06-01",
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('redisNsgName')]",
             "location": "[parameters('location')]",
@@ -1071,7 +1067,7 @@
             }
         },
         {
-            "apiVersion": "[variables('apiVersionNetwork')]",
+            "apiVersion": "2018-06-01",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('managementNsgName'))]",
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('applicationNsgName'))]",
@@ -1084,14 +1080,11 @@
             "location": "[parameters('location')]",
             "properties": {
                 "addressSpace": "[variables('addressSpace')]",
-                "dhcpOptions": {
-                    "dnsServers": []
-                },
                 "subnets": "[variables('subnets')]"
             }
         },
         {
-            "apiVersion": "[variables('apiVersionStorage')]",
+            "apiVersion": "2018-07-01",
             "type": "Microsoft.Storage/storageAccounts",
             "name": "[variables('diagStorageAccount')]",
             "location": "[parameters('location')]",
@@ -1102,7 +1095,7 @@
         },
         {
             "condition": "[parameters('deployPacDemo')]",
-            "apiVersion": "[variables('apiVersionRedis')]",
+            "apiVersion": "2018-03-01",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]"
             ],
@@ -1122,7 +1115,7 @@
         },
         {
             "condition": "[variables('deployEsLb')]",
-            "apiVersion": "[variables('apiVersionNetwork')]",
+            "apiVersion": "2018-06-01",
             "type": "Microsoft.Network/publicIPAddresses",
             "name": "[concat(variables('esLbName'), '-publicip')]",
             "location": "[parameters('location')]",
@@ -1135,7 +1128,7 @@
         },
         {
             "condition": "[variables('deployEsLb')]",
-            "apiVersion": "[variables('apiVersionNetwork')]",
+            "apiVersion": "2018-06-01",
             "name": "[variables('esLbName')]",
             "type": "Microsoft.Network/loadBalancers",
             "location": "[parameters('location')]",
@@ -1161,13 +1154,13 @@
                         "name": "fsRule",
                         "properties": {
                             "backendAddressPool": {
-                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('esLbName')), '/backendAddressPools/esLBBE')]"
+                                "id": "[variables('esLBBERef')]"
                             },
                             "frontendIPConfiguration": {
-                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('esLbName')), '/frontendIPConfigurations/esLBFE')]"
+                                "id": "[variables('esLBFERef')]"
                             },
                             "probe": {
-                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('esLbName')), '/probes/fsProbe')]"
+                                "id": "[resourceId('Microsoft.Network/loadBalancers', variables('esLbName'), 'fsProbe')]"
                             },
                             "protocol": "Tcp",
                             "frontendPort": 5555,
@@ -1179,13 +1172,13 @@
                         "name": "sqlRule",
                         "properties": {
                             "backendAddressPool": {
-                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('esLbName')), '/backendAddressPools/esLBBE')]"
+                                "id": "[variables('esLBBERef')]"
                             },
                             "frontendIPConfiguration": {
-                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('esLbName')), '/frontendIPConfigurations/esLBFE')]"
+                                "id": "[variables('esLBFERef')]"
                             },
                             "probe": {
-                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('esLbName')), '/probes/sqlProbe')]"
+                                "id": "[resourceId('Microsoft.Network/loadBalancers', variables('esLbName'), 'sqlProbe')]"
                             },
                             "protocol": "Tcp",
                             "frontendPort": 5556,
@@ -1197,13 +1190,13 @@
                         "name": "pacRule",
                         "properties": {
                             "backendAddressPool": {
-                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('esLbName')), '/backendAddressPools/esLBBE')]"
+                                "id": "[variables('esLBBERef')]"
                             },
                             "frontendIPConfiguration": {
-                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('esLbName')), '/frontendIPConfigurations/esLBFE')]"
+                                "id": "[variables('esLBFERef')]"
                             },
                             "probe": {
-                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('esLbName')), '/probes/pacProbe')]"
+                                "id": "[resourceId('Microsoft.Network/loadBalancers', variables('esLbName'), 'pacProbe')]"
                             },
                             "protocol": "Tcp",
                             "frontendPort": 5557,
@@ -1242,7 +1235,7 @@
             }
         },
         {
-            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "apiVersion": "2019-09-01",
             "type": "Microsoft.Resources/deployments",
             "name": "[esdeploy.getLoopName('createEsNode', copyIndex())]",
             "dependsOn": [
@@ -1261,15 +1254,6 @@
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
-                    "apiVersionCompute": {
-                        "value": "[variables('apiVersionCompute')]"
-                    },
-                    "apiVersionStorage": {
-                        "value": "[variables('apiVersionStorage')]"
-                    },
-                    "apiVersionNetwork": {
-                        "value": "[variables('apiVersionNetwork')]"
-                    },
                     "location": {
                         "value": "[parameters('location')]"
                     },
@@ -1316,7 +1300,7 @@
             }
         },
         {
-            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "apiVersion": "2019-09-01",
             "type": "Microsoft.Resources/deployments",
             "name": "[esdeploy.getLoopName('rdgDeployment', copyIndex())]",
             "dependsOn": [
@@ -1335,15 +1319,6 @@
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
-                    "apiVersionCompute": {
-                        "value": "[variables('apiVersionCompute')]"
-                    },
-                    "apiVersionStorage": {
-                        "value": "[variables('apiVersionStorage')]"
-                    },
-                    "apiVersionNetwork": {
-                        "value": "[variables('apiVersionNetwork')]"
-                    },
                     "location": {
                         "value": "[parameters('location')]"
                     },
@@ -1381,7 +1356,7 @@
             }
         },
         {
-            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "apiVersion": "2019-09-01",
             "type": "Microsoft.Resources/deployments",
             "name": "createEscwaNode",
             "dependsOn": [
@@ -1395,15 +1370,6 @@
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
-                    "apiVersionCompute": {
-                        "value": "[variables('apiVersionCompute')]"
-                    },
-                    "apiVersionStorage": {
-                        "value": "[variables('apiVersionStorage')]"
-                    },
-                    "apiVersionNetwork": {
-                        "value": "[variables('apiVersionNetwork')]"
-                    },
                     "location": {
                         "value": "[parameters('location')]"
                     },
@@ -1448,7 +1414,7 @@
         },
         {
             "condition": "[parameters('deployFsDemo')]",
-            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "apiVersion": "2019-09-01",
             "type": "Microsoft.Resources/deployments",
             "name": "createFsNode",
             "dependsOn": [
@@ -1462,15 +1428,6 @@
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
-                    "apiVersionCompute": {
-                        "value": "[variables('apiVersionCompute')]"
-                    },
-                    "apiVersionStorage": {
-                        "value": "[variables('apiVersionStorage')]"
-                    },
-                    "apiVersionNetwork": {
-                        "value": "[variables('apiVersionNetwork')]"
-                    },
                     "location": {
                         "value": "[parameters('location')]"
                     },
@@ -1515,7 +1472,7 @@
         },
         {
             "condition": "[variables('deployDatabase')]",
-            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "apiVersion": "2019-09-01",
             "type": "Microsoft.Resources/deployments",
             "name": "sqlPhase1",
             "dependsOn": [
@@ -1529,23 +1486,8 @@
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
-                    "apiVersionCompute": {
-                        "value": "[variables('apiVersionCompute')]"
-                    },
-                    "apiVersionStorage": {
-                        "value": "[variables('apiVersionStorage')]"
-                    },
-                    "apiVersionNetwork": {
-                        "value": "[variables('apiVersionNetwork')]"
-                    },
                     "location": {
                         "value": "[parameters('location')]"
-                    },
-                    "_artifactsLocation": {
-                        "value": "[parameters('_artifactsLocation')]"
-                    },
-                    "_artifactsLocationSasToken": {
-                        "value": "[parameters('_artifactsLocationSasToken')]"
                     },
                     "clusterPrefix": {
                         "value": "[variables('clusterPrefixLower')]"
@@ -1578,7 +1520,7 @@
             }
         },
         {
-            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "apiVersion": "2019-09-01",
             "type": "Microsoft.Resources/deployments",
             "name": "adPhase1",
             "dependsOn": [
@@ -1593,15 +1535,6 @@
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
-                    "apiVersionCompute": {
-                        "value": "[variables('apiVersionCompute')]"
-                    },
-                    "apiVersionStorage": {
-                        "value": "[variables('apiVersionStorage')]"
-                    },
-                    "apiVersionNetwork": {
-                        "value": "[variables('apiVersionNetwork')]"
-                    },
                     "location": {
                         "value": "[parameters('location')]"
                     },
@@ -1672,7 +1605,7 @@
             }
         },
         {
-            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "apiVersion": "2019-09-01",
             "type": "Microsoft.Resources/deployments",
             "name": "adPhase2",
             "dependsOn": [
@@ -1685,15 +1618,6 @@
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
-                    "apiVersionCompute": {
-                        "value": "[variables('apiVersionCompute')]"
-                    },
-                    "apiVersionStorage": {
-                        "value": "[variables('apiVersionStorage')]"
-                    },
-                    "apiVersionNetwork": {
-                        "value": "[variables('apiVersionNetwork')]"
-                    },
                     "location": {
                         "value": "[parameters('location')]"
                     },
@@ -1737,7 +1661,7 @@
             }
         },
         {
-            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "apiVersion": "2019-09-01",
             "type": "Microsoft.Resources/deployments",
             "name": "[esdeploy.getLoopName('resetEsNodeNic', copyIndex())]",
             "dependsOn": [
@@ -1756,15 +1680,6 @@
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
-                    "apiVersionCompute": {
-                        "value": "[variables('apiVersionCompute')]"
-                    },
-                    "apiVersionStorage": {
-                        "value": "[variables('apiVersionStorage')]"
-                    },
-                    "apiVersionNetwork": {
-                        "value": "[variables('apiVersionNetwork')]"
-                    },
                     "location": {
                         "value": "[parameters('location')]"
                     },
@@ -1788,7 +1703,7 @@
         },
         {
             "condition": "[not(parameters('deployLinux'))]",
-            "apiVersion": "[variables('apiVersionCompute')]",
+            "apiVersion": "2018-06-01",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(esdeploy.getLoopName(variables('esHostname'), copyIndex()), '/joindomain')]",
             "location": "[parameters('location')]",
@@ -1802,7 +1717,7 @@
             "properties": "[variables('domainJoinProperties')]"
         },
         {
-            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "apiVersion": "2019-09-01",
             "type": "Microsoft.Resources/deployments",
             "name": "resetEscwaNodeNic",
             "dependsOn": [
@@ -1816,15 +1731,6 @@
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
-                    "apiVersionCompute": {
-                        "value": "[variables('apiVersionCompute')]"
-                    },
-                    "apiVersionStorage": {
-                        "value": "[variables('apiVersionStorage')]"
-                    },
-                    "apiVersionNetwork": {
-                        "value": "[variables('apiVersionNetwork')]"
-                    },
                     "location": {
                         "value": "[parameters('location')]"
                     },
@@ -1845,7 +1751,7 @@
         },
         {
             "condition": "[not(parameters('deployLinux'))]",
-            "apiVersion": "[variables('apiVersionCompute')]",
+            "apiVersion": "2018-06-01",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('escwaHostname'), '/joindomain')]",
             "location": "[parameters('location')]",
@@ -1856,7 +1762,7 @@
         },
         {
             "condition": "[parameters('deployFsDemo')]",
-            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "apiVersion": "2019-09-01",
             "type": "Microsoft.Resources/deployments",
             "name": "resetFsNodeNic",
             "dependsOn": [
@@ -1870,15 +1776,6 @@
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
-                    "apiVersionCompute": {
-                        "value": "[variables('apiVersionCompute')]"
-                    },
-                    "apiVersionStorage": {
-                        "value": "[variables('apiVersionStorage')]"
-                    },
-                    "apiVersionNetwork": {
-                        "value": "[variables('apiVersionNetwork')]"
-                    },
                     "location": {
                         "value": "[parameters('location')]"
                     },
@@ -1899,7 +1796,7 @@
         },
         {
             "condition": "[and(parameters('deployFsDemo'), not(parameters('deployLinux')))]",
-            "apiVersion": "[variables('apiVersionCompute')]",
+            "apiVersion": "2018-06-01",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('fsHostname'), '/joindomain')]",
             "location": "[parameters('location')]",
@@ -1909,7 +1806,7 @@
             "properties": "[variables('domainJoinProperties')]"
         },
         {
-            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "apiVersion": "2019-09-01",
             "type": "Microsoft.Resources/deployments",
             "name": "configureEscwaNode",
             "dependsOn": [
@@ -1923,15 +1820,6 @@
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
-                    "apiVersionCompute": {
-                        "value": "[variables('apiVersionCompute')]"
-                    },
-                    "apiVersionStorage": {
-                        "value": "[variables('apiVersionStorage')]"
-                    },
-                    "apiVersionNetwork": {
-                        "value": "[variables('apiVersionNetwork')]"
-                    },
                     "location": {
                         "value": "[parameters('location')]"
                     },
@@ -1979,7 +1867,7 @@
         },
         {
             "condition": "[parameters('deployFsDemo')]",
-            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "apiVersion": "2019-09-01",
             "type": "Microsoft.Resources/deployments",
             "name": "configureFsNode",
             "dependsOn": [
@@ -1992,15 +1880,6 @@
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
-                    "apiVersionCompute": {
-                        "value": "[variables('apiVersionCompute')]"
-                    },
-                    "apiVersionStorage": {
-                        "value": "[variables('apiVersionStorage')]"
-                    },
-                    "apiVersionNetwork": {
-                        "value": "[variables('apiVersionNetwork')]"
-                    },
                     "location": {
                         "value": "[parameters('location')]"
                     },
@@ -2039,7 +1918,7 @@
         },
         {
             "condition": "[variables('deployDatabase')]",
-            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "apiVersion": "2019-09-01",
             "type": "Microsoft.Resources/deployments",
             "name": "sqlPhase2",
             "dependsOn": [
@@ -2053,15 +1932,6 @@
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
-                    "apiVersionCompute": {
-                        "value": "[variables('apiVersionCompute')]"
-                    },
-                    "apiVersionStorage": {
-                        "value": "[variables('apiVersionStorage')]"
-                    },
-                    "apiVersionNetwork": {
-                        "value": "[variables('apiVersionNetwork')]"
-                    },
                     "location": {
                         "value": "[parameters('location')]"
                     },
@@ -2114,7 +1984,7 @@
             }
         },
         {
-            "apiVersion": "[variables('apiVersionLinkTemplate')]",
+            "apiVersion": "2019-09-01",
             "type": "Microsoft.Resources/deployments",
             "name": "[esdeploy.getLoopName('configureEsNode', copyIndex())]",
             "dependsOn": [
@@ -2134,15 +2004,6 @@
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
-                    "apiVersionCompute": {
-                        "value": "[variables('apiVersionCompute')]"
-                    },
-                    "apiVersionStorage": {
-                        "value": "[variables('apiVersionStorage')]"
-                    },
-                    "apiVersionNetwork": {
-                        "value": "[variables('apiVersionNetwork')]"
-                    },
                     "location": {
                         "value": "[parameters('location')]"
                     },
@@ -2180,7 +2041,7 @@
                         "value": "[parameters('deployLinux')]"
                     },
                     "redisPassword": {
-                        "value": "[if(parameters('deployPacDemo'), listkeys(resourceId('Microsoft.Cache/redis', variables('redisCacheName')), providers('Microsoft.Cache', 'redis').apiVersions[0]).primaryKey, 'dummyPass')]"
+                        "value": "[if(parameters('deployPacDemo'), listkeys(resourceId('Microsoft.Cache/redis', variables('redisCacheName')), '2018-03-01').primaryKey, 'dummyPass')]"
                     },
                     "domainAdminUserName": {
                         "value": "[parameters('administratorUserName')]"

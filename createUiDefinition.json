@@ -16,7 +16,7 @@
                 }
             },
             {
-                "name": "osPlatform",
+                "name": "deployLinux",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Operating system",
                 "defaultValue": "Windows",
@@ -24,11 +24,11 @@
                 "constraints": {
                     "allowedValues": [{
                             "label": "Windows",
-                            "value": "Windows"
+                            "value": false
                         },
                         {
                             "label": "Linux",
-                            "value": "Linux"
+                            "value": true
                         }
                     ]
                 }
@@ -36,8 +36,8 @@
             {
                 "name": "esLicense",
                 "type": "Microsoft.Common.FileUpload",
-                "label": "Licence file",
-                "toolTip": "Licence file for Enterprise Server",
+                "label": "License file",
+                "toolTip": "License file for Enterprise Server",
                 "constraints": {
                     "required": true,
                     "accept": ".mflic"
@@ -129,14 +129,14 @@
                         "sshPublicKey": "SSH public key for the VM admin user. Corresponds to the private key in the key vault that was configured as part of the pre-work."
                     },
                     "constraints": {
-                        "required": "[equals(basics('osPlatform'), 'Linux')]"
+                        "required": "[basics('deployLinux')]"
                     },
                     "options": {
                         "hideConfirmation": false,
                         "hidePassword": true
                     },
                     "osPlatform": "Linux",
-                    "visible": "[equals(basics('osPlatform'), 'Linux')]"
+                    "visible": "[basics('deployLinux')]"
                 }, {
                     "name": "rdgInstanceCount",
                     "type": "Microsoft.Common.DropDown",
@@ -355,7 +355,6 @@
                         "name": "applicationUsername",
                         "type": "Microsoft.Compute.UserNameTextBox",
                         "label": "Application user name",
-                        "defaultValue": "mfuser",
                         "osPlatform": "Windows",
                         "constraints": {
                             "required": true
@@ -399,11 +398,11 @@
                 "constraints": {
                     "allowedValues": [{
                             "label": "Yes",
-                            "value": "Yes"
+                            "value": true
                         },
                         {
                             "label": "No",
-                            "value": "No"
+                            "value": false
                         }
                     ],
                     "required": true
@@ -418,11 +417,11 @@
                 "constraints": {
                     "allowedValues": [{
                             "label": "Yes",
-                            "value": "Yes"
+                            "value": true
                         },
                         {
                             "label": "No",
-                            "value": "No"
+                            "value": false
                         }
                     ],
                     "required": true
@@ -437,11 +436,11 @@
                 "constraints": {
                     "allowedValues": [{
                             "label": "Yes",
-                            "value": "Yes"
+                            "value": true
                         },
                         {
                             "label": "No",
-                            "value": "No"
+                            "value": false
                         }
                     ],
                     "required": true
@@ -450,8 +449,8 @@
             }, {
                 "name": "fsSettings",
                 "type": "Microsoft.Common.Section",
-                "label": "Fileshare Settings",
-                "visible": "[equals(steps('demoSettings').deployFsDemo, 'Yes')]",
+                "label": "Fileshare settings",
+                "visible": "[steps('demoSettings').deployFsDemo]",
                 "elements": [{
                     "name": "fsInstanceSize",
                     "type": "Microsoft.Compute.SizeSelector",
@@ -539,7 +538,7 @@
                         "password": "Fileshare administrator password",
                         "confirmPassword": "Confirm password"
                     },
-                    "toolTip": "Provide fileshare administrator (FSVIEW) password.",
+                    "toolTip": "Provide Fileshare administrator (FSVIEW) password.",
                     "constraints": {
                         "regex": "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)[A-Za-z\\d]{8,32}$",
                         "validationMessage": "Must contain 8 to 32 characters, at least one numeric character, one uppercase character and one lowercase character.",
@@ -554,7 +553,7 @@
                 "name": "dbSettings",
                 "type": "Microsoft.Common.Section",
                 "label": "Database settings",
-                "visible": "[or(equals(steps('demoSettings').deployDbDemo, 'Yes'), equals(steps('demoSettings').deployPacDemo, 'Yes'))]",
+                "visible": "[or(steps('demoSettings').deployDbDemo, steps('demoSettings').deployPacDemo)]",
                 "elements": [{
                     "name": "sqlWitnessInstanceSize",
                     "type": "Microsoft.Compute.SizeSelector",
@@ -625,7 +624,7 @@
         "outputs": {
             "location": "[location()]",
             "clusterPrefix": "[basics('clusterPrefix')]",
-            "deployLinux": "[equals(basics('osPlatform'), 'Linux')]",
+            "deployLinux": "[basics('deployLinux')]",
             "esLicense": "[basics('esLicense')]",
             "administratorUserName": "[steps('vnetSettings').domainSettings.administratorUserName]",
             "administratorPassword": "[steps('vnetSettings').domainSettings.administratorPassword]",
@@ -639,9 +638,9 @@
             "rdgInstanceCount": "[steps('vmSettings').generalMachineSettings.rdgInstanceCount]",
             "rdgInstanceSize": "[steps('vmSettings').generalMachineSettings.rdgInstanceSize]",
             "adInstanceSize": "[steps('vmSettings').generalMachineSettings.adInstanceSize]",
-            "deployDbDemo": "[equals(steps('demoSettings').deployDbDemo, 'Yes')]",
-            "deployPacDemo": "[equals(steps('demoSettings').deployPacDemo, 'Yes')]",
-            "deployFsDemo": "[equals(steps('demoSettings').deployFsDemo, 'Yes')]",
+            "deployDbDemo": "[steps('demoSettings').deployDbDemo]",
+            "deployPacDemo": "[steps('demoSettings').deployPacDemo]",
+            "deployFsDemo": "[steps('demoSettings').deployFsDemo]",
             "fsviewPassword": "[steps('demoSettings').fsSettings.fsviewPassword]",
             "fsInstanceSize": "[steps('demoSettings').fsSettings.fsInstanceSize]",
             "fsDataDiskSize": "[steps('demoSettings').fsSettings.fsDataDiskSize]",

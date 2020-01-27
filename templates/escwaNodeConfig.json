@@ -1,16 +1,7 @@
 {
-    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "apiVersionCompute": {
-            "type": "string"
-        },
-        "apiVersionStorage": {
-            "type": "string"
-        },
-        "apiVersionNetwork": {
-            "type": "string"
-        },
         "location": {
             "type": "string",
             "metadata": {
@@ -103,7 +94,7 @@
     },
     "resources": [
         {
-            "apiVersion": "[parameters('apiVersionCompute')]",
+            "apiVersion": "2018-06-01",
             "name": "[concat(parameters('hostName'), '/Setup')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "location": "[parameters('location')]",
@@ -126,7 +117,7 @@
             }
         },
         {
-            "apiVersion": "[parameters('apiVersionCompute')]",
+            "apiVersion": "2018-06-01",
             "name": "[concat(parameters('hostName'), '/SetupLinux')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "location": "[parameters('location')]",

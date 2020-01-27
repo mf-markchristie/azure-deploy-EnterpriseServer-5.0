@@ -1,16 +1,7 @@
 {
-    "$schema": "http: //schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "apiVersionCompute": {
-            "type": "string"
-        },
-        "apiVersionStorage": {
-            "type": "string"
-        },
-        "apiVersionNetwork": {
-            "type": "string"
-        },
         "location": {
             "type": "string",
             "metadata": {
@@ -45,12 +36,6 @@
             "type": "array",
             "metadata": {
                 "description": "List of ip addresses for SQL VMs"
-            }
-        },
-        "domainJoinProperties": {
-            "type": "object",
-            "metadata": {
-                "description": "Domain join properties object"
             }
         },
         "dnsSettings": {
@@ -95,12 +80,6 @@
                 "description": "Ip address for SQL Load Balancer"
             }
         },
-        "deployDbDemo": {
-            "type": "bool",
-            "metadata": {
-                "description": "Flag to determine whether database demo is deployed"
-            }
-        },
         "sqlLBName": {
             "type": "string",
             "metadata": {
@@ -125,7 +104,7 @@
     },
     "resources": [
         {
-            "apiVersion": "[parameters('apiVersionNetwork')]",
+            "apiVersion": "2018-06-01",
             "type": "Microsoft.Network/networkInterfaces",
             "name": "[concat(variables('witnessVMName'), '-nic')]",
             "location": "[parameters('location')]",
@@ -144,7 +123,7 @@
             }
         },
         {
-            "apiVersion": "[parameters('apiVersionNetwork')]",
+            "apiVersion": "2018-06-01",
             "type": "Microsoft.Network/networkInterfaces",
             "name": "[concat(variables('slaveVmName'), copyIndex(), '-nic')]",
             "location": "[parameters('location')]",
@@ -163,7 +142,7 @@
                         },
                         "loadBalancerBackendAddressPools": [
                             {
-                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('sqlLBName')), '/backendAddressPools/sqlLBBE')]"
+                                "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', parameters('sqlLBName'), 'sqlLBBE')]"
                             }
                         ]
                     }
@@ -172,7 +151,7 @@
             }
         },
         {
-            "apiVersion": "[parameters('apiVersionCompute')]",
+            "apiVersion": "2018-06-01",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('witnessVMName'),'/CreateFileShareWitness')]",
             "location": "[parameters('location')]",
@@ -204,7 +183,7 @@
             }
         },
         {
-            "apiVersion": "[parameters('apiVersionCompute')]",
+            "apiVersion": "2018-06-01",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('slaveVmName'), copyIndex(), '/SqlVmIaasExtension')]",
             "location": "[parameters('location')]",
@@ -240,7 +219,7 @@
             }
         },
         {
-            "apiVersion": "[parameters('apiVersionCompute')]",
+            "apiVersion": "2018-06-01",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('slaveVmName'),'0/sqlAOPrepare')]",
             "location": "[parameters('location')]",
@@ -280,7 +259,7 @@
             }
         },
         {
-            "apiVersion": "[parameters('apiVersionCompute')]",
+            "apiVersion": "2018-06-01",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('slaveVmName'),'1/configuringAlwaysOn')]",
             "location": "[parameters('location')]",
