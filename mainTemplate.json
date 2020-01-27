@@ -1950,9 +1950,6 @@
                     "ipAddresses": {
                         "value": "[parameters('sqlNodeIpArray')]"
                     },
-                    "domainJoinProperties": {
-                        "value": "[variables('domainJoinProperties')]"
-                    },
                     "dnsSettings": {
                         "value": "[variables('dnsSettings')]"
                     },
@@ -1973,9 +1970,6 @@
                     },
                     "sqlLBIPAddress": {
                         "value": "[parameters('sqlLBIPAddress')]"
-                    },
-                    "deployDbDemo": {
-                        "value": "[parameters('deployDbDemo')]"
                     },
                     "sqlLBName": {
                         "value": "[variables('sqlLBName')]"
