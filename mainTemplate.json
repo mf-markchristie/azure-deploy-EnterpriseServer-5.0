@@ -1160,7 +1160,7 @@
                                 "id": "[variables('esLBFERef')]"
                             },
                             "probe": {
-                                "id": "[resourceId('Microsoft.Network/loadBalancers', variables('esLbName'), 'fsProbe')]"
+                                "id": "[resourceId('Microsoft.Network/loadBalancers/probes', variables('esLbName'), 'fsProbe')]"
                             },
                             "protocol": "Tcp",
                             "frontendPort": 5555,
@@ -1178,7 +1178,7 @@
                                 "id": "[variables('esLBFERef')]"
                             },
                             "probe": {
-                                "id": "[resourceId('Microsoft.Network/loadBalancers', variables('esLbName'), 'sqlProbe')]"
+                                "id": "[resourceId('Microsoft.Network/loadBalancers/probes', variables('esLbName'), 'sqlProbe')]"
                             },
                             "protocol": "Tcp",
                             "frontendPort": 5556,
@@ -1196,7 +1196,7 @@
                                 "id": "[variables('esLBFERef')]"
                             },
                             "probe": {
-                                "id": "[resourceId('Microsoft.Network/loadBalancers', variables('esLbName'), 'pacProbe')]"
+                                "id": "[resourceId('Microsoft.Network/loadBalancers/probes', variables('esLbName'), 'pacProbe')]"
                             },
                             "protocol": "Tcp",
                             "frontendPort": 5557,
