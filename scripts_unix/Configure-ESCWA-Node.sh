@@ -32,6 +32,8 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 mkhomedir_helper $usernameFull
+# Workaround while 5.0 installed
+sed -i "s/10004/10086/" /opt/microfocus/EnterpriseDeveloper/etc/commonwebadmin.json
 chown $usernameFull /opt/microfocus/EnterpriseDeveloper/etc/commonwebadmin.json
 find /opt/microfocus/EnterpriseDeveloper/etc -type d -exec chmod 777 {} \; # So escwa can write to the logfile
 
@@ -57,8 +59,8 @@ function addDS () {
         \"MfdsPort\": \"$Port\" \
     }"
 
-    RequestURL='http://localhost:10004/server/v1/config/mfds'
-    Origin='Origin: http://localhost:10004'
+    RequestURL='http://localhost:10086/server/v1/config/mfds'
+    Origin='Origin: http://localhost:10086'
 
     curl -sX POST $RequestURL -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H "$Origin" -d "$JMessage" --cookie cookie.txt
 }
@@ -72,8 +74,8 @@ function jsonValue() {
 echo "Configuring ESCWA"
 JMessage="{ \"mfUser\": \"\", \"mfPassword\": \"\" }"
 
-RequestURL='http://localhost:10004/logon'
-Origin='Origin: http://localhost:10004'
+RequestURL='http://localhost:10086/logon'
+Origin='Origin: http://localhost:10086'
 
 i="0"
 while [ ! -f ./cookie.txt ]; do
@@ -86,9 +88,9 @@ while [ ! -f ./cookie.txt ]; do
     fi
 done
 
-RequestURL='http://localhost:10004/server/v1/config/mfds'
+RequestURL='http://localhost:10086/server/v1/config/mfds'
 Uid=`curl -sX GET "$RequestURL" -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H "$Origin" --cookie cookie.txt | jsonValue Uid 1`
-RequestURL="http://localhost:10004/server/v1/config/mfds/$Uid"
+RequestURL="http://localhost:10086/server/v1/config/mfds/$Uid"
 curl -sX DELETE "$RequestURL" -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H "$Origin" --cookie cookie.txt
 
 for (( i=1; i<=$ESCount; i++ )); do
@@ -107,7 +109,7 @@ if [ "$DeployPacDemo" = "Y" ]; then
             \"SorConnectPath\": \"$clusterPrefix-redis:6379\" \
         }"
 
-    RequestURL="http://localhost:10004/server/v1/config/groups/sors"
+    RequestURL="http://localhost:10086/server/v1/config/groups/sors"
     sorUid=`curl -sX POST "$RequestURL" -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H "$Origin" -d "$JMessage" --cookie-jar cookie.txt | jsonValue Uid 1`
 
     JMessage="{ \
@@ -115,7 +117,7 @@ if [ "$DeployPacDemo" = "Y" ]; then
             \"PacDescription\": \"Demo PAC\", \
             \"PacResourceSorUid\": \"$sorUid\" \
         }"
-    RequestURL="http://localhost:10004/server/v1/config/groups/pacs"
+    RequestURL="http://localhost:10086/server/v1/config/groups/pacs"
     curl -sX POST "$RequestURL" -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H "$Origin" -d "$JMessage" --cookie-jar cookie.txt
 fi
 

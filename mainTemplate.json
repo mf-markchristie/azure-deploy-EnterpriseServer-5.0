@@ -225,7 +225,7 @@
         },
         "escwaNodeIp": {
             "type": "string",
-            "defaultValue": "10.0.128.10",
+            "defaultValue": "10.0.128.4",
             "metadata": {
                 "description": "Ip address of ESCWA node."
             }
@@ -690,7 +690,7 @@
                             "sourceAddressPrefix": "[parameters('applicationSubnetPrefix')]",
                             "sourcePortRange": "*",
                             "destinationAddressPrefix": "*",
-                            "destinationPortRange": "10004"
+                            "destinationPortRange": "10086"
                         }
                     },
                     {

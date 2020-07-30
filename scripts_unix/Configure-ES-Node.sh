@@ -140,8 +140,8 @@ if [ "$DeployPacDemo" = "Y" ]; then
     sleep 5
 
     JMessage="{ \"mfUser\": \"\", \"mfPassword\": \"\" }"
-    RequestURL="http://$ClusterPrefix-esadmin:10004/logon"
-    Origin="Origin: http://$ClusterPrefix-esadmin:10004"
+    RequestURL="http://$ClusterPrefix-esadmin:10086/logon"
+    Origin="Origin: http://$ClusterPrefix-esadmin:10086"
     curl -sX POST $RequestURL -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H "$Origin" -d "$JMessage" --cookie-jar cookie.txt
 
     JMessage="{ \
@@ -149,7 +149,7 @@ if [ "$DeployPacDemo" = "Y" ]; then
         \"mfCASPAC\": \"DemoPAC\" \
     }"
     HostName=`hostname`
-    RequestURL="http://$ClusterPrefix-esadmin:10004/native/v1/regions/$HostName/1086/BNKDM"
+    RequestURL="http://$ClusterPrefix-esadmin:10086/native/v1/regions/$HostName/1086/BNKDM"
     curl -sX PUT $RequestURL -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H "$Origin" -d "$JMessage" --cookie-jar cookie.txt
     if [ $? -ne 0 ]; then
         sleep 30

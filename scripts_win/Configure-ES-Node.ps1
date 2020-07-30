@@ -175,8 +175,8 @@ if ($DeployPacDemo -eq "Y") {
     Add-DirectoryPermissions -Directory "C:\BankDemo_PAC" -Account $Account
 
     $JMessage = '{ \"mfUser\": \"\", \"mfPassword\": \"\" }'
-    $RequestURL = "http://$clusterPrefix-esadmin:10004/logon"
-    $Origin = "Origin: http://$clusterPrefix-esadmin:10004"
+    $RequestURL = "http://$clusterPrefix-esadmin:10086/logon"
+    $Origin = "Origin: http://$clusterPrefix-esadmin:10086"
     curl.exe -sX POST  $RequestURL -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H $Origin -d $Jmessage --cookie-jar cookie.txt | Out-Null
     $JMessage = '
         {
@@ -184,7 +184,7 @@ if ($DeployPacDemo -eq "Y") {
             \"mfCASPAC\": \"DemoPAC\"
         }'
     $HostName = $env:COMPUTERNAME
-    $RequestURL = "http://$clusterPrefix-esadmin:10004/native/v1/regions/$HostName/86/BNKDM"
+    $RequestURL = "http://$clusterPrefix-esadmin:10086/native/v1/regions/$HostName/86/BNKDM"
     curl.exe -sX PUT $RequestURL -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H $Origin -d $Jmessage --cookie-jar cookie.txt | Out-Null
 
     if ($RedisPassword -ne "") {

@@ -91,7 +91,7 @@
                         },
                         "toolTip": "Provide domain administrator user password. On Windows this will also be the password for the VM administrator account.",
                         "constraints": {
-                            "regex": "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)[A-Za-z\\d]{12,}$",
+                            "regex": "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)[!-~]{12,}$",
                             "validationMessage": "The password must contain at least 12 characters and must contain at least one numeric character, one uppercase character and one lowercase character",
                             "required": true
                         },
@@ -359,7 +359,7 @@
                         "constraints": {
                             "required": true
                         },
-                        "toolTip": "Enter the name of the application user for Enterprise Server."
+                        "toolTip": "Enter the name of the application user for Enterprise Server. Supplied value must be different to administrator user name"
                     },
                     {
                         "name": "applicationUserPassword",

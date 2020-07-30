@@ -82,6 +82,10 @@ $Service.change($null,$null,$null,$null,$null,$false,$Account,$ServicePassword,$
 
 
 Add-DirectoryPermissions -Directory "C:\ProgramData\Micro Focus\Enterprise Developer\ESCWA" -Account $Account
+
+# Workaround while 5.0 installed
+((Get-Content -path "C:\ProgramData\Micro Focus\Enterprise Developer\ESCWA\commonwebadmin.json" -Raw) -creplace "10004","10086") | Set-Content -Path "C:\ProgramData\Micro Focus\Enterprise Developer\ESCWA\commonwebadmin.json"
+
 Start-Service -Name "ESCWA"
 
 Write-Host "Deleting MFDS Service"
@@ -108,8 +112,8 @@ function addDS {
         \"MfdsPort\": \"' + $Port + '\"
     }'
 
-    $RequestURL = 'http://localhost:10004/server/v1/config/mfds'
-    $Origin = 'Origin: http://localhost:10004'
+    $RequestURL = 'http://localhost:10086/server/v1/config/mfds'
+    $Origin = 'Origin: http://localhost:10086'
 
     curl.exe -sX POST $RequestURL -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H $Origin -d $Jmessage --cookie cookie.txt | Out-Null
 }
@@ -117,15 +121,15 @@ function addDS {
 Write-Host "Configuring ESCWA"
 $JMessage = '{ \"mfUser\": \"\", \"mfPassword\": \"\" }'
 
-$RequestURL = 'http://localhost:10004/logon'
-$Origin = 'Origin: http://localhost:10004'
+$RequestURL = 'http://localhost:10086/logon'
+$Origin = 'Origin: http://localhost:10086'
 
 curl.exe -sX POST  $RequestURL -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H $Origin -d $Jmessage --cookie-jar cookie.txt | Out-Null
 
-$RequestURL = 'http://localhost:10004/server/v1/config/mfds'
+$RequestURL = 'http://localhost:10086/server/v1/config/mfds'
 $mfdsObj = curl.exe -sX GET $RequestURL -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H $Origin --cookie cookie.txt | ConvertFrom-Json
 $Uid=$mfdsObj[0].Uid
-$RequestURL = "http://localhost:10004/server/v1/config/mfds/$Uid"
+$RequestURL = "http://localhost:10086/server/v1/config/mfds/$Uid"
 curl.exe -sX DELETE $RequestURL -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H $Origin --cookie cookie.txt | Out-Null
 
 
@@ -146,7 +150,7 @@ if ($DeployPacDemo -eq "Y") {
             \"SorConnectPath\": \"' + $clusterPrefix + '-redis:6379\"
         }'
 
-    $RequestURL = "http://localhost:10004/server/v1/config/groups/sors"
+    $RequestURL = "http://localhost:10086/server/v1/config/groups/sors"
     $sorObj = curl.exe -sX POST $RequestURL -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H $Origin -d $Jmessage --cookie-jar cookie.txt | ConvertFrom-Json
     $sorUid=$sorObj.Uid
 
@@ -156,6 +160,6 @@ if ($DeployPacDemo -eq "Y") {
             \"PacDescription\": \"Demo PAC\",
             \"PacResourceSorUid\": \"' + $sorUid + '\"
         }'
-    $RequestURL = "http://localhost:10004/server/v1/config/groups/pacs"
+    $RequestURL = "http://localhost:10086/server/v1/config/groups/pacs"
     curl.exe -sX POST $RequestURL -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H $Origin -d $Jmessage --cookie-jar cookie.txt | Out-Null
 }
