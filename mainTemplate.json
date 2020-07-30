@@ -225,7 +225,7 @@
         },
         "escwaNodeIp": {
             "type": "string",
-            "defaultValue": "10.0.128.10",
+            "defaultValue": "10.0.128.4",
             "metadata": {
                 "description": "Ip address of ESCWA node."
             }
@@ -372,6 +372,7 @@
         "escwaConfigureNodeUrl": "[uri(parameters('_artifactsLocation'), concat('templates/escwaNodeConfig.json', parameters('_artifactsLocationSasToken')))]",
         "fsConfigureNodeUrl": "[uri(parameters('_artifactsLocation'), concat('templates/fsNodeConfig.json', parameters('_artifactsLocationSasToken')))]",
         "resetNicUrl": "[uri(parameters('_artifactsLocation'), concat('templates/resetNic.json', parameters('_artifactsLocationSasToken')))]",
+        "joinDomainUrl": "[uri(parameters('_artifactsLocation'), concat('templates/joinDomain.json', parameters('_artifactsLocationSasToken')))]",
         "deployDatabase": "[or(parameters('deployDbDemo'), parameters('deployPacDemo'))]",
         "deployEsLb": "[or(parameters('deployDbDemo'), parameters('deployPacDemo'), parameters('deployFsDemo'))]",
         "esLbName": "[concat(parameters('clusterPrefix'), '-eslb')]",
@@ -1701,10 +1702,9 @@
         },
         {
             "condition": "[not(parameters('deployLinux'))]",
-            "apiVersion": "2018-06-01",
-            "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(esdeploy.getLoopName(variables('esHostname'), copyIndex()), '/joindomain')]",
-            "location": "[parameters('location')]",
+            "apiVersion": "2019-09-01",
+            "type": "Microsoft.Resources/deployments",
+            "name": "[esdeploy.getLoopName('joinDomainEs', copyIndex())]",
             "dependsOn": [
                 "resetEsNodeNicLoop"
             ],
@@ -1712,7 +1712,24 @@
                 "name": "joinDomainEsNodeLoop",
                 "count": "[parameters('esInstanceCount')]"
             },
-            "properties": "[variables('domainJoinProperties')]"
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('joinDomainUrl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "hostName": {
+                        "value": "[esdeploy.getLoopName(variables('esHostname'), copyIndex())]"
+                    },
+                    "domainJoinProperties": {
+                        "value": "[variables('domainJoinProperties')]"
+                    }
+                }
+            }
         },
         {
             "apiVersion": "2019-09-01",
@@ -1749,17 +1766,32 @@
         },
         {
             "condition": "[not(parameters('deployLinux'))]",
-            "apiVersion": "2018-06-01",
-            "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(variables('escwaHostname'), '/joindomain')]",
-            "location": "[parameters('location')]",
+            "apiVersion": "2019-09-01",
+            "type": "Microsoft.Resources/deployments",
+            "name": "joinDomainEscwa",
             "dependsOn": [
                 "[resourceId('Microsoft.Resources/deployments', 'resetEscwaNodeNic')]"
             ],
-            "properties": "[variables('domainJoinProperties')]"
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('joinDomainUrl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "hostName": {
+                        "value": "[variables('escwaHostname')]"
+                    },
+                    "domainJoinProperties": {
+                        "value": "[variables('domainJoinProperties')]"
+                    }
+                }
+            }
         },
         {
-            "condition": "[parameters('deployFsDemo')]",
             "apiVersion": "2019-09-01",
             "type": "Microsoft.Resources/deployments",
             "name": "resetFsNodeNic",
@@ -1793,22 +1825,38 @@
             }
         },
         {
-            "condition": "[and(parameters('deployFsDemo'), not(parameters('deployLinux')))]",
-            "apiVersion": "2018-06-01",
-            "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(variables('fsHostname'), '/joindomain')]",
-            "location": "[parameters('location')]",
+            "condition": "[not(parameters('deployLinux'))]",
+            "apiVersion": "2019-09-01",
+            "type": "Microsoft.Resources/deployments",
+            "name": "joinDomainFs",
             "dependsOn": [
                 "[resourceId('Microsoft.Resources/deployments', 'resetFsNodeNic')]"
             ],
-            "properties": "[variables('domainJoinProperties')]"
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('joinDomainUrl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "hostName": {
+                        "value": "[variables('fsHostname')]"
+                    },
+                    "domainJoinProperties": {
+                        "value": "[variables('domainJoinProperties')]"
+                    }
+                }
+            }
         },
         {
             "apiVersion": "2019-09-01",
             "type": "Microsoft.Resources/deployments",
             "name": "configureEscwaNode",
             "dependsOn": [
-                "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('escwaHostName'), 'joindomain')]",
+                "[resourceId('Microsoft.Resources/deployments', 'joinDomainEscwa')]",
                 "[resourceId('Microsoft.Cache/Redis', variables('redisCacheName'))]"
             ],
             "properties": {
@@ -1864,12 +1912,11 @@
             }
         },
         {
-            "condition": "[parameters('deployFsDemo')]",
             "apiVersion": "2019-09-01",
             "type": "Microsoft.Resources/deployments",
             "name": "configureFsNode",
             "dependsOn": [
-                "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('fsHostName'), 'joindomain')]"
+                "[resourceId('Microsoft.Resources/deployments', 'joinDomainFs')]"
             ],
             "properties": {
                 "mode": "Incremental",
