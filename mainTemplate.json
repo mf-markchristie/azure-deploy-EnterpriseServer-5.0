@@ -225,7 +225,7 @@
         },
         "escwaNodeIp": {
             "type": "string",
-            "defaultValue": "10.0.128.4",
+            "defaultValue": "10.0.128.10",
             "metadata": {
                 "description": "Ip address of ESCWA node."
             }
