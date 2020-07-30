@@ -1,0 +1,53 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "Region in which the resource group and components will be deployed"
+            }
+        },
+        "hostName": {
+            "type": "string",
+            "metadata": {
+                "description": "Virtual machine name to be used."
+            }
+        },
+        "domainJoinProperties": {
+            "type": "object",
+            "metadata": {
+                "description": "Properties for domain join command"
+            }
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "2018-06-01",
+            "name": "[concat(parameters('hostName'), '/Setup')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "location": "[parameters('location')]",
+            "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.9",
+                "autoUpgradeMinorVersion": true,
+                "forceUpdateTag": "v.2.0",
+                "settings": {
+                    "fileUris": [
+                    ]
+                },
+                "protectedSettings": {
+                    "commandToExecute": "cmd /c ipconfig /renew"
+                }
+            }
+        },
+        {
+            "apiVersion": "2018-06-01",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('hostName'), '/joindomain')]",
+            "location": "[parameters('location')]",
+            "properties": "[parameters('domainJoinProperties')]"
+        }
+    ]
+}
