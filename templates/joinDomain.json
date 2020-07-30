@@ -46,6 +46,9 @@
             "apiVersion": "2018-06-01",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(parameters('hostName'), '/joindomain')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('hostName'), 'Setup')]"
+            ],
             "location": "[parameters('location')]",
             "properties": "[parameters('domainJoinProperties')]"
         }
