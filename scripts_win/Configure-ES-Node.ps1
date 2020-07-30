@@ -188,7 +188,7 @@ if ($DeployPacDemo -eq "Y") {
     curl.exe -sX PUT $RequestURL -H 'accept: application/json' -H 'X-Requested-With: AgileDev' -H 'Content-Type: application/json' -H $Origin -d $Jmessage --cookie-jar cookie.txt | Out-Null
 
     if ($RedisPassword -ne "") {
-        mkdir -path "C:\ProgramData\Micro Focus\Enterprise Developer\mfsecrets"
+        mkdir -path "C:\ProgramData\Micro Focus\Enterprise Developer\mfsecrets" -ErrorAction SilentlyContinue
         Start-Process -FilePath "$installBase\mfsecretsdefaults.exe" -ArgumentList '-location "C:\ProgramData\Micro Focus\Enterprise Developer\mfsecrets"'
         Start-Process -FilePath "$installBase\mfsecretsadmin.exe" -ArgumentList "write microfocus/CAS/SOR-DemoPSOR-Pass $RedisPassword" -Wait
     }
