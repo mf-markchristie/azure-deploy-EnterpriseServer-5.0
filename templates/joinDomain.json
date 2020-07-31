@@ -19,7 +19,16 @@
             "metadata": {
                 "description": "Properties for domain join command"
             }
+        },
+        "deployLinux": {
+            "type": "bool",
+            "metadata": {
+                "description": "Flag to determine whether linux VMs are deployed for ES."
+            }
         }
+    },
+    "variables": {
+        "renewCmd": "[if(parameters('deployLinux'), 'sudo /etc/init.d/network restart', 'cmd /c ipconfig /renew')]"
     },
     "resources": [
         {
@@ -38,11 +47,12 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "cmd /c ipconfig /renew"
+                    "commandToExecute": "[variables('renewCmd')]"
                 }
             }
         },
         {
+            "condition": "[not(parameters('deployLinux'))]",
             "apiVersion": "2018-06-01",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(parameters('hostName'), '/joindomain')]",

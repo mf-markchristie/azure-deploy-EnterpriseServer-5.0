@@ -1701,7 +1701,6 @@
             }
         },
         {
-            "condition": "[not(parameters('deployLinux'))]",
             "apiVersion": "2019-09-01",
             "type": "Microsoft.Resources/deployments",
             "name": "[esdeploy.getLoopName('joinDomainEs', copyIndex())]",
@@ -1727,6 +1726,9 @@
                     },
                     "domainJoinProperties": {
                         "value": "[variables('domainJoinProperties')]"
+                    },
+                    "deployLinux": {
+                        "value": "[parameters('deployLinux')]"
                     }
                 }
             }
@@ -1765,7 +1767,6 @@
             }
         },
         {
-            "condition": "[not(parameters('deployLinux'))]",
             "apiVersion": "2019-09-01",
             "type": "Microsoft.Resources/deployments",
             "name": "joinDomainEscwa",
@@ -1787,6 +1788,9 @@
                     },
                     "domainJoinProperties": {
                         "value": "[variables('domainJoinProperties')]"
+                    },
+                    "deployLinux": {
+                        "value": "[parameters('deployLinux')]"
                     }
                 }
             }
@@ -1825,7 +1829,6 @@
             }
         },
         {
-            "condition": "[not(parameters('deployLinux'))]",
             "apiVersion": "2019-09-01",
             "type": "Microsoft.Resources/deployments",
             "name": "joinDomainFs",
@@ -1847,6 +1850,9 @@
                     },
                     "domainJoinProperties": {
                         "value": "[variables('domainJoinProperties')]"
+                    },
+                    "deployLinux": {
+                        "value": "[parameters('deployLinux')]"
                     }
                 }
             }
