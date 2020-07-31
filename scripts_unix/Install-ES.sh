@@ -44,12 +44,14 @@ if [ "$saveError" -ne "0" ]; then
     exit 1
 fi
 
-chmod +x $updateExeName
-./$updateExeName -ESadminID=$user -IAcceptEULA
-saveError=$?
-if [ "$saveError" -ne "0" ]; then
-    echo "Failed to install. Error $saveError"
-    exit 1
+if test -f "$updateExeName"; then
+    chmod +x $updateExeName
+    ./$updateExeName -ESadminID=$user -IAcceptEULA
+    saveError=$?
+    if [ "$saveError" -ne "0" ]; then
+        echo "Failed to install. Error $saveError"
+        exit 1
+    fi
 fi
 
 mkdir license

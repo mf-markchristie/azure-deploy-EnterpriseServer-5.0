@@ -18,6 +18,11 @@ $installerExeName = "es.exe"
 $updateExeName = "es_update.exe"
 Start-Process -Wait -FilePath "$PSScriptRoot\Prepare-Installer.exe"
 
+if (!Test-Path .\$installerExeName) {
+    Write-Error "Download failed!"
+    exit 500
+}
+
 Write-Host "Installing product."
 Start-Process -FilePath $installerExeName -ArgumentList "/q /log c:\tmp\log.txt" -Wait
 if (!(Select-String -Path ".\log.txt" -Pattern "Exit Code: 0x0")) {
@@ -27,14 +32,16 @@ if (!(Select-String -Path ".\log.txt" -Pattern "Exit Code: 0x0")) {
 }
 Write-Host "Successfully installed product"
 
-Write-Host "Installing update."
-Start-Process -FilePath $updateExeName -ArgumentList "/q /log c:\tmp\log.txt" -Wait
-if (!(Select-String -Path ".\log.txt" -Pattern "Exit Code: 0x0")) {
-    Write-Error "Install failed - error messages in log.txt"
-    Select-String -Path ".\log.txt" -Pattern "Exit Code:"
-    exit 500
+if (Test-Path .\$updateExeName) {
+    Write-Host "Installing update."
+    Start-Process -FilePath $updateExeName -ArgumentList "/q /log c:\tmp\log.txt" -Wait
+    if (!(Select-String -Path ".\log.txt" -Pattern "Exit Code: 0x0")) {
+        Write-Error "Install failed - error messages in log.txt"
+        Select-String -Path ".\log.txt" -Pattern "Exit Code:"
+        exit 500
+    }
+    Write-Host "Successfully installed Update"
 }
-Write-Host "Successfully installed Update"
 
 Write-Host "Installing license."
 mkdir ".\licence"
