@@ -47,7 +47,7 @@
                  "commandToExecute": "bash /etc/init.d/network restart"
               }
             }
-          }
+        },
         {
             "condition": "[not(parameters('deployLinux'))]",
             "apiVersion": "2018-06-01",
