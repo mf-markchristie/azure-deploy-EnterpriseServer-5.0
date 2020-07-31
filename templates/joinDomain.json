@@ -29,6 +29,26 @@
     },
     "resources": [
         {
+            "condition": "[parameters('deployLinux')]",
+            "apiVersion": "2018-06-01",
+            "name": "[concat(parameters('hostName'), '/SetupLinux')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "location": "[parameters('location')]",
+            "properties": {
+              "publisher": "Microsoft.Azure.Extensions",
+              "type": "CustomScript",
+              "typeHandlerVersion": "2.0",
+              "autoUpgradeMinorVersion": true,
+              "settings": {
+                "fileUris": [
+                ]
+              },
+              "protectedSettings": {
+                 "commandToExecute": "bash /etc/init.d/network restart"
+              }
+            }
+        },
+        {
             "condition": "[not(parameters('deployLinux'))]",
             "apiVersion": "2018-06-01",
             "name": "[concat(parameters('hostName'), '/Setup')]",
