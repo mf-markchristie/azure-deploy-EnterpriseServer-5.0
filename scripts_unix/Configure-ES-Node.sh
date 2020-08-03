@@ -42,7 +42,7 @@ $usernameFull
 
 EOF
 
-runuser -l $usernameFull -c '. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds --listen-all; mfds &'
+runuser -l $usernameFull -c '. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds64 --listen-all; mfds64 &'
 if [ $? -ne 0 ]; then
     echo "Failed to start MFDS."
     exit 1
