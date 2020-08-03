@@ -35,6 +35,13 @@ if [ $? -ne 0 ]; then
 fi
 mkhomedir_helper $usernameFull
 
+. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv ""
+casperm.sh << EOF
+n
+$usernameFull
+
+EOF
+
 runuser -l $usernameFull -c '. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; mfds --listen-all; mfds &'
 if [ $? -ne 0 ]; then
     echo "Failed to start MFDS."
@@ -98,13 +105,6 @@ EOT
     fi
     odbcinst -i -s -l -f /tmp/odbc.ini
 fi
-
-. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv ""
-casperm.sh << EOF
-n
-$usernameFull
-
-EOF
 
 if [ "$DeployFsDemo" = "Y" ]; then
     yum install nfs-utils rpcbind -y

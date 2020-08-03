@@ -32,6 +32,14 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 mkhomedir_helper $usernameFull
+
+. /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv ""
+casperm.sh << EOF
+n
+$usernameFull
+
+EOF
+
 # Workaround while 5.0 installed
 sed -i "s/10004/10086/" /opt/microfocus/EnterpriseDeveloper/etc/commonwebadmin.json
 sed -i "s/localhost:10086/*:10086/" /opt/microfocus/EnterpriseDeveloper/etc/commonwebadmin.json
