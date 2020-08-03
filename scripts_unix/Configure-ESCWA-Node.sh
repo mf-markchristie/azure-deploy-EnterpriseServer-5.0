@@ -34,6 +34,7 @@ fi
 mkhomedir_helper $usernameFull
 # Workaround while 5.0 installed
 sed -i "s/10004/10086/" /opt/microfocus/EnterpriseDeveloper/etc/commonwebadmin.json
+sed -i "s/localhost:10086/*:10086/" /opt/microfocus/EnterpriseDeveloper/etc/commonwebadmin.json
 chown $usernameFull /opt/microfocus/EnterpriseDeveloper/etc/commonwebadmin.json
 find /opt/microfocus/EnterpriseDeveloper/etc -type d -exec chmod 777 {} \; # So escwa can write to the logfile
 

@@ -86,6 +86,8 @@ Add-DirectoryPermissions -Directory "C:\ProgramData\Micro Focus\Enterprise Devel
 # Workaround while 5.0 installed
 ((Get-Content -path "C:\ProgramData\Micro Focus\Enterprise Developer\ESCWA\commonwebadmin.json" -Raw) -creplace "10004","10086") | Set-Content -Path "C:\ProgramData\Micro Focus\Enterprise Developer\ESCWA\commonwebadmin.json"
 
+# Disable loopback only
+((Get-Content -path "C:\ProgramData\Micro Focus\Enterprise Developer\ESCWA\commonwebadmin.json" -Raw) -creplace "localhost:10086","*:10086") | Set-Content -Path "C:\ProgramData\Micro Focus\Enterprise Developer\ESCWA\commonwebadmin.json"
 Start-Service -Name "ESCWA"
 
 Write-Host "Deleting MFDS Service"
