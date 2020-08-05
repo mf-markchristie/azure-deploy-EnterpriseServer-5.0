@@ -112,7 +112,7 @@
             }
         },
         {
-            "apiVersion": "2019-12-01",
+            "apiVersion": "2019-11-01",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('backupHostName'), '/ConfigureDomainController')]",
             "location": "[parameters('location')]",
