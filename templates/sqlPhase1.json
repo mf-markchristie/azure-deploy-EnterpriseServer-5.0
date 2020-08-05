@@ -71,7 +71,7 @@
     },
     "resources": [
         {
-            "apiVersion": "2019-11-01",
+            "apiVersion": "2019-12-01",
             "type": "Microsoft.Compute/availabilitySets",
             "name": "[variables('availabilitySetName')]",
             "location": "[parameters('location')]",
@@ -176,7 +176,7 @@
             }
         },
         {
-            "apiVersion": "2019-11-01",
+            "apiVersion": "2019-12-01",
             "name": "[variables('witnessVMName')]",
             "type": "Microsoft.Compute/virtualMachines",
             "location": "[parameters('location')]",
@@ -241,7 +241,7 @@
             }
         },
         {
-            "apiVersion": "2019-11-01",
+            "apiVersion": "2019-12-01",
             "name": "[concat(variables('slaveVmName'), copyIndex())]",
             "type": "Microsoft.Compute/virtualMachines",
             "location": "[parameters('location')]",

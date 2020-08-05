@@ -151,7 +151,7 @@
             }
         },
         {
-            "apiVersion": "2019-11-01",
+            "apiVersion": "2019-12-01",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('witnessVMName'),'/CreateFileShareWitness')]",
             "location": "[parameters('location')]",
@@ -183,7 +183,7 @@
             }
         },
         {
-            "apiVersion": "2019-11-01",
+            "apiVersion": "2019-12-01",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('slaveVmName'), copyIndex(), '/SqlVmIaasExtension')]",
             "location": "[parameters('location')]",
@@ -219,7 +219,7 @@
             }
         },
         {
-            "apiVersion": "2019-11-01",
+            "apiVersion": "2019-12-01",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('slaveVmName'),'0/sqlAOPrepare')]",
             "location": "[parameters('location')]",
@@ -259,7 +259,7 @@
             }
         },
         {
-            "apiVersion": "2019-11-01",
+            "apiVersion": "2019-12-01",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('slaveVmName'),'1/configuringAlwaysOn')]",
             "location": "[parameters('location')]",

@@ -471,7 +471,7 @@
             }
         },
         {
-            "apiVersion": "2019-11-01",
+            "apiVersion": "2019-12-01",
             "type": "Microsoft.Compute/availabilitySets",
             "name": "[variables('esAvailabilitySetName')]",
             "location": "[parameters('location')]",
@@ -484,7 +484,7 @@
             }
         },
         {
-            "apiVersion": "2019-11-01",
+            "apiVersion": "2019-12-01",
             "type": "Microsoft.Compute/availabilitySets",
             "name": "[variables('rdgAvailabilitySetName')]",
             "location": "[parameters('location')]",
@@ -497,7 +497,7 @@
             }
         },
         {
-            "apiVersion": "2019-11-01",
+            "apiVersion": "2019-12-01",
             "type": "Microsoft.Compute/availabilitySets",
             "name": "[variables('adAvailabilitySetName')]",
             "location": "[parameters('location')]",
