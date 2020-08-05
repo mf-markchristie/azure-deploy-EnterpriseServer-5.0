@@ -89,7 +89,7 @@
     },
     "resources": [
         {
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-11-01",
             "type": "Microsoft.Network/networkInterfaces",
             "name": "[concat(variables('backupHostName'), '-nic')]",
             "location": "[parameters('location')]",
@@ -112,7 +112,7 @@
             }
         },
         {
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-12-01",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('backupHostName'), '/ConfigureDomainController')]",
             "location": "[parameters('location')]",
@@ -145,7 +145,7 @@
             }
         },
         {
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-11-01",
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[parameters('virtualNetworkName')]",
             "location": "[parameters('location')]",

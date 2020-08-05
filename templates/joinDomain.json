@@ -30,7 +30,7 @@
     "resources": [
         {
             "condition": "[parameters('deployLinux')]",
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-11-01",
             "name": "[concat(parameters('hostName'), '/SetupLinux')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "location": "[parameters('location')]",
@@ -50,7 +50,7 @@
         },
         {
             "condition": "[not(parameters('deployLinux'))]",
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-11-01",
             "name": "[concat(parameters('hostName'), '/Setup')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "location": "[parameters('location')]",
@@ -71,7 +71,7 @@
         },
         {
             "condition": "[not(parameters('deployLinux'))]",
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-11-01",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(parameters('hostName'), '/joindomain')]",
             "dependsOn": [

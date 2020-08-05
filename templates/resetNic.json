@@ -47,7 +47,7 @@
     },
     "resources": [
         {
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-11-01",
             "type": "Microsoft.Network/networkInterfaces",
             "name": "[concat(parameters('hostName'), '-nic')]",
             "location": "[parameters('location')]",

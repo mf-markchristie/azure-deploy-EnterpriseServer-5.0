@@ -71,7 +71,7 @@
     },
     "resources": [
         {
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-11-01",
             "type": "Microsoft.Compute/availabilitySets",
             "name": "[variables('availabilitySetName')]",
             "location": "[parameters('location')]",
@@ -84,7 +84,7 @@
             }
         },
         {
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-11-01",
             "type": "Microsoft.Network/networkInterfaces",
             "name": "[concat(variables('witnessVMName'), '-nic')]",
             "location": "[parameters('location')]",
@@ -101,7 +101,7 @@
             }
         },
         {
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-11-01",
             "type": "Microsoft.Network/networkInterfaces",
             "name": "[concat(variables('slaveVmName'), copyIndex(), '-nic')]",
             "location": "[parameters('location')]",
@@ -122,7 +122,7 @@
             }
         },
         {
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-11-01",
             "name": "[parameters('sqlLBName')]",
             "type": "Microsoft.Network/loadBalancers",
             "location": "[parameters('location')]",
@@ -176,7 +176,7 @@
             }
         },
         {
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-11-01",
             "name": "[variables('witnessVMName')]",
             "type": "Microsoft.Compute/virtualMachines",
             "location": "[parameters('location')]",
@@ -226,7 +226,7 @@
                 "diagnosticsProfile": {
                     "bootDiagnostics": {
                         "enabled": true,
-                        "storageUri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', parameters('diagStorageAccount')), '2018-07-01').primaryEndpoints['blob']))]"
+                        "storageUri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', parameters('diagStorageAccount')), '2019-06-01').primaryEndpoints['blob']))]"
                     }
                 },
                 "osProfile": {
@@ -241,7 +241,7 @@
             }
         },
         {
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-11-01",
             "name": "[concat(variables('slaveVmName'), copyIndex())]",
             "type": "Microsoft.Compute/virtualMachines",
             "location": "[parameters('location')]",
@@ -304,7 +304,7 @@
                 "diagnosticsProfile": {
                     "bootDiagnostics": {
                         "enabled": true,
-                        "storageUri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', parameters('diagStorageAccount')), '2018-07-01').primaryEndpoints['blob']))]"
+                        "storageUri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', parameters('diagStorageAccount')), '2019-06-01').primaryEndpoints['blob']))]"
                     }
                 },
                 "osProfile": {

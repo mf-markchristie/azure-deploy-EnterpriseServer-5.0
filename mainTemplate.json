@@ -458,7 +458,7 @@
     },
     "resources": [
         {
-            "apiVersion": "2018-02-01",
+            "apiVersion": "2019-09-01",
             "name": "pid-ee7989a2-a7b6-5f79-8400-1a91e0fd5175",
             "type": "Microsoft.Resources/deployments",
             "properties": {
@@ -471,7 +471,7 @@
             }
         },
         {
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-12-01",
             "type": "Microsoft.Compute/availabilitySets",
             "name": "[variables('esAvailabilitySetName')]",
             "location": "[parameters('location')]",
@@ -484,7 +484,7 @@
             }
         },
         {
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-12-01",
             "type": "Microsoft.Compute/availabilitySets",
             "name": "[variables('rdgAvailabilitySetName')]",
             "location": "[parameters('location')]",
@@ -497,7 +497,7 @@
             }
         },
         {
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-12-01",
             "type": "Microsoft.Compute/availabilitySets",
             "name": "[variables('adAvailabilitySetName')]",
             "location": "[parameters('location')]",
@@ -510,7 +510,7 @@
             }
         },
         {
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-11-01",
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('applicationNsgName')]",
             "location": "[parameters('location')]",
@@ -660,7 +660,7 @@
             }
         },
         {
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-11-01",
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('managementNsgName')]",
             "location": "[parameters('location')]",
@@ -726,7 +726,7 @@
             }
         },
         {
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-11-01",
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('adNsgName')]",
             "location": "[parameters('location')]",
@@ -764,7 +764,7 @@
             }
         },
         {
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-11-01",
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('dataNsgName')]",
             "location": "[parameters('location')]",
@@ -999,7 +999,7 @@
             }
         },
         {
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-11-01",
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('redisNsgName')]",
             "location": "[parameters('location')]",
@@ -1066,7 +1066,7 @@
             }
         },
         {
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-11-01",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('managementNsgName'))]",
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('applicationNsgName'))]",
@@ -1083,7 +1083,7 @@
             }
         },
         {
-            "apiVersion": "2018-07-01",
+            "apiVersion": "2019-06-01",
             "type": "Microsoft.Storage/storageAccounts",
             "name": "[variables('diagStorageAccount')]",
             "location": "[parameters('location')]",
@@ -1094,7 +1094,7 @@
         },
         {
             "condition": "[parameters('deployPacDemo')]",
-            "apiVersion": "2018-03-01",
+            "apiVersion": "2019-07-01",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]"
             ],
@@ -1114,7 +1114,7 @@
         },
         {
             "condition": "[variables('deployEsLb')]",
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-11-01",
             "type": "Microsoft.Network/publicIPAddresses",
             "name": "[concat(variables('esLbName'), '-publicip')]",
             "location": "[parameters('location')]",
@@ -1127,7 +1127,7 @@
         },
         {
             "condition": "[variables('deployEsLb')]",
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-11-01",
             "name": "[variables('esLbName')]",
             "type": "Microsoft.Network/loadBalancers",
             "location": "[parameters('location')]",
@@ -2086,7 +2086,7 @@
                         "value": "[parameters('deployLinux')]"
                     },
                     "redisPassword": {
-                        "value": "[if(parameters('deployPacDemo'), listkeys(resourceId('Microsoft.Cache/redis', variables('redisCacheName')), '2018-03-01').primaryKey, 'dummyPass')]"
+                        "value": "[if(parameters('deployPacDemo'), listkeys(resourceId('Microsoft.Cache/redis', variables('redisCacheName')), '2019-07-01').primaryKey, 'dummyPass')]"
                     },
                     "domainAdminUserName": {
                         "value": "[parameters('administratorUserName')]"

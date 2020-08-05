@@ -149,7 +149,7 @@
     },
     "resources": [
         {
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-11-01",
             "type": "Microsoft.Network/networkInterfaces",
             "name": "[concat(variables('primaryHostName'), '-nic')]",
             "location": "[parameters('location')]",
@@ -167,7 +167,7 @@
             }
         },
         {
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-11-01",
             "type": "Microsoft.Network/networkInterfaces",
             "name": "[concat(variables('backupHostName'), '-nic')]",
             "location": "[parameters('location')]",
@@ -185,7 +185,7 @@
             }
         },
         {
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-12-01",
             "name": "[variables('primaryHostName')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('primaryHostName'), '-nic'))]"
@@ -234,7 +234,7 @@
                 "diagnosticsProfile": {
                     "bootDiagnostics": {
                         "enabled": true,
-                        "storageUri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', parameters('diagStorageAccount')), '2018-07-01').primaryEndpoints['blob']))]"
+                        "storageUri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', parameters('diagStorageAccount')), '2019-06-01').primaryEndpoints['blob']))]"
                     }
                 },
                 "osProfile": {
@@ -249,7 +249,7 @@
             }
         },
         {
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-12-01",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('primaryHostName'), '/InstallDomainController')]",
             "location": "[parameters('location')]",
@@ -290,7 +290,7 @@
             }
         },
         {
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-12-01",
             "name": "[variables('backupHostName')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('backupHostName'), '-nic'))]"
@@ -339,7 +339,7 @@
                 "diagnosticsProfile": {
                     "bootDiagnostics": {
                         "enabled": true,
-                        "storageUri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', parameters('diagStorageAccount')), '2018-07-01').primaryEndpoints['blob']))]"
+                        "storageUri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', parameters('diagStorageAccount')), '2019-06-01').primaryEndpoints['blob']))]"
                     }
                 },
                 "osProfile": {
@@ -354,7 +354,7 @@
             }
         },
         {
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-12-01",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('backupHostName'),'/ConfigureDomainController')]",
             "location": "[parameters('location')]",
@@ -379,7 +379,7 @@
             }
         },
         {
-            "apiVersion": "2018-06-01",
+            "apiVersion": "2019-11-01",
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[parameters('virtualNetworkName')]",
             "location": "[parameters('location')]",
