@@ -226,7 +226,7 @@
                 "diagnosticsProfile": {
                     "bootDiagnostics": {
                         "enabled": true,
-                        "storageUri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', parameters('diagStorageAccount')), '2019-06-01').primaryEndpoints['blob']))]"
+                        "storageUri": "[concat(concat(reference(resourceId('Microsoft.Storage/storageAccounts', parameters('diagStorageAccount')), '2019-06-01').primaryEndpoints['blob']))]"
                     }
                 },
                 "osProfile": {
@@ -304,7 +304,7 @@
                 "diagnosticsProfile": {
                     "bootDiagnostics": {
                         "enabled": true,
-                        "storageUri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', parameters('diagStorageAccount')), '2019-06-01').primaryEndpoints['blob']))]"
+                        "storageUri": "[concat(concat(reference(resourceId('Microsoft.Storage/storageAccounts', parameters('diagStorageAccount')), '2019-06-01').primaryEndpoints['blob']))]"
                     }
                 },
                 "osProfile": {
