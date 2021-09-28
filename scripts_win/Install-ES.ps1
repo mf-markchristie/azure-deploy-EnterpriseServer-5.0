@@ -49,7 +49,7 @@ Set-Location ".\licence"
 Write-Host "Downloading licence from $license"
 C:\Utils\AzCopy copy $license "."
 $licenseFileName = (Get-Item -Path .\*).Name
-Start-Process -FilePath "C:\Program Files (x86)\Common Files\SafeNet Sentinel\Sentinel RMS License Manager\WinNT\cesadmintool" -ArgumentList "-term install -f $licenseFileName" -Wait
+Start-Process -FilePath "C:\Program Files (x86)\Micro Focus\Licensing\cesadmintool" -ArgumentList "-term install -f $licenseFileName" -Wait
 Set-Location ".."
 
 if ($mountDrive -eq "Y") {
