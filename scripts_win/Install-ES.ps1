@@ -18,7 +18,7 @@ $installerExeName = "es.exe"
 $updateExeName = "es_update.exe"
 Start-Process -Wait -FilePath "$PSScriptRoot\Prepare-Installer.exe"
 
-if (!Test-Path .\$installerExeName) {
+if (!(Test-Path .\$installerExeName)) {
     Write-Error "Download failed!"
     exit 500
 }
