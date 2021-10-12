@@ -39,10 +39,6 @@
               "type": "CustomScript",
               "typeHandlerVersion": "2.0",
               "autoUpgradeMinorVersion": true,
-              "settings": {
-                "fileUris": [
-                ]
-              },
               "protectedSettings": {
                  "commandToExecute": "bash /etc/init.d/network restart"
               }
@@ -60,10 +56,6 @@
                 "typeHandlerVersion": "1.9",
                 "autoUpgradeMinorVersion": true,
                 "forceUpdateTag": "v.2.0",
-                "settings": {
-                    "fileUris": [
-                    ]
-                },
                 "protectedSettings": {
                     "commandToExecute": "cmd /c ipconfig /renew"
                 }

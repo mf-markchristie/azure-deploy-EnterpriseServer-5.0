@@ -102,7 +102,6 @@
                 "createOption": "Empty"
             }
         ],
-        "dataDisksEmpty": [],
         "availabilitySetRef": {
             "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySetName'))]"
         },
@@ -175,7 +174,7 @@
                         "sku": "[if(parameters('deployLinux'), '7.5', '2019-Datacenter')]",
                         "version": "latest"
                     },
-                    "dataDisks": "[if(equals(parameters('dataDiskSize'), 0), variables('dataDisksEmpty'), variables('dataDisks'))]"
+                    "dataDisks": "[if(equals(parameters('dataDiskSize'), 0), json('[]'), variables('dataDisks'))]"
                 },
                 "networkProfile": {
                     "networkInterfaces": [

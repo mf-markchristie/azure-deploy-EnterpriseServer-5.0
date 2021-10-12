@@ -11,12 +11,6 @@ if %ERRORLEVEL% NEQ 0 (
 
 :: deploy catalog into the db
 dbfhdeploy -quiet data add C:\BankDemo_PAC\System\catalog\CATALOG.DAT sql://ESPACDatabase/VSAM/CATALOG.DAT
-dbfhdeploy -quiet data add C:\BankDemo_PAC\System\catalog\SPLDSN.dat sql://ESPACDatabase/VSAM/SPLDSN.dat
-dbfhdeploy -quiet data add C:\BankDemo_PAC\System\catalog\SPLJNO.dat sql://ESPACDatabase/VSAM/SPLJNO.dat?type=seq;reclen=80,80
-dbfhdeploy -quiet data add C:\BankDemo_PAC\System\catalog\SPLJOB.dat sql://ESPACDatabase/VSAM/SPLJOB.dat
-dbfhdeploy -quiet data add C:\BankDemo_PAC\System\catalog\SPLMSG.dat sql://ESPACDatabase/VSAM/SPLMSG.dat
-dbfhdeploy -quiet data add C:\BankDemo_PAC\System\catalog\SPLOUT.dat sql://ESPACDatabase/VSAM/SPLOUT.dat
-dbfhdeploy -quiet data add C:\BankDemo_PAC\System\catalog\SPLSUB.dat sql://ESPACDatabase/VSAM/SPLSUB.dat
 
 :: deploy data files into the db
 dbfhdeploy -quiet data add C:\BankDemo_PAC\System\catalog\data\MFI01V.MFIDEMO.BNKACC.DAT sql://ESPACDatabase/VSAM/MFI01V.MFIDEMO.BNKACC.DAT?folder=/DATA

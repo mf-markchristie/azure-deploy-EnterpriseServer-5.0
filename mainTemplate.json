@@ -458,8 +458,8 @@
     },
     "resources": [
         {
-            "apiVersion": "2019-09-01",
-            "name": "pid-ee7989a2-a7b6-5f79-8400-1a91e0fd5175",
+            "apiVersion": "2019-10-01",
+            "name": "pid-cb0733ef-f8de-45a4-8870-2b9723d636d8-partnercenter",
             "type": "Microsoft.Resources/deployments",
             "properties": {
                 "mode": "Incremental",
