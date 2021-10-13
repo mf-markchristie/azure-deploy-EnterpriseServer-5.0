@@ -14,6 +14,26 @@ updateExeName="setup_ent_server_update_redhat_x86_64"
 basedir=`pwd`
 export TERM="xterm"
 
+if [ "$mountDrive" = "Y" ]; then
+    fdisk /dev/sdc << EOF
+n
+p
+1
+
+
+t
+fd
+w
+EOF
+    mkfs -t ext4 /dev/sdc1
+    echo "/dev/sdc1 /datadrive ext4 defaults,nofail 0 2" >> /etc/fstab
+    mkdir /datadrive
+    mount /dev/sdc1
+fi
+
+lvextend -l +100%FREE /dev/rootvg/optlv
+xfs_growfs /dev/rootvg/optlv
+
 mkdir /utils
 sudo cp $basedir/azcopy.tar.gz /utils
 sudo cp $basedir/mfesdiags.sh /utils
@@ -34,7 +54,7 @@ if [ "$?" -ne "0" ]; then
     exit 1
 fi
 
-yum install gcc glibc.i686 libgcc.i686 libstdc++.i686 pax java-1.7.0-openjdk-devel -y
+yum install gcc glibc.x86_64  libgcc.x86_64  libstdc++.x86_64 glibc.i686  libgcc.i686 libstdc++.i686 pax java-1.7.0-openjdk-devel -y
 
 chmod +x $installerExeName
 ./$installerExeName -ESadminID=$user -IAcceptEULA
@@ -63,23 +83,6 @@ licenseFileName=`ls` #This will be the only file in this directory
 /var/microfocuslicensing/bin/cesadmintool.sh -install `pwd`/$licenseFileName << block
 
 block
-
-if [ "$mountDrive" = "Y" ]; then
-    fdisk /dev/sdc << EOF
-n
-p
-1
-
-
-t
-fd
-w
-EOF
-    mkfs -t ext4 /dev/sdc1
-    echo "/dev/sdc1 /datadrive ext4 defaults,nofail 0 2" >> /etc/fstab
-    mkdir /datadrive
-    mount /dev/sdc1
-fi
 
 rm -rf ~/tmp
 cd ~

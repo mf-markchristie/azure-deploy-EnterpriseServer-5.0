@@ -164,6 +164,7 @@
                 "storageProfile": {
                     "osDisk": {
                         "createOption": "FromImage",
+                        "diskSizeGB": "32",
                         "managedDisk": {
                             "storageAccountType": "[variables('osDiskType')]"
                         }
