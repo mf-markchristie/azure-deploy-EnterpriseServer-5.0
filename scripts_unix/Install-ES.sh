@@ -31,7 +31,7 @@ EOF
     mount /dev/sdc1
 fi
 
-lvextend -l +100%FREE /dev/rootvg/optlv
+lvextend -l +20%FREE /dev/rootvg/optlv
 xfs_growfs /dev/rootvg/optlv
 
 mkdir /utils
@@ -45,8 +45,8 @@ rm -rf azcopy_linux*
 chmod +x *
 export PATH=`pwd`:$PATH
 cd -
-mkdir ~/tmp
-cd ~/tmp
+mkdir /mnt/tmp
+cd /mnt/tmp
 
 "$basedir/Prepare-Installer"
 if [ "$?" -ne "0" ]; then
@@ -84,7 +84,7 @@ licenseFileName=`ls` #This will be the only file in this directory
 
 block
 
-rm -rf ~/tmp
+rm -rf /mnt/tmp
 cd ~
 
 exit 0
