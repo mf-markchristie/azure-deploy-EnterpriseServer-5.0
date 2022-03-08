@@ -133,7 +133,7 @@
                     },
                     "options": {
                         "hideConfirmation": false,
-                        "hidePassword": true
+                        "hidePassword": "[basics('deployLinux')]"
                     },
                     "osPlatform": "Linux",
                     "visible": "[basics('deployLinux')]"

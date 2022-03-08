@@ -164,5 +164,5 @@ if [ "$DeployPacDemo" = "Y" ]; then
         sleep 30
     fi
     rm ./Deploy.sh
-    runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; casstart64 -rBNKDM -s:c"
+    runuser -l $usernameFull -c ". /opt/microfocus/EnterpriseDeveloper/bin/cobsetenv; export CCITCP2_PORT=1086; casstart64 -rBNKDM -s:c -w60"
 fi
