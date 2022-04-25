@@ -1703,48 +1703,9 @@
         {
             "apiVersion": "2019-09-01",
             "type": "Microsoft.Resources/deployments",
-            "name": "[esdeploy.getLoopName('resetEsNodeNic2', copyIndex())]",
-            "dependsOn": [
-                "resetEsNodeNicLoop"
-            ],
-            "copy": {
-                "name": "resetEsNodeNicLoop2",
-                "count": "[parameters('esInstanceCount')]"
-            },
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[variables('resetNicUrl')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "location": {
-                        "value": "[parameters('location')]"
-                    },
-                    "hostName": {
-                        "value": "[esdeploy.getLoopName(variables('esHostname'), copyIndex())]"
-                    },
-                    "subnetRef": {
-                        "value": "[variables('applicationSubnetRef')]"
-                    },
-                    "dnsSettings": {
-                        "value": "[variables('dnsSettings')]"
-                    },
-                    "ipAddress": {
-                        "value": "[parameters('esNodeIpArray')[copyIndex()]]"
-                    },
-                    "loadBalancerRef": {
-                        "value": "[if(variables('deployEsLb'), variables('esLBBERef'), '')]"
-                    }
-                }
-            }
-        },
-        {
-            "apiVersion": "2019-09-01",
-            "type": "Microsoft.Resources/deployments",
             "name": "[esdeploy.getLoopName('joinDomainEs', copyIndex())]",
             "dependsOn": [
-                "resetEsNodeNicLoop2"
+                "resetEsNodeNicLoop"
             ],
             "copy": {
                 "name": "joinDomainEsNodeLoop",
@@ -1808,41 +1769,9 @@
         {
             "apiVersion": "2019-09-01",
             "type": "Microsoft.Resources/deployments",
-            "name": "resetEscwaNodeNic2",
-            "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', 'resetEscwaNodeNic')]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[variables('resetNicUrl')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "location": {
-                        "value": "[parameters('location')]"
-                    },
-                    "hostName": {
-                        "value": "[variables('escwaHostname')]"
-                    },
-                    "subnetRef": {
-                        "value": "[variables('managementSubnetRef')]"
-                    },
-                    "dnsSettings": {
-                        "value": "[variables('dnsSettings')]"
-                    },
-                    "ipAddress": {
-                        "value": "[parameters('escwaNodeIp')]"
-                    }
-                }
-            }
-        },
-        {
-            "apiVersion": "2019-09-01",
-            "type": "Microsoft.Resources/deployments",
             "name": "joinDomainEscwa",
             "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', 'resetEscwaNodeNic2')]"
+                "[resourceId('Microsoft.Resources/deployments', 'resetEscwaNodeNic')]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -1926,66 +1855,6 @@
                     },
                     "deployLinux": {
                         "value": "[parameters('deployLinux')]"
-                    }
-                }
-            }
-        },
-        {
-            "apiVersion": "2019-09-01",
-            "type": "Microsoft.Resources/deployments",
-            "name": "configureEscwaNode",
-            "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', 'joinDomainEscwa')]",
-                "[resourceId('Microsoft.Cache/Redis', variables('redisCacheName'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[variables('escwaConfigureNodeUrl')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "location": {
-                        "value": "[parameters('location')]"
-                    },
-                    "_artifactsLocation": {
-                        "value": "[parameters('_artifactsLocation')]"
-                    },
-                    "_artifactsLocationSasToken": {
-                        "value": "[parameters('_artifactsLocationSasToken')]"
-                    },
-                    "hostName": {
-                        "value": "[variables('escwaHostname')]"
-                    },
-                    "domainDNSName": {
-                        "value": "[parameters('domainDNSName')]"
-                    },
-                    "applicationUsername": {
-                        "value": "[parameters('applicationUsername')]"
-                    },
-                    "applicationUserPassword": {
-                        "value": "[parameters('applicationUserPassword')]"
-                    },
-                    "clusterPrefix": {
-                        "value": "[variables('clusterPrefixLower')]"
-                    },
-                    "esInstanceCount": {
-                        "value": "[parameters('esInstanceCount')]"
-                    },
-                    "deployFsDemo": {
-                        "value": "[parameters('deployFsDemo')]"
-                    },
-                    "deployPacDemo": {
-                        "value": "[parameters('deployPacDemo')]"
-                    },
-                    "deployLinux": {
-                        "value": "[parameters('deployLinux')]"
-                    },
-                    "domainAdminUserName": {
-                        "value": "[parameters('administratorUserName')]"
-                    },
-                    "domainAdminPassword": {
-                        "value": "[parameters('administratorPassword')]"
                     }
                 }
             }
@@ -2098,75 +1967,6 @@
                     },
                     "sqlLBName": {
                         "value": "[variables('sqlLBName')]"
-                    }
-                }
-            }
-        },
-        {
-            "apiVersion": "2019-09-01",
-            "type": "Microsoft.Resources/deployments",
-            "name": "[esdeploy.getLoopName('configureEsNode', copyIndex())]",
-            "dependsOn": [
-                "joinDomainEsNodeLoop",
-                "[resourceId('Microsoft.Resources/deployments', 'configureFsNode')]",
-                "[resourceId('Microsoft.Resources/deployments', 'sqlPhase2')]",
-                "[resourceId('Microsoft.Resources/deployments', 'configureEscwaNode')]"
-            ],
-            "copy": {
-                "name": "configureEsNodeLoop",
-                "count": "[parameters('esInstanceCount')]"
-            },
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[variables('esConfigureNodeUrl')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "location": {
-                        "value": "[parameters('location')]"
-                    },
-                    "_artifactsLocation": {
-                        "value": "[parameters('_artifactsLocation')]"
-                    },
-                    "_artifactsLocationSasToken": {
-                        "value": "[parameters('_artifactsLocationSasToken')]"
-                    },
-                    "hostName": {
-                        "value": "[esdeploy.getLoopName(variables('esHostname'), copyIndex())]"
-                    },
-                    "domainDNSName": {
-                        "value": "[parameters('domainDNSName')]"
-                    },
-                    "applicationUsername": {
-                        "value": "[parameters('applicationUsername')]"
-                    },
-                    "applicationUserPassword": {
-                        "value": "[parameters('applicationUserPassword')]"
-                    },
-                    "deployDbDemo": {
-                        "value": "[parameters('deployDbDemo')]"
-                    },
-                    "deployPacDemo": {
-                        "value": "[parameters('deployPacDemo')]"
-                    },
-                    "deployFsDemo": {
-                        "value": "[parameters('deployFsDemo')]"
-                    },
-                    "clusterPrefix": {
-                        "value": "[variables('clusterPrefixLower')]"
-                    },
-                    "deployLinux": {
-                        "value": "[parameters('deployLinux')]"
-                    },
-                    "redisPassword": {
-                        "value": "[if(parameters('deployPacDemo'), listkeys(resourceId('Microsoft.Cache/redis', variables('redisCacheName')), '2019-07-01').primaryKey, 'dummyPass')]"
-                    },
-                    "domainAdminUserName": {
-                        "value": "[parameters('administratorUserName')]"
-                    },
-                    "domainAdminPassword": {
-                        "value": "[parameters('administratorPassword')]"
                     }
                 }
             }
