@@ -1703,9 +1703,48 @@
         {
             "apiVersion": "2019-09-01",
             "type": "Microsoft.Resources/deployments",
-            "name": "[esdeploy.getLoopName('joinDomainEs', copyIndex())]",
+            "name": "[esdeploy.getLoopName('resetEsNodeNic2', copyIndex())]",
             "dependsOn": [
                 "resetEsNodeNicLoop"
+            ],
+            "copy": {
+                "name": "resetEsNodeNicLoop2",
+                "count": "[parameters('esInstanceCount')]"
+            },
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('resetNicUrl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "hostName": {
+                        "value": "[esdeploy.getLoopName(variables('esHostname'), copyIndex())]"
+                    },
+                    "subnetRef": {
+                        "value": "[variables('applicationSubnetRef')]"
+                    },
+                    "dnsSettings": {
+                        "value": "[variables('dnsSettings')]"
+                    },
+                    "ipAddress": {
+                        "value": "[parameters('esNodeIpArray')[copyIndex()]]"
+                    },
+                    "loadBalancerRef": {
+                        "value": "[if(variables('deployEsLb'), variables('esLBBERef'), '')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2019-09-01",
+            "type": "Microsoft.Resources/deployments",
+            "name": "[esdeploy.getLoopName('joinDomainEs', copyIndex())]",
+            "dependsOn": [
+                "resetEsNodeNicLoop2"
             ],
             "copy": {
                 "name": "joinDomainEsNodeLoop",
@@ -1769,9 +1808,41 @@
         {
             "apiVersion": "2019-09-01",
             "type": "Microsoft.Resources/deployments",
-            "name": "joinDomainEscwa",
+            "name": "resetEscwaNodeNic2",
             "dependsOn": [
                 "[resourceId('Microsoft.Resources/deployments', 'resetEscwaNodeNic')]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('resetNicUrl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "hostName": {
+                        "value": "[variables('escwaHostname')]"
+                    },
+                    "subnetRef": {
+                        "value": "[variables('managementSubnetRef')]"
+                    },
+                    "dnsSettings": {
+                        "value": "[variables('dnsSettings')]"
+                    },
+                    "ipAddress": {
+                        "value": "[parameters('escwaNodeIp')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2019-09-01",
+            "type": "Microsoft.Resources/deployments",
+            "name": "joinDomainEscwa",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'resetEscwaNodeNic2')]"
             ],
             "properties": {
                 "mode": "Incremental",
