@@ -21,6 +21,7 @@
                 "label": "Operating system",
                 "defaultValue": "Windows",
                 "toolTip": "Choose the operating system to be used for the Enterprise Server hosting machines.",
+                "visible": false,
                 "constraints": {
                     "allowedValues": [{
                             "label": "Windows",

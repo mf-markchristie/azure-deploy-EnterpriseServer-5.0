@@ -40,7 +40,7 @@
               "typeHandlerVersion": "2.0",
               "autoUpgradeMinorVersion": true,
               "protectedSettings": {
-                 "commandToExecute": ""
+                 "commandToExecute": "sleep 120; /etc/init.d/network restart"
               }
             }
         },
