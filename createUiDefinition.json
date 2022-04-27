@@ -130,14 +130,14 @@
                         "sshPublicKey": "SSH public key for the VM admin user. Corresponds to the private key in the key vault that was configured as part of the pre-work."
                     },
                     "constraints": {
-                        "required": "[basics('deployLinux')]"
+                        "required": false
                     },
                     "options": {
                         "hideConfirmation": false,
-                        "hidePassword": "[basics('deployLinux')]"
+                        "hidePassword": false
                     },
                     "osPlatform": "Linux",
-                    "visible": "[basics('deployLinux')]"
+                    "visible": false
                 }, {
                     "name": "rdgInstanceCount",
                     "type": "Microsoft.Common.DropDown",
