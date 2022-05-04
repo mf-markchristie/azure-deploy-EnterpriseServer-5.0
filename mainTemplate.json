@@ -557,104 +557,6 @@
                             "destinationAddressPrefix": "*",
                             "destinationPortRange": "*"
                         }
-                    },
-                    {
-                        "name": "SSH_Gateway",
-                        "properties": {
-                            "description": "Allow SSH traffic from management subnet",
-                            "priority": 330,
-                            "protocol": "Tcp",
-                            "access": "Allow",
-                            "direction": "Inbound",
-                            "sourceAddressPrefix": "[parameters('managementSubnetPrefix')]",
-                            "sourcePortRange": "*",
-                            "destinationAddressPrefix": "*",
-                            "destinationPortRange": "22"
-                        }
-                    },
-                    {
-                        "name": "SSH_NonGateway",
-                        "properties": {
-                            "description": "Deny SSH traffic from anywhere outside management subnet",
-                            "priority": 340,
-                            "protocol": "Tcp",
-                            "access": "Deny",
-                            "direction": "Inbound",
-                            "sourceAddressPrefix": "*",
-                            "sourcePortRange": "*",
-                            "destinationAddressPrefix": "*",
-                            "destinationPortRange": "22"
-                        }
-                    },
-                    {
-                        "name": "tn3270_inbound",
-                        "properties": {
-                            "description": "Allow 3270 traffic inbound",
-                            "priority": 500,
-                            "protocol": "Tcp",
-                            "access": "Allow",
-                            "direction": "Inbound",
-                            "sourceAddressPrefix": "*",
-                            "sourcePortRange": "*",
-                            "destinationAddressPrefix": "*",
-                            "destinationPortRange": "5555-5557"
-                        }
-                    },
-                    {
-                        "name": "escwa_mfds_inbound",
-                        "properties": {
-                            "description": "Allow access to mfds port for ESCWA",
-                            "priority": 510,
-                            "protocol": "*",
-                            "access": "Allow",
-                            "direction": "Inbound",
-                            "sourceAddressPrefix": "[parameters('escwaNodeIp')]",
-                            "sourcePortRange": "*",
-                            "destinationAddressPrefix": "*",
-                            "destinationPortRange": "[variables('mfdsPort')]"
-                        }
-                    },
-                    {
-                        "name": "escwa_webservices_inbound",
-                        "properties": {
-                            "description": "Allow access to web services ports for ESCWA",
-                            "priority": 520,
-                            "protocol": "Tcp",
-                            "access": "Allow",
-                            "direction": "Inbound",
-                            "sourceAddressPrefix": "[parameters('escwaNodeIp')]",
-                            "sourcePortRange": "*",
-                            "destinationAddressPrefix": "*",
-                            "destinationPortRange": "5558-5560"
-                        }
-                    },
-                    {
-                        "name": "denymanagement_inbound",
-                        "properties": {
-                            "description": "Deny all other traffic from management subnet",
-                            "priority": 700,
-                            "protocol": "*",
-                            "access": "Deny",
-                            "direction": "Inbound",
-                            "sourceAddressPrefix": "[parameters('managementSubnetPrefix')]",
-                            "sourcePortRange": "*",
-                            "destinationAddressPrefix": "*",
-                            "destinationPortRange": "*"
-                        }
-                    },
-                    {
-                        "name": "denydata_inbound",
-                        "properties": {
-                            "description": "Deny all other traffic from management subnet",
-                            "priority": 710,
-                            "protocol": "*",
-                            "access": "Deny",
-                            "direction": "Inbound",
-                            "sourceAddressPrefix": "[parameters('dataSubnetPrefix')]",
-                            "sourcePortRange": "*",
-                            "destinationAddressPrefix": "*",
-                            "destinationPortRange": "*"
-                        }
                     }
                 ]
             }
@@ -1703,6 +1605,39 @@
         {
             "apiVersion": "2019-09-01",
             "type": "Microsoft.Resources/deployments",
+            "name": "[esdeploy.getLoopName('joinDomainEs', copyIndex())]",
+            "dependsOn": [
+                "resetEsNodeNicLoop"
+            ],
+            "copy": {
+                "name": "joinDomainEsNodeLoop",
+                "count": "[parameters('esInstanceCount')]"
+            },
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('joinDomainUrl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "hostName": {
+                        "value": "[esdeploy.getLoopName(variables('esHostname'), copyIndex())]"
+                    },
+                    "domainJoinProperties": {
+                        "value": "[variables('domainJoinProperties')]"
+                    },
+                    "deployLinux": {
+                        "value": "[parameters('deployLinux')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2019-09-01",
+            "type": "Microsoft.Resources/deployments",
             "name": "resetEscwaNodeNic",
             "dependsOn": [
                 "[resourceId('Microsoft.Resources/deployments', 'createEscwaNode')]",
@@ -1752,39 +1687,6 @@
                     },
                     "hostName": {
                         "value": "[variables('escwaHostname')]"
-                    },
-                    "domainJoinProperties": {
-                        "value": "[variables('domainJoinProperties')]"
-                    },
-                    "deployLinux": {
-                        "value": "[parameters('deployLinux')]"
-                    }
-                }
-            }
-        },
-        {
-            "apiVersion": "2019-09-01",
-            "type": "Microsoft.Resources/deployments",
-            "name": "[esdeploy.getLoopName('joinDomainEs', copyIndex())]",
-            "dependsOn": [
-                "resetEsNodeNicLoop"
-            ],
-            "copy": {
-                "name": "joinDomainEsNodeLoop",
-                "count": "[parameters('esInstanceCount')]"
-            },
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[variables('joinDomainUrl')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "location": {
-                        "value": "[parameters('location')]"
-                    },
-                    "hostName": {
-                        "value": "[esdeploy.getLoopName(variables('esHostname'), copyIndex())]"
                     },
                     "domainJoinProperties": {
                         "value": "[variables('domainJoinProperties')]"
