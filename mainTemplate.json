@@ -1703,39 +1703,6 @@
         {
             "apiVersion": "2019-09-01",
             "type": "Microsoft.Resources/deployments",
-            "name": "[esdeploy.getLoopName('joinDomainEs', copyIndex())]",
-            "dependsOn": [
-                "resetEsNodeNicLoop"
-            ],
-            "copy": {
-                "name": "joinDomainEsNodeLoop",
-                "count": "[parameters('esInstanceCount')]"
-            },
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[variables('joinDomainUrl')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "location": {
-                        "value": "[parameters('location')]"
-                    },
-                    "hostName": {
-                        "value": "[esdeploy.getLoopName(variables('esHostname'), copyIndex())]"
-                    },
-                    "domainJoinProperties": {
-                        "value": "[variables('domainJoinProperties')]"
-                    },
-                    "deployLinux": {
-                        "value": "[parameters('deployLinux')]"
-                    }
-                }
-            }
-        },
-        {
-            "apiVersion": "2019-09-01",
-            "type": "Microsoft.Resources/deployments",
             "name": "resetEscwaNodeNic",
             "dependsOn": [
                 "[resourceId('Microsoft.Resources/deployments', 'createEscwaNode')]",
@@ -1785,6 +1752,39 @@
                     },
                     "hostName": {
                         "value": "[variables('escwaHostname')]"
+                    },
+                    "domainJoinProperties": {
+                        "value": "[variables('domainJoinProperties')]"
+                    },
+                    "deployLinux": {
+                        "value": "[parameters('deployLinux')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2019-09-01",
+            "type": "Microsoft.Resources/deployments",
+            "name": "[esdeploy.getLoopName('joinDomainEs', copyIndex())]",
+            "dependsOn": [
+                "resetEsNodeNicLoop"
+            ],
+            "copy": {
+                "name": "joinDomainEsNodeLoop",
+                "count": "[parameters('esInstanceCount')]"
+            },
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('joinDomainUrl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "hostName": {
+                        "value": "[esdeploy.getLoopName(variables('esHostname'), copyIndex())]"
                     },
                     "domainJoinProperties": {
                         "value": "[variables('domainJoinProperties')]"
